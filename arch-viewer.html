@@ -445,9 +445,9 @@
   <button id="exportPng" type="button">Export PNG</button>
   <button id="saveHtml" type="button">Save HTML</button>
   <button id="copyHtml" type="button">Copy HTML</button>
-  <button id="toggleSlideLayout" type="button" class="active">Slide Layout</button>
+  <button id="toggleSlideLayout" type="button">Slide Layout</button>
   <button id="toggleToolbar" type="button">Hide Tools</button>
-  <span class="edit-status" id="editStatus">Slide mode</span>
+  <span class="edit-status" id="editStatus">View mode</span>
 </div>
 
 <script>
@@ -463,7 +463,7 @@
   var storedFileHandle = null;
   var dirHandle = null;
   var editMode = false;
-  var slideLayout = true;   // DEFAULT ON
+  var slideLayout = false;  // DEFAULT OFF — user clicks Slide Layout to enable
   var annotateMode = false;
   var reviewCounter = 0;
   var reviewMarkCounter = 0;
@@ -586,13 +586,17 @@
     loadedSub      = subMatch   ? subMatch[1].replace(/<[^>]+>/g, "").trim() : "";
     loadedFooterHtml = footerMatch ? footerMatch[1] : "";
 
-    /* Build injected HTML — canvas only, no inner nav/header */
+    /* Build injected HTML — include diagram-header so title is editable in-canvas */
     var styleTag = diagramCss ? '<style id="diagramInjectedCss">' + diagramCss + "</style>" : "";
     diagramMount.innerHTML =
       styleTag +
       '<div id="slideViewport" class="slide-viewport">' +
         '<div id="slideFrame" class="slide-frame">' +
           '<div id="diagramShell" class="diagram-shell">' +
+            '<header class="diagram-header">' +
+              '<h1 class="diagram-title">' + escHtml(loadedTitle) + '</h1>' +
+              '<p class="diagram-sub">' + escHtml(loadedSub) + '</p>' +
+            '</header>' +
             '<main class="diagram-canvas" id="diagramCanvas">' +
               '<div id="reviewLayer" class="review-layer">' +
                 '<svg id="reviewConnectors" class="review-connectors" aria-hidden="true"></svg>' +
@@ -632,17 +636,17 @@
     document.body.classList.remove("edit-mode", "review-annotate-mode");
     toggleEditBtn.textContent = "Enable Edit";
     annotateBtn.textContent = "Review Annotate";
-    editStatusEl.textContent = "Slide mode";
+    editStatusEl.textContent = "View mode";
     reviewNotes.clear();
     reviewCounter = reviewMarkCounter = 0;
     selectedMark = null;
     dragState = drawState = null;
 
-    /* Default slide layout ON */
-    slideLayout = true;
-    document.body.classList.add("slide-layout");
-    slideBtn.classList.add("active");
-    requestAnimationFrame(applySlideScale);
+    /* Default: full mode (slide layout OFF — user can enable manually) */
+    slideLayout = false;
+    document.body.classList.remove("slide-layout");
+    slideBtn.classList.remove("active");
+    resetSlideScale();
 
     /* Version nav */
     setupVersionNav();
@@ -992,7 +996,6 @@
 
   /* ── Save / Copy HTML (reconstructs lean-compatible HTML) ── */
   function buildLeanHtml() {
-    var ds = document.getElementById("diagramShell");
     var canvas = document.getElementById("diagramCanvas");
     if (!canvas) return "";
     /* Get canvas HTML minus the reviewLayer */
@@ -1001,14 +1004,19 @@
     if (rl) rl.remove();
     var canvasInner = canvasClone.innerHTML;
 
-    var titleHtml = document.getElementById("diagTitle") ? loadedTitle : "Diagram";
+    /* Read title/sub from live DOM so edits are captured */
+    var titleEl = document.querySelector("#diagramShell .diagram-title");
+    var subEl   = document.querySelector("#diagramShell .diagram-sub");
+    var currentTitle = titleEl ? titleEl.textContent.trim() : loadedTitle;
+    var currentSub   = subEl   ? subEl.textContent.trim()   : loadedSub;
+
     return "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
       "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-      "<title>" + loadedTitle + "</title>\n" +
+      "<title>" + currentTitle + "</title>\n" +
       "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css\">\n" +
       (diagramCss ? "<style>\n/* DIAGRAM-CSS-START */\n" + diagramCss + "\n/* DIAGRAM-CSS-END */\n</style>\n" : "") +
       "</head>\n<body>\n" +
-      "<header class=\"diagram-header\"><h1 class=\"diagram-title\">" + loadedTitle + "</h1><p class=\"diagram-sub\">" + loadedSub + "</p></header>\n" +
+      "<header class=\"diagram-header\"><h1 class=\"diagram-title\">" + currentTitle + "</h1><p class=\"diagram-sub\">" + currentSub + "</p></header>\n" +
       "<main class=\"diagram-canvas\" id=\"diagramCanvas\">\n" + canvasInner + "\n</main>\n" +
       "<footer class=\"diagram-footer\">" + loadedFooterHtml + "</footer>\n" +
       "</body>\n</html>";
@@ -1033,6 +1041,9 @@
   });
 
   /* ── Helpers ── */
+  function escHtml(s) {
+    return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
   function dashArr(style, w) {
     if (style === "dashed") return (w * 2.8).toFixed(1) + " " + (w * 1.8).toFixed(1);
     if (style === "dotted") return "1 " + (w * 2).toFixed(1);
