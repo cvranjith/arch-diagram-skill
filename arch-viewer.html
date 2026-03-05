@@ -458,6 +458,7 @@
     <button id="deleteMark" type="button" disabled>Delete Mark</button>
   </div>
   <button id="exportPng" type="button">Export PNG</button>
+  <button id="exportDrawio" type="button">Export draw.io</button>
   <button id="saveHtml" type="button">Save HTML</button>
   <span class="edit-status" id="editStatus">View mode</span>
 </div>
@@ -510,6 +511,7 @@
   var reviewWidthIn   = document.getElementById("reviewWidth");
   var deleteMarkBtn   = document.getElementById("deleteMark");
   var exportPngBtn    = document.getElementById("exportPng");
+  var exportDrawioBtn = document.getElementById("exportDrawio");
   var saveHtmlBtn     = document.getElementById("saveHtml");
   var slideBtn           = document.getElementById("toggleSlideLayout");
   var toolbarToggleNav   = document.getElementById("toggleToolbarNav");
@@ -1055,6 +1057,215 @@
       a.click();
     }).catch(function () { if (ds) ds.style.transform = savedTransform; });
   });
+
+  /* ── Export draw.io XML ──────────────────────────────────────────────────────
+     Deterministic: reads actual rendered positions via getBoundingClientRect(),
+     reads resolved colors via getComputedStyle(), maps DOM classes → draw.io shapes.
+     No LLM tokens needed.
+  ── */
+  exportDrawioBtn.addEventListener("click", function () {
+    var xml = buildDrawioXml();
+    if (!xml) { showToast("No diagram loaded."); return; }
+    var blob = new Blob([xml], { type: "application/xml" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = loadedFileName.replace(/\.html?$/i, "") + ".drawio";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+  });
+
+  function buildDrawioXml() {
+    var canvas = document.getElementById("diagramCanvas");
+    var shell  = document.getElementById("diagramShell");
+    if (!canvas || !shell) return null;
+
+    /* Account for CSS scale so all coordinates are in diagram px */
+    var sc = getDrawScale();
+    var shellRect = shell.getBoundingClientRect();
+
+    var idN = 2;
+    var cells = [];
+
+    /* ── Helpers ── */
+    function toG(el) {
+      var r = el.getBoundingClientRect();
+      return {
+        x: Math.round((r.left - shellRect.left) / sc),
+        y: Math.round((r.top  - shellRect.top)  / sc),
+        w: Math.round(r.width  / sc),
+        h: Math.round(r.height / sc)
+      };
+    }
+    function xe(s) {
+      return (s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+    function rgbHex(rgb) {
+      var m = (rgb || "").match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (!m) return null;
+      return "#" + [m[1],m[2],m[3]].map(function (n) {
+        return ("0" + parseInt(n, 10).toString(16)).slice(-2);
+      }).join("");
+    }
+    /* Read the resolved border-left (or border-top) color as hex */
+    function borderHex(el) {
+      return rgbHex(getComputedStyle(el).borderLeftColor) ||
+             rgbHex(getComputedStyle(el).borderTopColor) ||
+             "#9E9892";
+    }
+    /* Strip icon elements (<i>, <img>) before reading text */
+    function labelText(el) {
+      if (!el) return "";
+      var c = el.cloneNode(true);
+      c.querySelectorAll("i, img").forEach(function (x) { x.remove(); });
+      return c.textContent.replace(/\s+/g, " ").trim();
+    }
+    function addCell(value, style, g) {
+      cells.push(
+        '        <mxCell id="' + (idN++) + '" value="' + xe(value) + '" style="' + style + '" vertex="1" parent="1">' +
+        '<mxGeometry x="' + g.x + '" y="' + g.y + '" width="' + Math.max(g.w, 20) + '" height="' + Math.max(g.h, 16) + '" as="geometry"/>' +
+        '</mxCell>'
+      );
+    }
+
+    /* ── 1. Dashed group / deployment boundary containers ── */
+    canvas.querySelectorAll(".deployment-boundary, .group").forEach(function (el) {
+      var g = toG(el);
+      var label = labelText(el.querySelector(".boundary-label, .group-label"));
+      var color = borderHex(el);
+      addCell(label,
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=" + color + ";strokeWidth=2;dashed=1;" +
+        "verticalAlign=top;align=left;fontSize=9;fontStyle=1;fontColor=" + color + ";spacingTop=5;spacingLeft=6;",
+        g);
+    });
+
+    /* ── 2. Layer swimlane containers ── */
+    canvas.querySelectorAll(".vam-layer, .swimlane-row").forEach(function (el) {
+      var g = toG(el);
+      var label = labelText(el.querySelector(".layer-label, .swimlane-label"));
+      addCell(label,
+        "swimlane;startSize=22;fillColor=#F5F4F2;strokeColor=#DFDCD8;fontStyle=1;fontSize=9;align=left;" +
+        "spacingLeft=5;",
+        g);
+    });
+
+    /* ── 3. Persistence layer container ── */
+    canvas.querySelectorAll(".persistence-layer").forEach(function (el) {
+      var g = toG(el);
+      var label = labelText(el.querySelector(".persistence-label"));
+      addCell(label,
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF8F7;strokeColor=#C74634;strokeWidth=2;dashed=1;" +
+        "verticalAlign=top;align=left;fontSize=8;fontStyle=1;fontColor=#9E9892;spacingLeft=6;spacingTop=4;",
+        g);
+    });
+
+    /* ── 4. Deploy-stack tag cloud container ── */
+    canvas.querySelectorAll(".deploy-stack").forEach(function (el) {
+      var g = toG(el);
+      addCell("",
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FBFD;strokeColor=#0F8799;strokeWidth=1;dashed=0;",
+        g);
+    });
+
+    /* ── 5. Deploy tags (pills) ── */
+    canvas.querySelectorAll(".deploy-tag").forEach(function (el) {
+      var g = toG(el);
+      if (g.w < 15) return;
+      var text = labelText(el);
+      var textColor = rgbHex(getComputedStyle(el).color) || "#1E5DAB";
+      var bgColor   = rgbHex(getComputedStyle(el).backgroundColor) || "#FFFFFF";
+      addCell(text,
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=" + bgColor + ";strokeColor=" + textColor + ";" +
+        "fontSize=8;fontColor=" + textColor + ";",
+        g);
+    });
+
+    /* ── 6. VAM cards / service-cards ── */
+    canvas.querySelectorAll(".vam-card, .service-card").forEach(function (el) {
+      var g = toG(el);
+      var titleEl = el.querySelector(".vam-card-title, .card-title");
+      var label = titleEl ? titleEl.textContent.trim() : "";
+      /* Left-border color = resolved card accent */
+      var accent = rgbHex(getComputedStyle(el).borderLeftColor) || "#2C5967";
+      addCell(label,
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=" + accent + ";strokeWidth=3;" +
+        "align=left;verticalAlign=middle;fontSize=8;fontStyle=1;fontColor=" + accent + ";spacingLeft=7;",
+        g);
+    });
+
+    /* ── 7. DB nodes (cylinders) ── */
+    canvas.querySelectorAll(".db-node").forEach(function (el) {
+      var g = toG(el);
+      var name = (el.querySelector(".db-node-name") || { textContent: "" }).textContent.trim();
+      var type = (el.querySelector(".db-node-type") || { textContent: "" }).textContent.trim();
+      var iconEl = el.querySelector(".db-node-icon");
+      var dbColor = iconEl ? (rgbHex(getComputedStyle(iconEl).backgroundColor) || "#C74634") : "#C74634";
+      addCell(name + (type ? "\n" + type : ""),
+        "shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;" +
+        "fillColor=#FFFFFF;strokeColor=" + dbColor + ";strokeWidth=2;fontSize=8;fontStyle=1;",
+        g);
+    });
+
+    /* ── 8. OBRH card ── */
+    canvas.querySelectorAll(".obrh-card").forEach(function (el) {
+      var g = toG(el);
+      var title = (el.querySelector(".obrh-title") || { textContent: "" }).textContent.trim();
+      var subEl = el.querySelector("div:not(.obrh-icon):not(.obrh-title):not(.obrh-arrows)");
+      var sub = subEl ? subEl.textContent.trim() : "";
+      addCell(title + (sub ? "\n" + sub : ""),
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0F8799;strokeWidth=2;" +
+        "fontStyle=1;fontSize=9;fontColor=#0F8799;",
+        g);
+    });
+
+    /* ── 9. External boxes ── */
+    canvas.querySelectorAll(".ext-box").forEach(function (el) {
+      var g = toG(el);
+      var title = labelText(el.querySelector(".ext-box-title"));
+      var items = Array.from(el.querySelectorAll(".ext-item"))
+        .map(function (i) { return "\u2022 " + labelText(i); })
+        .join("\n");
+      addCell(title + (items ? "\n" + items : ""),
+        "rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#DFDCD8;strokeWidth=2;" +
+        "align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=8;",
+        g);
+    });
+
+    /* ── 10. External section labels (plain text) ── */
+    canvas.querySelectorAll(".ext-section-label").forEach(function (el) {
+      var g = toG(el);
+      addCell(el.textContent.trim(),
+        "text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;" +
+        "fontSize=8;fontStyle=1;fontColor=#9E9892;",
+        g);
+    });
+
+    /* ── 11. Legend ── */
+    canvas.querySelectorAll(".vam-legend").forEach(function (el) {
+      var g = toG(el);
+      var text = Array.from(el.querySelectorAll(".legend-item"))
+        .map(function (i) { return labelText(i); }).join("  |  ");
+      addCell(text,
+        "text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;" +
+        "fontSize=8;fontColor=#9E9892;",
+        g);
+    });
+
+    /* ── Wrap in mxGraphModel ── */
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<mxfile>\n' +
+      '  <diagram name="' + xe(loadedTitle || "Architecture") + '">\n' +
+      '    <mxGraphModel dx="1600" dy="900" grid="0" gridSize="10" guides="1" tooltips="1"' +
+      ' connect="1" arrows="1" fold="1" page="0" pageScale="1"' +
+      ' pageWidth="1366" pageHeight="768" math="0" shadow="1">\n' +
+      '      <root>\n' +
+      '        <mxCell id="0" />\n' +
+      '        <mxCell id="1" parent="0" />\n' +
+      cells.join("\n") + "\n" +
+      '      </root>\n' +
+      '    </mxGraphModel>\n' +
+      '  </diagram>\n' +
+      '</mxfile>';
+  }
 
   /* ── Save / Copy HTML (reconstructs lean-compatible HTML) ── */
   function buildLeanHtml() {
