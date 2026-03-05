@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Oracle source downloads — large binaries not committed
+source/oracle-downloads/
+source/extracted/
+
+# Python cache
+**/__pycache__/
+*.pyc
+
+# Input scratch files
+input/
+
+# Claude session state (local only)
+context/SESSION_STATE.md

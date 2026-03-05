@@ -1,0 +1,30 @@
+{
+  "file": "/Users/ranjithcv/Documents/code/codex/arch-diagram/output/integration-landscape/integration-landscape-architecture-v1.html",
+  "pass": true,
+  "fixed": false,
+  "summary": {
+    "info": 0,
+    "warn": 3,
+    "error": 0
+  },
+  "findings": [
+    {
+      "code": ".service-head-display",
+      "severity": "warn",
+      "message": ".service-head should use display:flex for consistent icon/title alignment.",
+      "fixed": false
+    },
+    {
+      "code": ".ai-service-head-display",
+      "severity": "warn",
+      "message": ".ai-service-head should use display:flex for consistent icon/title alignment.",
+      "fixed": false
+    },
+    {
+      "code": "screenshot",
+      "severity": "warn",
+      "message": "playwright not available in this environment",
+      "fixed": false
+    }
+  ]
+}

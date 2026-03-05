@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<!--
+  Diagram: Integration Landscape (single-slide)
+  Version: v1
+  Notes:
+  - Reconstructed from provided reference image into a clean logical architecture.
+  - Preserved key constructs: customer channels, BEST filtering, OBPM hub, ESB context, and payment networks.
+  - Optimized spacing for 16:9 slide capture to avoid overflow in slide-layout mode.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integration Landscape Architecture - Slide View</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --ocean: #2C5967;
+    --sienna: #AE562C;
+    --air: #FCFBFA;
+    --neutral-1: #F5F4F2;
+    --neutral-2: #DFDCD8;
+    --neutral-3: #9E9892;
+    --neutral-4: #70736E;
+    --bark: #312D2A;
+    --oracle-red: #C74634;
+    --ivy: #759C6C;
+    --card-shadow: 0 1px 4px rgba(49,45,42,0.10), 0 0 0 1px rgba(49,45,42,0.06);
+    --slide-width: 1366px;
+    --slide-height: 768px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--neutral-1);
+    font-family: "Oracle Sans", "Segoe UI", Arial, Calibri, sans-serif;
+    color: var(--bark);
+  }
+
+  .slide-viewport { min-height: 100vh; }
+  .slide-frame { width: 100%; }
+  .diagram-shell { min-height: 100vh; }
+
+  body.slide-layout { overflow: hidden; }
+  body.slide-layout .slide-viewport {
+    min-height: 100vh;
+    height: 100vh;
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  body.slide-layout.slide-scroll .slide-viewport { overflow: auto; }
+  body.slide-layout .slide-frame {
+    flex: 0 0 auto;
+    position: relative;
+  }
+  body.slide-layout .diagram-shell {
+    width: var(--slide-width);
+    min-height: var(--slide-height);
+    margin: 0;
+    background: var(--neutral-1);
+    box-shadow: 0 0 0 1px rgba(49,45,42,0.12);
+    transform-origin: top left;
+  }
+
+  .oci-nav {
+    height: 44px;
+    background: #142830;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .oci-logo {
+    height: 18px;
+    filter: brightness(0) invert(1);
+  }
+
+  .oci-nav-right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-btn {
+    border: 1px solid rgba(255,255,255,0.24);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.95);
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.16); }
+
+  .nav-btn.active {
+    border-color: rgba(255,255,255,0.52);
+    background: rgba(255,255,255,0.22);
+  }
+
+  .diagram-header {
+    padding: 16px 24px 10px;
+    border-bottom: 1px solid var(--neutral-2);
+  }
+
+  .diagram-title { margin: 0 0 3px; font-size: 22px; line-height: 1.1; }
+  .diagram-sub { margin: 0; font-size: 10px; color: var(--neutral-4); }
+
+  .diagram-canvas {
+    padding: 10px 16px 12px;
+    min-height: calc(100vh - 44px - 100px - 36px);
+    position: relative;
+  }
+
+  body.slide-layout .diagram-canvas {
+    min-height: calc(var(--slide-height) - 44px - 100px - 36px);
+  }
+
+  .group {
+    border: 1px solid var(--neutral-3);
+    border-radius: 4px;
+    padding: 28px 12px 12px;
+    background: #E8E4DF;
+    position: relative;
+  }
+
+  .group-label {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bark);
+    font-weight: 700;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 8px;
+  }
+
+  .service-card {
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid #CFC9C2;
+    box-shadow: 0 1px 2px rgba(49,45,42,0.09);
+    border-radius: 4px;
+    padding: 10px 12px 10px 15px;
+  }
+
+  .service-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 4px 0 0 4px;
+    background: var(--card-accent, var(--ocean));
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .card-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--card-accent, var(--ocean));
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--card-accent, var(--ocean));
+  }
+
+  .card-items { list-style: none; margin: 0; padding: 0; }
+  .card-items li { font-size: 10px; line-height: 1.6; }
+
+  .diagram-footer {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-top: 1px solid var(--neutral-2);
+    background: #FFFFFF;
+    padding: 8px 24px;
+    font-size: 10px;
+    color: var(--neutral-4);
+  }
+
+  .diagram-confidential {
+    margin-left: auto;
+    color: var(--neutral-3);
+    font-style: italic;
+  }
+
+  .edit-toolbar {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 9999;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(20,40,48,0.96);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px;
+    flex-wrap: wrap;
+    max-width: min(90vw, 980px);
+  }
+
+  body.toolbar-hidden .edit-toolbar { display: none; }
+
+  .edit-toolbar button {
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  .edit-toolbar button:hover { background: rgba(255,255,255,0.16); }
+
+  body.edit-mode [contenteditable="true"] {
+    outline: 1px dashed var(--sienna);
+    outline-offset: 2px;
+    background: rgba(174,86,44,0.05);
+  }
+
+  .edit-status {
+    color: #D3E7EF;
+    font-size: 11px;
+    align-self: center;
+    padding: 0 4px;
+  }
+
+  .section-label {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--neutral-4);
+  }
+
+  .layer {
+    border: 1px solid #C3BDB7;
+    border-radius: 4px;
+    background: #E8E4DF;
+  }
+
+  .integration-layer {
+    position: relative;
+    height: 564px;
+    padding: 12px;
+    overflow: hidden;
+  }
+
+  .integration-grid {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 82px 1fr 116px;
+    gap: 8px;
+  }
+
+  .top-services {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .service-card {
+    padding: 7px 8px 7px 11px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .service-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .service-icon {
+    width: 14px;
+    text-align: center;
+    color: #2C5967;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .ai-service-icon {
+    width: 13px;
+    text-align: center;
+    color: #2C5967;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  .doc-icon {
+    width: 14px;
+    text-align: center;
+    color: #2C5967;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .service-title {
+    min-width: 0;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--card-accent, var(--ocean));
+  }
+
+  .service-meta {
+    font-size: 8px;
+    line-height: 1.25;
+    color: var(--neutral-4);
+  }
+
+  .middle-grid {
+    display: grid;
+    grid-template-columns: 214px 1fr 220px;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .lane {
+    border: 1px solid #C8C2BC;
+    border-radius: 4px;
+    background: #F1EEEA;
+    padding: 7px;
+    position: relative;
+  }
+
+  .lane-title {
+    margin: 0 0 6px;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #857D75;
+  }
+
+  .channel-list,
+  .external-list {
+    display: grid;
+    gap: 6px;
+  }
+
+  .channel-list .service-card,
+  .external-list .service-card {
+    min-height: 38px;
+  }
+
+  .core-lane {
+    background: #ECE7E2;
+    border-color: #C3BBB2;
+    padding: 8px 8px 7px;
+  }
+
+  .core-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #C7BFB7;
+    background: #F7F4F1;
+    font-size: 8px;
+    color: #6F6761;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .ribbon-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #AE562C;
+    flex-shrink: 0;
+  }
+
+  .core-main {
+    display: grid;
+    grid-template-columns: 152px 1fr 152px;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .filter-card,
+  .bridge-card {
+    min-height: 116px;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+  }
+
+  .filter-card .service-head,
+  .bridge-card .service-head {
+    justify-content: center;
+  }
+
+  .best-others {
+    margin-bottom: 6px;
+    border: 1px solid #97A682;
+    border-radius: 4px;
+    background: #EBF1E6;
+    color: #4D6346;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 4px 6px;
+  }
+
+  .obpm-card {
+    border-radius: 4px;
+    border: 1px solid #C79A82;
+    background: linear-gradient(180deg, #F6E4D9 0%, #F1D6C7 100%);
+    box-shadow: var(--card-shadow);
+    padding: 10px 12px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    min-height: 116px;
+    position: relative;
+  }
+
+  .obpm-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+    background: var(--sienna);
+  }
+
+  .obpm-title {
+    font-size: 22px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--sienna);
+    letter-spacing: 0.01em;
+    margin-bottom: 5px;
+  }
+
+  .obpm-meta {
+    font-size: 9px;
+    color: #6A4A3A;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .bottom-systems {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .bottom-systems .service-card {
+    min-height: 80px;
+  }
+
+  .network-stack {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .network-node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid #CBC5BE;
+    border-radius: 4px;
+    background: #FAF8F6;
+    padding: 7px 8px;
+    font-size: 9px;
+    color: #6F6861;
+    font-weight: 700;
+  }
+
+  .network-node i {
+    color: #2C5967;
+    font-size: 12px;
+  }
+
+  .connector-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .flow-line {
+    stroke: #312D2A;
+    stroke-width: 1;
+    fill: none;
+    marker-end: url(#openArrow);
+  }
+
+  .flow-line.dashed {
+    stroke-dasharray: 4 3;
+  }
+
+  .flow-label {
+    font-size: 7px;
+    fill: #6F6861;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 1220px) {
+    .integration-layer {
+      height: auto;
+      overflow: visible;
+    }
+    .integration-grid {
+      grid-template-rows: auto auto auto;
+    }
+    .top-services {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .middle-grid {
+      grid-template-columns: 1fr;
+    }
+    .connector-layer {
+      display: none;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .top-services {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .bottom-systems {
+      grid-template-columns: 1fr;
+    }
+    .oci-nav-right { gap: 6px; }
+  }
+
+/* Visual QA Auto-Fix: begin */
+/* Visual QA Auto-Fix: layout + icon uniformity + contrast */
+.runtime-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  grid-template-areas:
+    "orchestrator capabilities"
+    "orchestrator genai";
+  gap: 10px;
+  align-items: start;
+}
+.orchestrator-box { grid-area: orchestrator; }
+.capability-grid { grid-area: capabilities; }
+.genai-panel { grid-area: genai; }
+.layer {
+  background: #E8E4DF;
+  border: 1px solid #C3BDB7;
+}
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid #CFC9C2;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.09);
+}
+.service-head,
+.ai-service-head,
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.service-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+.ai-service-icon {
+  width: 13px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 11px;
+}
+.doc-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .runtime-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "orchestrator"
+      "capabilities"
+      "genai";
+  }
+  .cap-col:not(:last-child)::after,
+  .cap-col:not(:last-child)::before {
+    display: none;
+  }
+}
+/* Visual QA Auto-Fix: end */
+</style>
+</head>
+<body>
+<div id="slideViewport" class="slide-viewport">
+<div id="slideFrame" class="slide-frame">
+<div id="diagramShell" class="diagram-shell">
+  <nav class="oci-nav">
+    <img class="oci-logo" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTA5LjM2IDIyLjk2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0ibG9nbyIgb3ZlcmZsb3c9ImhpZGRlbiI+PGc+PHBhdGggZD0iTTQ3LjkxMjIgMTMuNDIzNCA1NC40NTkgMTMuNDIzNCA1MSA3Ljg0MTM1IDQ0LjY1MDUgMTcuOTIzMyA0MS43NSAxNy45MjMzIDQ5LjQ4MDUgNS44MjM3NUM0OS44MTA2IDUuMzMzNTUgNTAuMzc3IDUuMDM2NjUgNTAuOTk2MiA1LjAzNjY1IDUxLjYwMTcgNS4wMzY2NSA1Mi4xNTgyIDUuMzIzNzUgNTIuNDg4MyA1LjgwMjI1TDYwLjI0MjIgMTcuOTIzMyA1Ny4zNDk3IDE3LjkyMzMgNTUuOTg2NSAxNS42Njk0IDQ5LjM1NzQgMTUuNjY5NCA0Ny45MTIyIDEzLjQyMzRNNzcuOTUxMiAxNS42Njk0IDc3Ljk1MTIgNS4xNTk3NSA3NS40OTIyIDUuMTU5NzUgNzUuNDkyMiAxNi43MDI3Qzc1LjQ5MjIgMTcuMDE3MiA3NS42MjUxIDE3LjMyNTggNzUuODU1NiAxNy41NDgzIDc2LjA5IDE3Ljc5MDYgNzYuNDEyMSAxNy45MjMzIDc2Ljc1IDE3LjkyMzNMODcuOTMxNyAxNy45MjMzIDg5LjM4ODcgMTUuNjY5NCA3Ny45NTEyIDE1LjY2OTRNMzcuMzUxMiAxMy43OTA2QzM5Ljc0MDcgMTMuNzkwNiA0MS42NjIyIDExLjg1NjkgNDEuNjYyMiA5LjQ3NDE1IDQxLjY2MjIgNy4wOTEzNSAzOS43NDA3IDUuMTU5NzUgMzcuMzUxMiA1LjE1OTc1TDI2LjYxMjkgNS4xNTk3NSAyNi42MTI5IDE3LjkyMzMgMjkuMDY2OSAxNy45MjMzIDI5LjA2NjkgNy40MTU1NSAzNy4xODggNy40MTU1NUMzOC4zMjc4IDcuNDE1NTUgMzkuMjUxNSA4LjMzNTU1IDM5LjI1MTUgOS40NzQxNSAzOS4yNTE1IDEwLjYxMDkgMzguMzI3OCAxMS41NDY0IDM3LjE4OCAxMS41NDY0TDMwLjI2NzIgMTEuNTQwNiAzNy41OTczIDE3LjkyMzMgNDEuMTU4MiAxNy45MjMzIDM2LjIzNSAxMy43OTA2IDM3LjM1MTIgMTMuNzkwNk0xMS41MTQyIDE3LjkyMzMgMTguOTMzMSAxNy45MjMzQzIyLjQ2MjUgMTcuOTIzMyAyNS4zMDQzIDE1LjA3MTggMjUuMzA0MyAxMS41NDY0IDI1LjMwNDMgOC4wMTcxNSAyMi40NjI1IDUuMTU5NzUgMTguOTMzMSA1LjE1OTc1TDExLjUxNDIgNS4xNTk3NUM3Ljk4ODg2IDUuMTU5NzUgNS4xMjk0NSA4LjAxNzE1IDUuMTI5NDUgMTEuNTQ2NCA1LjEyOTQ1IDE1LjA3MTggNy45ODg4NiAxNy45MjMzIDExLjUxNDIgMTcuOTIzM00xOC43NjMzIDE1LjY3NzIgMTEuNjc3NCAxNS42NzcyQzkuMzk3MDUgMTUuNjc3MiA3LjU0OTM1IDEzLjgyMzcgNy41NDkzNSAxMS41NDY0IDcuNTQ5MzUgOS4yNTkzNSA5LjM5NzA1IDcuNDE1NTUgMTEuNjc3NCA3LjQxNTU1TDE4Ljc2MzMgNy40MTU1NUMyMS4wNTEzIDcuNDE1NTUgMjIuODk3MSA5LjI1OTM1IDIyLjg5NzEgMTEuNTQ2NCAyMi44OTcxIDEzLjgyMzcgMjEuMDUxMyAxNS42NzcyIDE4Ljc2MzMgMTUuNjc3Mk02NS4zNjcyIDE3LjkyMzMgNzIuOTQxNSAxNy45MjMzIDc0LjM3NSAxNS42NzcyIDY1LjUzNTIgMTUuNjc3MkM2My4yNDQyIDE1LjY3NzIgNjEuMzk4NSAxMy44MjM3IDYxLjM5ODUgMTEuNTQ2NCA2MS4zOTg1IDkuMjU5MzUgNjMuMjQ0MiA3LjQxNTU1IDY1LjUzNTIgNy40MTU1NUw3Mi43MzA1IDcuNDE1NTUgNzQuMTgxNyA1LjE1OTc1IDY1LjM2NzIgNS4xNTk3NUM2MS44Mzk5IDUuMTU5NzUgNTguOTc0NiA4LjAxNzE1IDU4Ljk3NDYgMTEuNTQ2NCA1OC45NzQ3IDE1LjA3MTggNjEuODQgMTcuOTIzMyA2NS4zNjcyIDE3LjkyMzNNOTUuMzgxIDE1LjY3NzJDOTMuNDkwMyAxNS42NzcyIDkxLjg5NjUgMTQuNDA3OCA5MS40MDQ0IDEyLjY3MTRMMTAxLjg5MyAxMi42NzE0IDEwMy4zMzggMTAuNDIxNCA5MS40MDQ0IDEwLjQyMTRDOTEuODk0NyA4LjY4MTI1IDkzLjQ5MDMgNy40MTU1NSA5NS4zODEgNy40MTU1NUwxMDIuNTgyIDcuNDE1NTUgMTA0LjAyMiA1LjE1OTc1IDk1LjIxNjkgNS4xNTk3NUM5MS42OTUzIDUuMTU5NzUgODguODM3OSA4LjAxNzE1IDg4LjgzNzkgMTEuNTQ2NCA4OC44Mzc5IDE1LjA3MTggOTEuNjk1MyAxNy45MjMzIDk1LjIxNjkgMTcuOTIzM0wxMDIuNzkxIDE3LjkyMzMgMTA0LjIzMSAxNS42NzcyIDk1LjM4MSAxNS42NzcyIiBmaWxsPSIjQzc0NjM0Ii8+PC9nPjwvc3ZnPg==" alt="Oracle">
+    <div class="oci-nav-right">
+      <button id="toggleSlideLayout" class="nav-btn" type="button">Slide Layout</button>
+      <button id="toggleToolbar" class="nav-btn" type="button">Hide Tools</button>
+    </div>
+  </nav>
+
+  <header class="diagram-header">
+    <h1 class="diagram-title" data-editable="true">Integration Landscape Architecture</h1>
+    <p class="diagram-sub" data-editable="true">Single-slide logical view reconstructed from reference: channels, OBPM orchestration, interface systems, and downstream payment networks.</p>
+  </header>
+
+  <main class="diagram-canvas" id="diagramCanvas">
+    <section class="layer integration-layer">
+      <span class="section-label" data-editable="true">Integration Landscape (Slide Fit)</span>
+
+      <div class="integration-grid">
+        <div class="top-services">
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-database service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Static Reference Data</span>
+            </div>
+            <span class="service-meta" data-editable="true">Azure Data Platform / CIPS</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-bell service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Notifications</span>
+            </div>
+            <span class="service-meta" data-editable="true">CDM</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-file-contract service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">FX Contracts</span>
+            </div>
+            <span class="service-meta" data-editable="true">DFX / IWA</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-chart-line service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Alerts &amp; Monitoring</span>
+            </div>
+            <span class="service-meta" data-editable="true">SolarWinds / ITSM</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-money-check-dollar service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Charges</span>
+            </div>
+            <span class="service-meta" data-editable="true">CDM</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-file-invoice service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Reports / Recon</span>
+            </div>
+            <span class="service-meta" data-editable="true">Azure Data Platform</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-building-columns service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Virtual A/C</span>
+            </div>
+            <span class="service-meta" data-editable="true">ITCP</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-receipt service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Billing</span>
+            </div>
+            <span class="service-meta" data-editable="true">ITCP</span>
+          </article>
+        </div>
+
+        <div class="middle-grid">
+          <aside class="lane">
+            <h2 class="lane-title" data-editable="true">Customer &amp; Channels</h2>
+            <div class="channel-list">
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-users service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">E-Channels</span>
+                </div>
+                <span class="service-meta" data-editable="true">SMARTS</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-shield-halved service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">E-SOC</span>
+                </div>
+                <span class="service-meta" data-editable="true">Fraud / risk gateway</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-right-left service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">BIK H2H / SCF</span>
+                </div>
+                <span class="service-meta" data-editable="true">Corporate integration</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--sienna)">
+                <div class="service-head">
+                  <i class="fa-solid fa-person-booth service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Manual Direct / OTC</span>
+                </div>
+                <span class="service-meta" data-editable="true">Branch assisted input</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--neutral-4)">
+                <div class="service-head">
+                  <i class="fa-solid fa-users-rectangle service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Other Departments</span>
+                </div>
+                <span class="service-meta" data-editable="true">Internal requests</span>
+              </article>
+            </div>
+          </aside>
+
+          <section class="lane core-lane">
+            <h2 class="lane-title" data-editable="true">Core Integration Hub</h2>
+            <div class="core-ribbon">
+              <span data-editable="true">ESB</span>
+              <span class="ribbon-dot" aria-hidden="true"></span>
+              <span data-editable="true">Maker</span>
+              <span class="ribbon-dot" aria-hidden="true"></span>
+              <span data-editable="true">Checker</span>
+              <span class="ribbon-dot" aria-hidden="true"></span>
+              <span data-editable="true">Approver</span>
+            </div>
+            <div class="best-others" data-editable="true">BEST Others</div>
+            <div class="core-main">
+              <article class="service-card filter-card" style="--card-accent: #4D6346;">
+                <div class="service-head">
+                  <i class="fa-solid fa-filter service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">BEST Filtering &amp; Routing (CGI)</span>
+                </div>
+                <span class="service-meta" data-editable="true">Validation and rule-based dispatch</span>
+              </article>
+              <article class="obpm-card">
+                <div>
+                  <div class="obpm-title" data-editable="true">OBPM</div>
+                  <div class="obpm-meta" data-editable="true">TT, DD, BA/NTNET, PromptPay, SCF, IT, SMART Credit</div>
+                </div>
+              </article>
+              <article class="service-card bridge-card" style="--card-accent: var(--ocean);">
+                <div class="service-head">
+                  <i class="fa-solid fa-arrow-right-arrow-left service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Interface Bus</span>
+                </div>
+                <span class="service-meta" data-editable="true">Service mediation to external rails</span>
+              </article>
+            </div>
+          </section>
+
+          <aside class="lane">
+            <h2 class="lane-title" data-editable="true">External Payment Connectivity</h2>
+            <div class="external-list">
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-code-branch service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Branch I/F</span>
+                </div>
+                <span class="service-meta" data-editable="true">ODA / G/W</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-network-wired service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">APAC SWIFT</span>
+                </div>
+                <span class="service-meta" data-editable="true">SAA</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--neutral-4)">
+                <div class="service-head">
+                  <i class="fa-solid fa-landmark service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Domestic Payment Systems</span>
+                </div>
+                <span class="service-meta" data-editable="true">ITMX and local switches</span>
+              </article>
+            </div>
+            <div class="network-stack">
+              <div class="network-node">
+                <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                <span data-editable="true">SWIFT Network</span>
+              </div>
+              <div class="network-node">
+                <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                <span data-editable="true">BAHTNET</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="bottom-systems">
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-building service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">APAC SWIFT</span>
+            </div>
+            <span class="service-meta" data-editable="true">SAA</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-sitemap service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">EPX</span>
+            </div>
+            <span class="service-meta" data-editable="true">By JPX Appnames</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--sienna)">
+            <div class="service-head">
+              <i class="fa-solid fa-database service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Core Banking</span>
+            </div>
+            <span class="service-meta" data-editable="true">T24</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-desktop service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">HO Systems</span>
+            </div>
+            <span class="service-meta" data-editable="true">Screening / Firecross</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--neutral-4)">
+            <div class="service-head">
+              <i class="fa-solid fa-cubes service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Other Internal Systems</span>
+            </div>
+            <span class="service-meta" data-editable="true">ISN</span>
+          </article>
+        </div>
+      </div>
+
+      <svg class="connector-layer" viewBox="0 0 1000 564" aria-hidden="true">
+        <defs>
+          <marker id="openArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M1,1 L7,4 L1,7" fill="none" stroke="#312D2A" stroke-width="1"></path>
+          </marker>
+        </defs>
+
+        <line class="flow-line" x1="188" y1="258" x2="292" y2="258"></line>
+        <line class="flow-line" x1="446" y1="258" x2="510" y2="258"></line>
+        <line class="flow-line" x1="616" y1="258" x2="690" y2="258"></line>
+        <line class="flow-line" x1="812" y1="211" x2="915" y2="211"></line>
+        <line class="flow-line dashed" x1="328" y1="86" x2="328" y2="184"></line>
+        <line class="flow-line dashed" x1="500" y1="86" x2="500" y2="184"></line>
+        <line class="flow-line dashed" x1="672" y1="86" x2="672" y2="184"></line>
+        <line class="flow-line" x1="558" y1="318" x2="558" y2="451"></line>
+        <line class="flow-line" x1="760" y1="300" x2="760" y2="451"></line>
+        <text class="flow-label" x="490" y="247">ESB</text>
+      </svg>
+    </section>
+  </main>
+
+  <footer class="diagram-footer">
+    <span data-editable="true">Legend:</span>
+    <span data-editable="true">Solid arrow = transaction flow</span>
+    <span data-editable="true">Dashed arrow = event/reference feed</span>
+    <span class="diagram-confidential" data-editable="true">Oracle Confidential</span>
+  </footer>
+</div>
+</div>
+</div>
+
+<div class="edit-toolbar" role="toolbar" aria-label="Diagram quick edit tools">
+  <button id="toggleEdit" type="button">Enable Edit</button>
+  <button id="exportPng" type="button">Export PNG</button>
+  <button id="saveHtml" type="button">Save HTML</button>
+  <button id="copyHtml" type="button">Copy HTML</button>
+  <button id="reloadPage" type="button">Reset</button>
+  <span class="edit-status" id="editStatus">View mode</span>
+</div>
+
+<script>
+(function () {
+  const slideLayoutBtn = document.getElementById("toggleSlideLayout");
+  const toolbarToggleBtn = document.getElementById("toggleToolbar");
+  const toggleBtn = document.getElementById("toggleEdit");
+  const exportPngBtn = document.getElementById("exportPng");
+  const saveBtn = document.getElementById("saveHtml");
+  const copyBtn = document.getElementById("copyHtml");
+  const reloadBtn = document.getElementById("reloadPage");
+  const status = document.getElementById("editStatus");
+  const slideViewport = document.getElementById("slideViewport");
+  const slideFrame = document.getElementById("slideFrame");
+  const diagramShell = document.getElementById("diagramShell");
+  const SLIDE_WIDTH = 1366;
+  const SLIDE_HEIGHT = 768;
+  const MIN_SLIDE_FIT_SCALE = 0.68;
+
+  const editableSelector = "[data-editable='true'], .diagram-title, .diagram-sub, .group-label, .card-title, .card-items li";
+
+  let editMode = false;
+  let slideLayout = false;
+  let toolbarVisible = true;
+
+  function setEditable(enabled) {
+    document.querySelectorAll(editableSelector).forEach((el) => {
+      el.setAttribute("contenteditable", enabled ? "true" : "false");
+      el.setAttribute("spellcheck", "false");
+    });
+  }
+
+  function serializeHtml() {
+    return "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  }
+
+  function fileNameFromPath() {
+    const path = (window.location.pathname || "diagram.html").split("/").pop();
+    return path && path.includes(".") ? path : "diagram-edited.html";
+  }
+
+  function pngNameFromPath() {
+    return fileNameFromPath().replace(/\.html?$/i, "") + ".png";
+  }
+
+  function clearSlideFrameStyles() {
+    document.body.classList.remove("slide-fit", "slide-scroll");
+    if (slideFrame) {
+      slideFrame.style.width = "";
+      slideFrame.style.height = "";
+    }
+    if (diagramShell) {
+      diagramShell.style.width = "";
+      diagramShell.style.minHeight = "";
+      diagramShell.style.transform = "";
+    }
+  }
+
+  function fitToSlideViewport() {
+    if (!slideViewport || !slideFrame || !diagramShell) {
+      return "Slide layout on";
+    }
+
+    diagramShell.style.width = SLIDE_WIDTH + "px";
+    diagramShell.style.minHeight = SLIDE_HEIGHT + "px";
+
+    const previousTransform = diagramShell.style.transform;
+    diagramShell.style.transform = "none";
+    const naturalHeight = Math.max(SLIDE_HEIGHT, Math.ceil(diagramShell.scrollHeight));
+    diagramShell.style.transform = previousTransform;
+
+    const availableWidth = Math.max(320, slideViewport.clientWidth - 16);
+    const availableHeight = Math.max(320, slideViewport.clientHeight - 16);
+    const fitScale = Math.min(1, availableWidth / SLIDE_WIDTH, availableHeight / naturalHeight);
+
+    if (fitScale >= MIN_SLIDE_FIT_SCALE) {
+      slideFrame.style.width = Math.round(SLIDE_WIDTH * fitScale) + "px";
+      slideFrame.style.height = Math.round(naturalHeight * fitScale) + "px";
+      diagramShell.style.transform = "scale(" + fitScale + ")";
+      document.body.classList.add("slide-fit");
+      document.body.classList.remove("slide-scroll");
+      return "Slide layout fit (" + Math.round(fitScale * 100) + "%)";
+    }
+
+    slideFrame.style.width = SLIDE_WIDTH + "px";
+    slideFrame.style.height = naturalHeight + "px";
+    diagramShell.style.transform = "none";
+    document.body.classList.add("slide-scroll");
+    document.body.classList.remove("slide-fit");
+    return "Slide layout (scroll fallback)";
+  }
+
+  function setSlideLayout(enabled) {
+    slideLayout = enabled;
+    document.body.classList.toggle("slide-layout", enabled);
+    slideLayoutBtn.classList.toggle("active", enabled);
+    slideLayoutBtn.textContent = enabled ? "Full Layout" : "Slide Layout";
+    if (enabled) {
+      status.textContent = fitToSlideViewport();
+      return;
+    }
+    clearSlideFrameStyles();
+    status.textContent = "Full layout on";
+  }
+
+  function setToolbarVisible(enabled) {
+    toolbarVisible = enabled;
+    document.body.classList.toggle("toolbar-hidden", !enabled);
+    toolbarToggleBtn.classList.toggle("active", !enabled);
+    toolbarToggleBtn.textContent = enabled ? "Hide Tools" : "Show Tools";
+  }
+
+  async function saveHtmlToFile() {
+    const html = serializeHtml();
+
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileNameFromPath(),
+          types: [{ description: "HTML file", accept: { "text/html": [".html"] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(html);
+        await writable.close();
+        status.textContent = "Saved HTML to file";
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") {
+          status.textContent = "Save canceled";
+          return;
+        }
+      }
+    }
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileNameFromPath();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+    status.textContent = "Downloaded edited HTML";
+  }
+
+  async function exportPng() {
+    if (!diagramShell) {
+      status.textContent = "Unable to export: diagram shell missing";
+      return;
+    }
+
+    if (!window.html2canvas) {
+      status.textContent = "PNG export unavailable. Use screenshot.";
+      return;
+    }
+
+    const wasVisible = toolbarVisible;
+    setToolbarVisible(false);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const canvas = await window.html2canvas(diagramShell, {
+        backgroundColor: "#F5F4F2",
+        scale: 2,
+        useCORS: true
+      });
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          status.textContent = "PNG export failed";
+          return;
+        }
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = pngNameFromPath();
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+        status.textContent = "Downloaded PNG";
+      }, "image/png");
+    } catch (err) {
+      status.textContent = "PNG export failed";
+    } finally {
+      setToolbarVisible(wasVisible);
+    }
+  }
+
+  function setMode(enabled) {
+    editMode = enabled;
+    document.body.classList.toggle("edit-mode", enabled);
+    setEditable(enabled);
+    toggleBtn.textContent = enabled ? "Disable Edit" : "Enable Edit";
+    status.textContent = enabled ? "Edit mode on" : "View mode";
+  }
+
+  slideLayoutBtn.addEventListener("click", () => setSlideLayout(!slideLayout));
+  toolbarToggleBtn.addEventListener("click", () => setToolbarVisible(!toolbarVisible));
+  toggleBtn.addEventListener("click", () => setMode(!editMode));
+  exportPngBtn.addEventListener("click", exportPng);
+  saveBtn.addEventListener("click", saveHtmlToFile);
+  window.addEventListener("resize", () => {
+    if (slideLayout) {
+      status.textContent = fitToSlideViewport();
+    }
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(serializeHtml());
+      status.textContent = "Copied HTML to clipboard";
+    } catch (err) {
+      status.textContent = "Clipboard blocked by browser";
+    }
+  });
+
+  reloadBtn.addEventListener("click", () => window.location.reload());
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && editMode) {
+      setMode(false);
+    }
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("layout") === "slide") {
+    setSlideLayout(true);
+  } else {
+    setSlideLayout(false);
+  }
+  setToolbarVisible(true);
+  setMode(false);
+})();
+</script>
+</body>
+</html>

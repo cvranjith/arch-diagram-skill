@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagram Title</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* DIAGRAM-CSS-START */
+/* VAM Component Architecture v5 — diagram-specific styles */
+:root {
+  /* Vivid cycling palette for card accents */
+  --c1: #0F8799;   /* teal */
+  --c2: #2E8C46;   /* forest */
+  --c3: #1E5DAB;   /* cobalt */
+  --c4: #E06520;   /* orange */
+  --c5: #C74634;   /* red */
+  --c6: #7B4FA0;   /* grape */
+  /* Category dot colors */
+  --dot-plato: #FFB703;
+  --dot-domain: #06D6A0;
+  --dot-cmc: #FB8500;
+}
+
+/* ── Legend ── */
+.vam-legend {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 14px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  color: #9E9892;
+  font-weight: 500;
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Main 3-column layout ── */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 115px 205px;
+  gap: 0;
+  align-items: start;
+}
+
+/* ── Deployment Boundary ── */
+.deployment-boundary {
+  border: 2px dashed var(--c1);
+  border-radius: 10px;
+  padding: 14px;
+  background: rgba(15,135,153,.03);
+  min-height: 400px;
+}
+.boundary-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--c1);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.boundary-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(15,135,153,.25);
+}
+
+/* ── Deployment stack tag cloud ── */
+.deploy-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: rgba(15,135,153,.05);
+  border: 1px solid rgba(15,135,153,.15);
+  border-radius: 6px;
+  align-items: center;
+}
+.deploy-stack-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #9E9892;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.deploy-tag {
+  font-size: 8.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.deploy-tag.tag-deploy {
+  color: #1E5DAB;
+  border-color: rgba(30,93,171,.30);
+  background: rgba(30,93,171,.07);
+}
+.deploy-tag.tag-framework {
+  color: #2E8C46;
+  border-color: rgba(46,140,70,.30);
+  background: rgba(46,140,70,.07);
+}
+.deploy-tag.tag-server {
+  color: #7B4FA0;
+  border-color: rgba(123,79,160,.30);
+  background: rgba(123,79,160,.07);
+}
+.deploy-stack-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(158,152,146,.35);
+  flex-shrink: 0;
+}
+
+/* ── OBRH Column ── */
+.obrh-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  min-height: 400px;
+}
+.obrh-card {
+  background: #fff;
+  border: 1.5px solid var(--c1);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(15,135,153,.15);
+  width: 100%;
+}
+.obrh-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--c1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 6px;
+  color: #fff;
+  font-size: 14px;
+}
+.obrh-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--c1);
+  line-height: 1.3;
+}
+.obrh-arrows {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #9E9892;
+}
+
+/* ── External column ── */
+.external-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 10px;
+  min-height: 400px;
+  justify-content: center;
+}
+.ext-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #9E9892;
+  margin-bottom: 4px;
+}
+.ext-box {
+  background: #fff;
+  border: 1.5px solid #DFDCD8;
+  border-radius: 8px;
+  padding: 10px;
+}
+.ext-box-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #1A1918;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ext-item {
+  font-size: 8.5px;
+  color: #52504D;
+  padding: 2px 0;
+  border-bottom: 1px solid #DFDCD8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ext-item:last-child { border-bottom: none; }
+.ext-item i { width: 12px; color: #9E9892; font-size: 8px; }
+
+/* ── Layer ── */
+.vam-layer { margin-bottom: 12px; }
+.vam-layer:last-child { margin-bottom: 0; }
+.layer-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #52504D;
+  padding: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 2px solid #DFDCD8;
+  margin-bottom: 8px;
+}
+
+/* ── Card grids ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 7px;
+}
+.card-grid-wide {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 7px;
+}
+
+/* ── Service card ── */
+.vam-card {
+  background: #FFFFFF;
+  border: 1px solid #E8E5E1;
+  border-left: 5px solid var(--card-accent, var(--c1));
+  border-radius: 6px;
+  padding: 7px 8px 7px 9px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-height: 46px;
+}
+.vam-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+
+/* Category dot */
+.cat-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.cat-dot-plato  { background: var(--dot-plato); }
+.cat-dot-domain { background: var(--dot-domain); }
+.cat-dot-cmc    { background: var(--dot-cmc); }
+
+/* Icon chip */
+.vam-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #fff;
+  background: var(--card-accent, var(--c1));
+  margin-top: 1px;
+}
+.vam-chip img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+/* Card text */
+.vam-card-body { flex: 1; min-width: 0; }
+.vam-card-title {
+  font-size: 7.5px;
+  font-weight: 400;
+  color: #52504D;
+  line-height: 1.35;
+  word-break: break-word;
+  padding-right: 8px;
+}
+
+/* ── Persistence layer ── */
+.persistence-layer {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 10px;
+  background: rgba(199,70,52,.04);
+  border: 1.5px dashed rgba(199,70,52,.28);
+  border-radius: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.persistence-label {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #9E9892;
+  margin-right: 4px;
+  white-space: nowrap;
+  align-self: center;
+}
+/* DIAGRAM-CSS-END */
+</style>
+</head>
+<body>
+<header class="diagram-header"><h1 class="diagram-title">Diagram Title</h1><p class="diagram-sub">Short architecture summary</p></header>
+<main class="diagram-canvas" id="diagramCanvas">
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+<!-- VAM Component Architecture v5 canvas -->
+
+<!-- Legend -->
+<div class="vam-legend">
+  <div class="legend-item" contenteditable="false" spellcheck="false"><div class="legend-dot" style="background:var(--dot-plato)"></div>Plato Infrastructure</div>
+  <div class="legend-item" contenteditable="false" spellcheck="false"><div class="legend-dot" style="background:var(--dot-domain)"></div>OBVAM Domain Service</div>
+  <div class="legend-item" contenteditable="false" spellcheck="false"><div class="legend-dot" style="background:var(--dot-cmc)"></div>CMC Service</div>
+</div>
+
+<!-- 3-column layout -->
+<div class="main-layout">
+
+  <!-- COL 1: DEPLOYMENT BOUNDARY -->
+  <div class="deployment-boundary">
+    <div class="boundary-label" contenteditable="false" spellcheck="false"><i class="fa-solid fa-shield-halved" style="font-size:10px"></i>ORACLE BANKING MICROSERVICE ARCHITECTURE (OBMA) Deployment</div>
+
+    <!-- Deployment stack tag cloud -->
+    <div class="deploy-stack">
+      <span class="deploy-stack-label" contenteditable="false" spellcheck="false">Deploy OPTIONS</span>
+      <span class="deploy-tag tag-deploy" contenteditable="false" spellcheck="false"><i class="fa-brands fa-docker" style="margin-right:3px"></i>Docker</span>
+      <span class="deploy-tag tag-deploy" contenteditable="false" spellcheck="false"><i class="fa-solid fa-dharmachakra" style="margin-right:3px"></i>Kubernetes</span>
+      <span class="deploy-tag tag-deploy" contenteditable="false" spellcheck="false">On-Prem VM</span>
+      <span class="deploy-stack-divider"></span>
+      <span class="deploy-stack-label" contenteditable="false" spellcheck="false">Framework</span>
+      <span class="deploy-tag tag-framework" contenteditable="false" spellcheck="false">Spring Cloud</span>
+      <span class="deploy-tag tag-framework" contenteditable="false" spellcheck="false">Microservices</span>
+      <span class="deploy-stack-divider"></span>
+      <span class="deploy-stack-label" contenteditable="false" spellcheck="false">App Server OPTIONS</span>
+      <span class="deploy-tag tag-server" contenteditable="false" spellcheck="false">Tomcat</span>
+      <span class="deploy-tag tag-server" contenteditable="false" spellcheck="false">WebLogic</span>
+    </div>
+
+    <!-- PLATO INFRASTRUCTURE -->
+    <div class="vam-layer">
+      <div class="layer-label" contenteditable="false" spellcheck="false"><i class="fa-solid fa-layer-group" style="font-size:9px"></i>Plato Infrastructure</div>
+      <div class="card-grid">
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-gear"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-CONFIG-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-binoculars"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-DISCOVERY-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-route"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-API-GATEWAY</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-shield-halved"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-SECURITY-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-file-lines"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-BATCH-SERVER</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-bell"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-ALERTS-MANAGEMENT-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-chart-bar"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-REPORTING-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-magnifying-glass"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-ELASTIC-SEARCH-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-envelope"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-EMAIL-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-SCHEDULER</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-comments"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-SMS-NOTIFICATION-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-database"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-FEED-ACCOUNTING</div></div><div class="cat-dot cat-dot-plato"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-users-gear"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">PLATO-UI-CONFIG-SERVICE</div></div><div class="cat-dot cat-dot-plato"></div></div>
+      </div>
+    </div>
+
+    <!-- OBVAM DOMAIN SERVICES -->
+    <div class="vam-layer">
+      <div class="layer-label" contenteditable="false" spellcheck="false"><i class="fa-solid fa-cubes" style="font-size:9px"></i>OBVAM Domain Services</div>
+      <div class="card-grid-wide">
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-wallet"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Account Server</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-receipt"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Transaction Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-money-bill-transfer"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Sweep Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-building-columns"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Interest &amp; Charges</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-file-invoice"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Accounting Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-sitemap"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Hierarchy Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-sliders"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Rules Engine</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-chart-line"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Liquidity Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-id-card"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Customer Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-bolt"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Event Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-file-contract"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Statement Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-plug"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Integration Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-gear"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Configuration Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-file-alt"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Report Service</div></div><div class="cat-dot cat-dot-domain"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-lock"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">Auth &amp; Access</div></div><div class="cat-dot cat-dot-domain"></div></div>
+      </div>
+    </div>
+
+    <!-- CMC SERVICES -->
+    <div class="vam-layer">
+      <div class="layer-label" contenteditable="false" spellcheck="false"><i class="fa-solid fa-server" style="font-size:9px"></i>CMC Services</div>
+      <div class="card-grid">
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-building"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-BANK-CORE-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-user-tie"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-CUSTOMER-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-money-bill"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-CURRENCY-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-calendar-days"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-HOLIDAY-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-table-cells"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-ACCOUNT-CORE-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-file-invoice-dollar"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-CHARGES-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-INTEREST-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-scroll"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-TXN-CODE-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-check-double"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-APPROVAL-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-list-check"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-CHECKLIST-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-file-shield"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-DOC-MANAGEMENT-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-clock"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-CAMT-PROCESS-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-circle-nodes"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-OBRH-REST-CLIENT</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-arrows-turn-to-dots"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-OBRH-AMQP-CLIENT</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-code-branch"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-OBRH-KAFKA-CLIENT</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-address-card"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-PARTY-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c2)"><div class="vam-chip"><i class="fa-solid fa-earth-americas"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-COUNTRY-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c3)"><div class="vam-chip"><i class="fa-solid fa-percent"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-RATE-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c4)"><div class="vam-chip"><i class="fa-solid fa-user-lock"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-ACCESS-MANAGEMENT</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c5)"><div class="vam-chip"><i class="fa-solid fa-clipboard-list"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-AUDIT-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c6)"><div class="vam-chip"><i class="fa-solid fa-language"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-LOCALE-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+        <div class="vam-card" style="--card-accent:var(--c1)"><div class="vam-chip"><i class="fa-solid fa-key"></i></div><div class="vam-card-body"><div class="vam-card-title" contenteditable="false" spellcheck="false">CMC-EXTERNAL-SYSTEM-SERVICE</div></div><div class="cat-dot cat-dot-cmc"></div></div>
+      </div>
+    </div>
+
+    <!-- PERSISTENCE LAYER -->
+    <div class="persistence-layer">
+      <span class="persistence-label"><i class="fa-solid fa-hard-drive" style="margin-right:4px"></i>Persistence</span>
+      <div class="db-node" style="--db-color: var(--oracle-red)">
+        <div class="db-node-icon"><i class="fa-solid fa-database"></i></div>
+        <div class="db-node-name" contenteditable="false" spellcheck="false">VAM Schema</div>
+        <div class="db-node-type" contenteditable="false" spellcheck="false">Oracle DB 19c</div>
+      </div>
+      <div class="db-node" style="--db-color: #231F20">
+        <div class="db-node-icon"><img src="../../skill/assets/icons/tech/kafka.svg" alt="Kafka"></div>
+        <div class="db-node-name" contenteditable="false" spellcheck="false">VAM Event Hub</div>
+        <div class="db-node-type" contenteditable="false" spellcheck="false">Apache Kafka</div>
+      </div>
+    </div>
+
+  </div><!-- /deployment-boundary -->
+
+  <!-- COL 2: OBRH -->
+  <div class="obrh-col">
+    <div class="obrh-card">
+      <div class="obrh-icon"><i class="fa-solid fa-shuffle"></i></div>
+      <div class="obrh-title" contenteditable="false" spellcheck="false">OB Routing Hub</div>
+      <div style="font-size:7.5px;color:#9E9892;margin-top:3px;line-height:1.3">REST · AMQP · Kafka</div>
+      <div class="obrh-arrows">
+        <i class="fa-solid fa-arrow-left" style="color:var(--c1);font-size:12px"></i>
+        <i class="fa-solid fa-arrow-right" style="color:var(--c4);font-size:12px"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- COL 3: EXTERNAL -->
+  <div class="external-col">
+    <div>
+      <div class="ext-section-label" contenteditable="false" spellcheck="false">External Banking Apps</div>
+      <div class="ext-box">
+        <div class="ext-box-title" contenteditable="false" spellcheck="false"><i class="fa-solid fa-landmark" style="color:var(--c4)"></i>Oracle Banking Applications</div>
+        <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>FLEXCUBE UBS</div>
+        <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OFSLL Lending</div>
+        <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OBLM Liquidity Mgmt</div>
+        <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OBPM Payments</div>
+        <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OBCFPM Credit</div>
+      </div>
+    </div>
+    <div class="ext-box">
+      <div class="ext-box-title" contenteditable="false" spellcheck="false"><i class="fa-solid fa-network-wired" style="color:var(--c5)"></i>Surrounding Applications</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>Pricing</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>Treasury</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>SWIFT / ISO20022</div>
+    </div>
+    <div class="ext-box">
+      <div class="ext-box-title" contenteditable="false" spellcheck="false"><i class="fa-solid fa-chart-bar" style="color:var(--c2)"></i>Reporting &amp; BI</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>Oracle Analytics</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>Oracle AI Data Platform</div>
+    </div>
+    <div class="ext-box">
+      <div class="ext-box-title" contenteditable="false" spellcheck="false"><i class="fa-solid fa-cloud" style="color:var(--c3)"></i>OCI Infra</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OCI Vault / KMS</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OCI Object Storage</div>
+      <div class="ext-item" contenteditable="false" spellcheck="false"><i class="fa-solid fa-circle-dot"></i>OCI Load Balancer</div>
+    </div>
+  </div>
+
+</div><!-- /main-layout -->
+    
+  
+
+</main>
+<footer class="diagram-footer">
+    <span>Legend</span>
+    <span>Solid arrow: data flow</span>
+    <span>Dashed arrow: control/user interaction</span>
+    <span class="diagram-confidential">Oracle Confidential</span>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,48 @@
+{
+  "file": "/Users/ranjithcv/Documents/code/codex/arch-diagram/output/integration-landscape/integration-landscape-architecture-v6.html",
+  "pass": true,
+  "fixed": false,
+  "summary": {
+    "info": 0,
+    "warn": 6,
+    "error": 0
+  },
+  "findings": [
+    {
+      "code": ".ai-service-icon-width",
+      "severity": "warn",
+      "message": ".ai-service-icon width is '17px', expected '13px'.",
+      "fixed": false
+    },
+    {
+      "code": ".ai-service-icon-font-size",
+      "severity": "warn",
+      "message": ".ai-service-icon font-size is '13px', expected '11px'.",
+      "fixed": false
+    },
+    {
+      "code": ".doc-icon-width",
+      "severity": "warn",
+      "message": ".doc-icon width is '18px', expected '14px'.",
+      "fixed": false
+    },
+    {
+      "code": ".doc-icon-font-size",
+      "severity": "warn",
+      "message": ".doc-icon font-size is '14px', expected '12px'.",
+      "fixed": false
+    },
+    {
+      "code": ".service-head-display",
+      "severity": "warn",
+      "message": ".service-head should use display:flex for consistent icon/title alignment.",
+      "fixed": false
+    },
+    {
+      "code": ".ai-service-head-display",
+      "severity": "warn",
+      "message": ".ai-service-head should use display:flex for consistent icon/title alignment.",
+      "fixed": false
+    }
+  ]
+}

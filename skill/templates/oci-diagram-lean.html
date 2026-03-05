@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Architecture Diagram</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --ocean: #2C5967;
+    --sienna: #AE562C;
+    --air: #FCFBFA;
+    --neutral-1: #F5F4F2;
+    --neutral-2: #DFDCD8;
+    --neutral-3: #9E9892;
+    --neutral-4: #70736E;
+    --bark: #312D2A;
+    --oracle-red: #C74634;
+    --ivy: #759C6C;
+    /* Extended vivid accents */
+    --vivid-teal:   #0F8799;
+    --vivid-orange: #E06520;
+    --vivid-cobalt: #1E5DAB;
+    --vivid-forest: #2E8C46;
+    --vivid-grape:  #7B4FA0;
+    --card-shadow: 0 1px 4px rgba(49,45,42,0.10), 0 0 0 1px rgba(49,45,42,0.06);
+    --slide-width: 1366px;
+    --slide-height: 768px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--neutral-1);
+    font-family: "Oracle Sans", "Segoe UI", Arial, Calibri, sans-serif;
+    color: var(--bark);
+  }
+
+  .slide-viewport { min-height: 100vh; }
+  .slide-frame { width: 100%; }
+  .diagram-shell { min-height: 100vh; }
+
+  body.slide-layout { overflow: hidden; }
+  body.slide-layout .slide-viewport {
+    min-height: 100vh;
+    height: 100vh;
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  body.slide-layout.slide-scroll .slide-viewport { overflow: auto; }
+  body.slide-layout .slide-frame {
+    flex: 0 0 auto;
+    position: relative;
+  }
+  body.slide-layout .diagram-shell {
+    width: var(--slide-width);
+    min-height: var(--slide-height);
+    margin: 0;
+    background: var(--neutral-1);
+    box-shadow: 0 0 0 1px rgba(49,45,42,0.12);
+    transform-origin: top left;
+  }
+
+  /* ── Navigation bar ── */
+  .oci-nav {
+    height: 44px;
+    background: #142830;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .oci-logo {
+    height: 18px;
+    filter: brightness(0) invert(1);
+  }
+
+  .oci-nav-right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-btn {
+    border: 1px solid rgba(255,255,255,0.24);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.95);
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.16); }
+  .nav-btn.active {
+    border-color: rgba(255,255,255,0.52);
+    background: rgba(255,255,255,0.22);
+  }
+
+  /* ── Diagram header ── */
+  .diagram-header {
+    padding: 16px 24px 10px;
+    border-bottom: 1px solid var(--neutral-2);
+  }
+
+  .diagram-title { margin: 0 0 4px; font-size: 20px; }
+  .diagram-sub { margin: 0; font-size: 11px; color: var(--neutral-4); }
+
+  /* ── Canvas ── */
+  .diagram-canvas {
+    padding: 20px 24px;
+    min-height: calc(100vh - 44px - 100px - 36px);
+    position: relative;
+  }
+
+  body.slide-layout .diagram-canvas {
+    min-height: calc(var(--slide-height) - 44px - 100px - 36px);
+  }
+
+  /* ── Group / boundary ── */
+  .group {
+    border: 1px solid var(--neutral-3);
+    border-radius: 4px;
+    padding: 28px 12px 12px;
+    background: #E8E4DF;
+    position: relative;
+  }
+
+  .group-label {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bark);
+    font-weight: 700;
+  }
+
+  /* ── Cards grid ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 8px;
+  }
+
+  /* ── Service card ── */
+  .service-card {
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid #C9C3BC;
+    box-shadow: 0 1px 4px rgba(49,45,42,0.12), 0 0 0 1px rgba(44,89,103,0.07);
+    border-radius: 5px;
+    padding: 10px 12px 10px 15px;
+  }
+
+  .service-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    border-radius: 5px 0 0 5px;
+    background: var(--card-accent, var(--ocean));
+  }
+
+  .card-header,
+  .service-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 4px;
+  }
+
+  .card-icon,
+  .service-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--card-accent, var(--ocean));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    background: rgba(44,89,103,0.15);
+    box-shadow: inset 0 0 0 1px rgba(44,89,103,0.25);
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .card-icon img, .service-icon img { width: 15px; height: 15px; }
+
+  /* ── Category-matched chip variants ── */
+  .chip-ocean  { background: rgba(44,89,103,0.15);   box-shadow: inset 0 0 0 1px rgba(44,89,103,0.25);   color: #2C5967; }
+  .chip-sienna { background: rgba(174,86,44,0.13);   box-shadow: inset 0 0 0 1px rgba(174,86,44,0.22);   color: #AE562C; }
+  .chip-red    { background: rgba(199,70,52,0.12);   box-shadow: inset 0 0 0 1px rgba(199,70,52,0.20);   color: #C74634; }
+  .chip-ivy    { background: rgba(117,156,108,0.13); box-shadow: inset 0 0 0 1px rgba(117,156,108,0.22); color: #759C6C; }
+  .chip-bark   { background: rgba(49,45,42,0.10);    box-shadow: inset 0 0 0 1px rgba(49,45,42,0.18);    color: #312D2A; }
+  .chip-vivid-teal   { background: rgba(15,135,153,0.13); box-shadow: inset 0 0 0 1px rgba(15,135,153,0.25); color: #0F8799; }
+  .chip-vivid-orange { background: rgba(224,101,32,0.13); box-shadow: inset 0 0 0 1px rgba(224,101,32,0.25); color: #E06520; }
+  .chip-vivid-cobalt { background: rgba(30,93,171,0.13);  box-shadow: inset 0 0 0 1px rgba(30,93,171,0.25);  color: #1E5DAB; }
+  .chip-vivid-forest { background: rgba(46,140,70,0.13);  box-shadow: inset 0 0 0 1px rgba(46,140,70,0.25);  color: #2E8C46; }
+  .chip-vivid-grape  { background: rgba(123,79,160,0.13); box-shadow: inset 0 0 0 1px rgba(123,79,160,0.25); color: #7B4FA0; }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--card-accent, var(--ocean));
+    line-height: 1.3;
+  }
+
+  .card-items { list-style: none; margin: 0; padding: 0; }
+  .card-items li { font-size: 10px; line-height: 1.6; }
+
+  /* ── DB node (reusable persistence component) ── */
+  .db-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    background: #FFFFFF;
+    border: 1.5px solid var(--neutral-2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    text-align: center;
+    min-width: 120px;
+  }
+  .db-node-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--db-color, var(--ocean));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFFFFF;
+    font-size: 15px;
+  }
+  .db-node-icon img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+  }
+  .db-node-name {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--bark);
+    line-height: 1.3;
+  }
+  .db-node-type {
+    font-size: 8.5px;
+    color: var(--neutral-4);
+    line-height: 1.3;
+  }
+
+  /* ── Footer ── */
+  .diagram-footer {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-top: 1px solid var(--neutral-2);
+    background: #FFFFFF;
+    padding: 8px 24px;
+    font-size: 10px;
+    color: var(--neutral-4);
+  }
+
+  .diagram-confidential {
+    margin-left: auto;
+    color: var(--neutral-3);
+    font-style: italic;
+  }
+
+  /* ── Version nav pill (fixed bottom-right) ── */
+  .ver-nav {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(20,40,48,0.92);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 5px 10px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.85);
+    backdrop-filter: blur(4px);
+  }
+  .ver-nav a, .ver-nav span {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    padding: 2px 6px;
+    border-radius: 12px;
+  }
+  .ver-nav a:hover { background: rgba(255,255,255,0.15); }
+  .ver-nav .ver-current {
+    font-weight: 700;
+    color: #FFFFFF;
+    background: rgba(255,255,255,0.12);
+  }
+  .ver-nav .ver-sep {
+    color: rgba(255,255,255,0.35);
+    padding: 0 2px;
+    font-size: 9px;
+  }
+  .ver-nav a.ver-disabled {
+    opacity: 0.3;
+    pointer-events: none;
+  }
+
+  @media (max-width: 960px) {
+    .cards { grid-template-columns: 1fr; }
+    .oci-nav-right { gap: 6px; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     DIAGRAM-CSS-START
+     Diagram-specific CSS is injected here by assemble-diagram.py.
+     Do not add permanent styles below this marker.
+     DIAGRAM-CSS-END
+     ═══════════════════════════════════════════════════════════════════ */
+</style>
+</head>
+<body>
+<div id="slideViewport" class="slide-viewport">
+<div id="slideFrame" class="slide-frame">
+<div id="diagramShell" class="diagram-shell">
+  <nav class="oci-nav">
+    <img class="oci-logo" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTA5LjM2IDIyLjk2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0ibG9nbyIgb3ZlcmZsb3c9ImhpZGRlbiI+PGc+PHBhdGggZD0iTTQ3LjkxMjIgMTMuNDIzNCA1NC40NTkgMTMuNDIzNCA1MSA3Ljg0MTM1IDQ0LjY1MDUgMTcuOTIzMyA0MS43NSAxNy45MjMzIDQ5LjQ4MDUgNS44MjM3NUM0OS44MTA2IDUuMzMzNTUgNTAuMzc3IDUuMDM2NjUgNTAuOTk2MiA1LjAzNjY1IDUxLjYwMTcgNS4wMzY2NSA1Mi4xNTgyIDUuMzIzNzUgNTIuNDg4MyA1LjgwMjI1TDYwLjI0MjIgMTcuOTIzMyA1Ny4zNDk3IDE3LjkyMzMgNTUuOTg2NSAxNS42Njk0IDQ5LjM1NzQgMTUuNjY5NCA0Ny45MTIyIDEzLjQyMzRNNzcuOTUxMiAxNS42Njk0IDc3Ljk1MTIgNS4xNTk3NSA3NS40OTIyIDUuMTU5NzUgNzUuNDkyMiAxNi43MDI3Qzc1LjQ5MjIgMTcuMDE3MiA3NS42MjUxIDE3LjMyNTggNzUuODU1NiAxNy41NDgzIDc2LjA5IDE3Ljc5MDYgNzYuNDEyMSAxNy45MjMzIDc2Ljc1IDE3LjkyMzNMODcuOTMxNyAxNy45MjMzIDg5LjM4ODcgMTUuNjY5NCA3Ny45NTEyIDE1LjY2OTRNMzcuMzUxMiAxMy43OTA2QzM5Ljc0MDcgMTMuNzkwNiA0MS42NjIyIDExLjg1NjkgNDEuNjYyMiA5LjQ3NDE1IDQxLjY2MjIgNy4wOTEzNSAzOS43NDA3IDUuMTU5NzUgMzcuMzUxMiA1LjE1OTc1TDI2LjYxMjkgNS4xNTk3NSAyNi42MTI5IDE3LjkyMzMgMjkuMDY2OSAxNy45MjMzIDI5LjA2NjkgNy40MTU1NSAzNy4xODggNy40MTU1NUMzOC4zMjc4IDcuNDE1NTUgMzkuMjUxNSA4LjMzNTU1IDM5LjI1MTUgOS40NzQxNSAzOS4yNTE1IDEwLjYxMDkgMzguMzI3OCAxMS41NDY0IDM3LjE4OCAxMS41NDY0TDMwLjI2NzIgMTEuNTQwNiAzNy41OTczIDE3LjkyMzMgNDEuMTU4MiAxNy45MjMzIDM2LjIzNSAxMy43OTA2IDM3LjM1MTIgMTMuNzkwNk0xMS41MTQyIDE3LjkyMzMgMTguOTMzMSAxNy45MjMzQzIyLjQ2MjUgMTcuOTIzMyAyNS4zMDQzIDE1LjA3MTggMjUuMzA0MyAxMS41NDY0IDI1LjMwNDMgOC4wMTcxNSAyMi40NjI1IDUuMTU5NzUgMTguOTMzMSA1LjE1OTc1TDExLjUxNDIgNS4xNTk3NUM3Ljk4ODg2IDUuMTU5NzUgNS4xMjk0NSA4LjAxNzE1IDUuMTI5NDUgMTEuNTQ2NCA1LjEyOTQ1IDE1LjA3MTggNy45ODg4NiAxNy45MjMzIDExLjUxNDIgMTcuOTIzM00xOC43NjMzIDE1LjY3NzIgMTEuNjc3NCAxNS42NzcyQzkuMzk3MDUgMTUuNjc3MiA3LjU0OTM1IDEzLjgyMzcgNy41NDkzNSAxMS41NDY0IDcuNTQ5MzUgOS4yNTkzNSA5LjM5NzA1IDcuNDE1NTUgMTEuNjc3NCA3LjQxNTU1TDE4Ljc2MzMgNy40MTU1NUMyMS4wNTEzIDcuNDE1NTUgMjIuODk3MSA5LjI1OTM1IDIyLjg5NzEgMTEuNTQ2NCAyMi44OTcxIDEzLjgyMzcgMjEuMDUxMyAxNS42NzcyIDE4Ljc2MzMgMTUuNjc3Mk02NS4zNjcyIDE3LjkyMzMgNzIuOTQxNSAxNy45MjMzIDc0LjM3NSAxNS42NzcyIDY1LjUzNTIgMTUuNjc3MkM2My4yNDQyIDE1LjY3NzIgNjEuMzk4NSAxMy44MjM3IDYxLjM5ODUgMTEuNTQ2NCA2MS4zOTg1IDkuMjU5MzUgNjMuMjQ0MiA3LjQxNTU1IDY1LjUzNTIgNy40MTU1NUw3Mi43MzA1IDcuNDE1NTUgNzQuMTgxNyA1LjE1OTc1IDY1LjM2NzIgNS4xNTk3NUM2MS44Mzk5IDUuMTU5NzUgNTguOTc0NiA4LjAxNzE1IDU4Ljk3NDYgMTEuNTQ2NCA1OC45NzQ3IDE1LjA3MTggNjEuODQgMTcuOTIzMyA2NS4zNjcyIDE3LjkyMzNNOTUuMzgxIDE1LjY3NzJDOTMuNDkwMyAxNS42NzcyIDkxLjg5NjUgMTQuNDA3OCA5MS40MDQ0IDEyLjY3MTRMMTAxLjg5MyAxMi42NzE0IDEwMy4zMzggMTAuNDIxNCA5MS40MDQ0IDEwLjQyMTRDOTEuODk0NyA4LjY4MTI1IDkzLjQ5MDMgNy40MTU1NSA5NS4zODEgNy40MTU1NUwxMDIuNTgyIDcuNDE1NTUgMTA0LjAyMiA1LjE1OTc1IDk1LjIxNjkgNS4xNTk3NUM5MS42OTUzIDUuMTU5NzUgODguODM3OSA4LjAxNzE1IDg4LjgzNzkgMTEuNTQ2NCA4OC44Mzc5IDE1LjA3MTggOTEuNjk1MyAxNy45MjMzIDk1LjIxNjkgMTcuOTIzM0wxMDIuNzkxIDE3LjkyMzMgMTA0LjIzMSAxNS42NzcyIDk1LjM4MSAxNS42NzcyIiBmaWxsPSIjQzc0NjM0Ii8+PC9nPjwvc3ZnPg==" alt="Oracle">
+    <div class="oci-nav-right">
+      <a id="openInViewer" class="nav-btn" href="#" target="_blank">
+        <i class="fa-solid fa-up-right-from-square" style="font-size:10px"></i> Open in Viewer
+      </a>
+    </div>
+  </nav>
+
+  <header class="diagram-header">
+    <h1 class="diagram-title">Diagram Title</h1>
+    <p class="diagram-sub">Short architecture summary</p>
+  </header>
+
+  <main class="diagram-canvas" id="diagramCanvas">
+    <!-- ═══════════════════════════════════════════════════════════════════
+         CANVAS-REPLACE-START
+         Replace ONLY this block with diagram-specific layout content.
+         The </main> below must stay intact.
+         Use assemble-diagram.py to inject canvas content programmatically.
+         ═══════════════════════════════════════════════════════════════════ -->
+    <section class="group">
+      <span class="group-label">OCI REGION</span>
+      <div class="cards">
+        <article class="service-card" style="--card-accent: var(--ocean)">
+          <div class="card-header service-head">
+            <i class="fa-solid fa-microchip card-icon service-icon chip-ocean" aria-hidden="true"></i>
+            <span class="card-title">Service Name</span>
+          </div>
+          <ul class="card-items">
+            <li>Detail line 1</li>
+            <li>Detail line 2</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+    <!-- CANVAS-REPLACE-END -->
+  </main>
+
+  <footer class="diagram-footer">
+    <span>Legend</span>
+    <span>Solid arrow: data flow</span>
+    <span>Dashed arrow: control/user interaction</span>
+    <span class="diagram-confidential">Oracle Confidential</span>
+  </footer>
+</div>
+</div>
+</div>
+
+<!-- Version navigation pill (bottom-right) -->
+<nav class="ver-nav" id="verNav" aria-label="Version navigation"></nav>
+
+<script>
+(function () {
+  var SLIDE_W = 1366, SLIDE_H = 768;
+  var MIN_SCALE = 0.42;
+
+  /* ── Open in Viewer link ──
+     arch-viewer.html lives two levels up from output/<project>/ */
+  var viewerLink = document.getElementById("openInViewer");
+  if (viewerLink) {
+    /* Try relative path first (works when opened as file:// from output/<project>/) */
+    viewerLink.href = "../../arch-viewer.html?file=" +
+      encodeURIComponent(window.location.pathname.split("/").pop() || "");
+  }
+
+  /* ── Slide layout — DEFAULT ON ── */
+  function applySlideScale() {
+    var sv = document.getElementById("slideViewport");
+    var ds = document.getElementById("diagramShell");
+    var sf = document.getElementById("slideFrame");
+    if (!sv || !ds) return;
+    /* 52px reserve: version pill (fixed bottom-right) + breathing room */
+    var w = sv.clientWidth - 24;
+    var h = sv.clientHeight - 24 - 52;
+    var scale = Math.max(MIN_SCALE, Math.min(1, Math.min(w / SLIDE_W, h / SLIDE_H)));
+    ds.style.transform = "scale(" + scale + ")";
+    if (sf) { sf.style.width = (SLIDE_W * scale) + "px"; sf.style.height = (SLIDE_H * scale) + "px"; }
+  }
+
+  /* Default ON unless ?slide=0 explicitly opts out */
+  if (new URLSearchParams(window.location.search).get("slide") !== "0") {
+    document.body.classList.add("slide-layout");
+    requestAnimationFrame(applySlideScale);
+    window.addEventListener("resize", applySlideScale);
+  }
+
+  /* ── Version nav pill ── */
+  var nav = document.getElementById("verNav");
+  var filename = window.location.pathname.split("/").pop() || "";
+  var m = filename.match(/^(.+?)-v(\d+)(\.html?)$/i);
+  if (m && nav) {
+    var base = m[1], n = parseInt(m[2], 10), ext = m[3];
+    nav.innerHTML =
+      (n > 1
+        ? '<a href="' + base + "-v" + (n - 1) + ext + '" title="Previous version">&#8592; v' + (n - 1) + '</a>'
+        : '<a class="ver-disabled" aria-disabled="true">&#8592;</a>') +
+      '<span class="ver-sep">|</span>' +
+      '<span class="ver-current">v' + n + '</span>' +
+      '<span class="ver-sep">|</span>' +
+      '<a href="' + base + "-v" + (n + 1) + ext + '" title="Next version">v' + (n + 1) + ' &#8594;</a>';
+  } else if (nav) {
+    nav.style.display = "none";
+  }
+})();
+</script>
+</body>
+</html>

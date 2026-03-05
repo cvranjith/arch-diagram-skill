@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCI Architecture Viewer</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --ocean: #2C5967;
+    --sienna: #AE562C;
+    --air: #FCFBFA;
+    --neutral-1: #F5F4F2;
+    --neutral-2: #DFDCD8;
+    --neutral-3: #9E9892;
+    --neutral-4: #70736E;
+    --bark: #312D2A;
+    --oracle-red: #C74634;
+    --ivy: #759C6C;
+    --vivid-teal:   #0F8799;
+    --vivid-orange: #E06520;
+    --vivid-cobalt: #1E5DAB;
+    --vivid-forest: #2E8C46;
+    --vivid-grape:  #7B4FA0;
+    --card-shadow: 0 1px 4px rgba(49,45,42,0.10), 0 0 0 1px rgba(49,45,42,0.06);
+    --slide-width: 1366px;
+    --slide-height: 768px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--neutral-1);
+    font-family: "Oracle Sans", "Segoe UI", Arial, Calibri, sans-serif;
+    color: var(--bark);
+  }
+
+  /* ── Viewer nav bar ── */
+  .viewer-nav {
+    height: 44px;
+    background: #142830;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    overflow: hidden;
+  }
+  .viewer-nav .oci-logo { height: 18px; filter: brightness(0) invert(1); flex-shrink: 0; }
+
+  /* Diagram title + file chip (shown after load) */
+  #diagInfo {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  #diagTitle {
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+  }
+  #fileChip {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 4px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+    padding: 2px 7px;
+    white-space: nowrap;
+    font-family: ui-monospace, "SF Mono", monospace;
+    flex-shrink: 0;
+  }
+
+  /* Version nav in top bar */
+  #verNavInline {
+    display: none;
+    align-items: center;
+    gap: 1px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 16px;
+    padding: 3px 6px;
+    flex-shrink: 0;
+  }
+  #verNavInline button {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.75);
+    padding: 2px 7px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 11px;
+    font-family: inherit;
+    line-height: 1;
+  }
+  #verNavInline button:hover:not(:disabled) { background: rgba(255,255,255,0.14); color: #fff; }
+  #verNavInline button:disabled { opacity: 0.3; cursor: default; }
+  #verNavInline .ver-cur {
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255,255,255,0.13);
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+  #verNavInline .ver-sep { color: rgba(255,255,255,0.28); font-size: 9px; padding: 0 1px; }
+
+  .viewer-nav-right { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .nav-btn {
+    border: 1px solid rgba(255,255,255,0.24);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.95);
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 4px 9px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.16); }
+  .nav-btn.active { border-color: rgba(255,255,255,0.52); background: rgba(255,255,255,0.22); }
+  .nav-btn:disabled { opacity: 0.38; cursor: default; }
+
+  /* ── Drop zone ── */
+  #dropZone {
+    min-height: calc(100vh - 44px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    text-align: center;
+    padding: 40px 24px;
+    transition: background 0.15s;
+  }
+  #dropZone.drag-over { background: rgba(44,89,103,0.06); }
+  .drop-icon {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: rgba(44,89,103,0.10);
+    border: 2px dashed rgba(44,89,103,0.35);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--ocean);
+  }
+  .drop-title { font-size: 22px; font-weight: 700; color: var(--bark); margin: 0; }
+  .drop-sub { font-size: 13px; color: var(--neutral-4); margin: 0; }
+  .drop-btn {
+    background: var(--ocean); color: #FFFFFF; border: none;
+    border-radius: 6px; padding: 10px 24px;
+    font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .drop-btn:hover { background: #234750; }
+  #fileInput { display: none; }
+
+  /* ── Diagram mount area ── */
+  #diagramMount { display: none; position: relative; }
+
+  /* ── Slide layout ── */
+  .slide-viewport { min-height: calc(100vh - 44px); }
+  .slide-frame { width: 100%; }
+  .diagram-shell { min-height: calc(100vh - 44px); background: var(--neutral-1); }
+
+  body.slide-layout .slide-viewport {
+    height: calc(100vh - 44px);
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  body.slide-layout.slide-scroll .slide-viewport { overflow: auto; }
+  body.slide-layout .slide-frame { flex: 0 0 auto; position: relative; }
+  body.slide-layout .diagram-shell {
+    width: var(--slide-width);
+    min-height: var(--slide-height);
+    margin: 0;
+    box-shadow: 0 0 0 1px rgba(49,45,42,0.12);
+    transform-origin: top left;
+  }
+
+  /* ── Diagram base styles (used inside mount) ── */
+  .diagram-canvas {
+    padding: 20px 24px;
+    min-height: calc(100vh - 44px);
+    position: relative;
+  }
+  body.slide-layout .diagram-canvas {
+    min-height: var(--slide-height);
+  }
+  .group {
+    border: 1px solid var(--neutral-3); border-radius: 4px;
+    padding: 28px 12px 12px; background: #E8E4DF; position: relative;
+  }
+  .group-label {
+    position: absolute; top: 8px; left: 12px;
+    font-size: 9px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--bark); font-weight: 700;
+  }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+  .service-card {
+    position: relative; background: #FFFFFF;
+    border: 1px solid #C9C3BC;
+    box-shadow: 0 1px 4px rgba(49,45,42,0.12), 0 0 0 1px rgba(44,89,103,0.07);
+    border-radius: 5px; padding: 10px 12px 10px 15px;
+  }
+  .service-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+    border-radius: 5px 0 0 5px; background: var(--card-accent, var(--ocean));
+  }
+  .card-header, .service-head { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+  .card-icon, .service-icon {
+    width: 22px; height: 22px; color: var(--card-accent, var(--ocean));
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; background: rgba(44,89,103,0.15);
+    box-shadow: inset 0 0 0 1px rgba(44,89,103,0.25); flex-shrink: 0; font-size: 13px;
+  }
+  .card-icon img, .service-icon img { width: 15px; height: 15px; }
+  .chip-ocean  { background: rgba(44,89,103,0.15);   box-shadow: inset 0 0 0 1px rgba(44,89,103,0.25);   color: #2C5967; }
+  .chip-sienna { background: rgba(174,86,44,0.13);   box-shadow: inset 0 0 0 1px rgba(174,86,44,0.22);   color: #AE562C; }
+  .chip-red    { background: rgba(199,70,52,0.12);   box-shadow: inset 0 0 0 1px rgba(199,70,52,0.20);   color: #C74634; }
+  .chip-ivy    { background: rgba(117,156,108,0.13); box-shadow: inset 0 0 0 1px rgba(117,156,108,0.22); color: #759C6C; }
+  .chip-bark   { background: rgba(49,45,42,0.10);    box-shadow: inset 0 0 0 1px rgba(49,45,42,0.18);    color: #312D2A; }
+  .chip-vivid-teal   { background: rgba(15,135,153,0.13); box-shadow: inset 0 0 0 1px rgba(15,135,153,0.25); color: #0F8799; }
+  .chip-vivid-orange { background: rgba(224,101,32,0.13); box-shadow: inset 0 0 0 1px rgba(224,101,32,0.25); color: #E06520; }
+  .chip-vivid-cobalt { background: rgba(30,93,171,0.13);  box-shadow: inset 0 0 0 1px rgba(30,93,171,0.25);  color: #1E5DAB; }
+  .chip-vivid-forest { background: rgba(46,140,70,0.13);  box-shadow: inset 0 0 0 1px rgba(46,140,70,0.25);  color: #2E8C46; }
+  .chip-vivid-grape  { background: rgba(123,79,160,0.13); box-shadow: inset 0 0 0 1px rgba(123,79,160,0.25); color: #7B4FA0; }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--card-accent, var(--ocean)); line-height: 1.3; }
+  .card-items { list-style: none; margin: 0; padding: 0; }
+  .card-items li { font-size: 10px; line-height: 1.6; }
+  .db-node {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    background: #FFFFFF; border: 1.5px solid var(--neutral-2); border-radius: 8px;
+    padding: 10px 14px; text-align: center; min-width: 120px;
+  }
+  .db-node-icon {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--db-color, var(--ocean));
+    display: flex; align-items: center; justify-content: center;
+    color: #FFFFFF; font-size: 15px;
+  }
+  .db-node-icon img { width: 18px; height: 18px; object-fit: contain; filter: brightness(0) invert(1); }
+  .db-node-name { font-size: 10px; font-weight: 700; color: var(--bark); line-height: 1.3; }
+  .db-node-type { font-size: 8.5px; color: var(--neutral-4); line-height: 1.3; }
+
+  /* ── Edit mode ── */
+  body.edit-mode [contenteditable="true"] {
+    outline: 1px dashed var(--sienna);
+    outline-offset: 2px;
+    background: rgba(174,86,44,0.05);
+    border-radius: 2px;
+  }
+
+  /* ── Review layer ── */
+  .review-layer {
+    position: absolute; inset: 0; z-index: 20;
+    pointer-events: none; overflow: hidden;
+  }
+  .review-connectors {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; overflow: visible; z-index: 1;
+  }
+  .review-markup {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    pointer-events: none; overflow: visible; z-index: 1;
+  }
+  .review-mark {
+    fill: none; stroke: #C74634; stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round; stroke-linejoin: round;
+    pointer-events: visiblePainted; cursor: grab;
+  }
+  .review-mark.dragging { cursor: grabbing; }
+  .review-mark.selected {
+    filter: drop-shadow(0 0 0.7px rgba(255,255,255,0.98)) drop-shadow(0 0 4px rgba(49,45,42,0.32));
+  }
+  .review-connector { stroke: #6F6861; stroke-width: 1.2; stroke-dasharray: 5 3; fill: none; }
+  .review-target { fill: rgba(174,86,44,0.15); stroke: #AE562C; stroke-width: 1; stroke-dasharray: 3 2; }
+  .review-note {
+    position: absolute; width: 230px; min-height: 94px;
+    background: rgba(255,245,176,0.88);
+    border: 1px solid rgba(157,123,42,0.58);
+    border-radius: 8px; box-shadow: 0 3px 10px rgba(49,45,42,0.16);
+    backdrop-filter: blur(1.5px);
+    display: flex; flex-direction: column; z-index: 2; pointer-events: auto;
+  }
+  .review-note-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px 4px;
+    border-bottom: 1px dashed rgba(90,72,28,0.35);
+    cursor: move; user-select: none;
+  }
+  .review-note-title {
+    font-size: 10px; font-weight: 700; color: #5A4720;
+    letter-spacing: 0.05em; text-transform: uppercase; flex: 1;
+  }
+  .review-note-delete {
+    border: 1px solid rgba(90,72,28,0.4); background: rgba(255,255,255,0.46);
+    color: #5A4720; border-radius: 4px; width: 22px; height: 22px;
+    cursor: pointer; font-size: 11px; line-height: 1; padding: 0;
+  }
+  .review-note-text {
+    border: 0; background: transparent; color: #4A3A1E;
+    font-size: 11px; line-height: 1.45; padding: 8px;
+    min-height: 68px; width: 100%; resize: vertical;
+    outline: none; font-family: inherit;
+  }
+  .review-anchor {
+    position: absolute; width: 12px; height: 12px;
+    transform: translate(-50%,-50%);
+    border-radius: 50%; border: 1.5px solid #AE562C;
+    background: rgba(174,86,44,0.20);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.68);
+    cursor: grab; z-index: 3; pointer-events: auto;
+  }
+  .review-anchor::before {
+    content: ""; position: absolute; inset: -7px;
+    border: 1px dashed rgba(174,86,44,0.5); border-radius: 50%;
+  }
+  .review-anchor.dragging { cursor: grabbing; }
+  body.review-annotate-mode .review-layer { pointer-events: auto; cursor: crosshair; }
+  body.review-annotate-mode .review-markup { pointer-events: auto; }
+
+  /* ── Edit toolbar ── */
+  .edit-toolbar {
+    position: fixed; right: 16px; bottom: 16px; z-index: 9999;
+    display: flex; gap: 6px; align-items: center;
+    background: rgba(20,40,48,0.96);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px; padding: 7px 10px;
+    flex-wrap: wrap; max-width: min(90vw, 900px);
+  }
+  .edit-toolbar button {
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08); color: #FFFFFF;
+    border-radius: 6px; font-size: 11px; padding: 5px 9px;
+    cursor: pointer; font-family: inherit; white-space: nowrap;
+  }
+  .edit-toolbar button:hover { background: rgba(255,255,255,0.16); }
+  .edit-toolbar button.active { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.20); }
+  .review-tools {
+    display: none; align-items: center; gap: 5px;
+    padding-left: 8px; margin-left: 2px;
+    border-left: 1px solid rgba(255,255,255,0.2);
+  }
+  body.review-annotate-mode .review-tools { display: flex; }
+  .tool-palette { display: flex; align-items: center; gap: 3px; }
+  .tool-btn {
+    width: 26px; height: 26px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 5px; border: 1px solid rgba(255,255,255,0.22);
+    background: rgba(255,255,255,0.08); color: #E5EFF3; cursor: pointer;
+  }
+  .tool-btn i { font-size: 11px; pointer-events: none; }
+  .tool-btn:hover { background: rgba(255,255,255,0.16); }
+  .tool-btn.active {
+    border-color: rgba(199,70,52,0.72); background: rgba(199,70,52,0.24); color: #fff;
+  }
+  .review-control-label { color: #D3E7EF; font-size: 10px; }
+  .edit-toolbar select,
+  .edit-toolbar input[type="color"],
+  .edit-toolbar input[type="range"] {
+    border: 1px solid rgba(255,255,255,0.26); background: rgba(255,255,255,0.10);
+    color: #FFFFFF; border-radius: 5px; font-size: 11px; height: 26px; padding: 0 5px;
+  }
+  .edit-toolbar input[type="color"] { width: 32px; min-width: 32px; padding: 2px; cursor: pointer; }
+  .edit-toolbar input[type="range"] { width: 64px; padding: 0; }
+  .edit-toolbar select option { color: #1B1B1B; background: #fff; }
+  .edit-status { color: #D3E7EF; font-size: 10px; padding: 0 3px; align-self: center; }
+
+  @media (max-width: 960px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Viewer navigation bar -->
+<nav class="viewer-nav">
+  <img class="oci-logo" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTA5LjM2IDIyLjk2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0ibG9nbyIgb3ZlcmZsb3c9ImhpZGRlbiI+PGc+PHBhdGggZD0iTTQ3LjkxMjIgMTMuNDIzNCA1NC40NTkgMTMuNDIzNCA1MSA3Ljg0MTM1IDQ0LjY1MDUgMTcuOTIzMyA0MS43NSAxNy45MjMzIDQ5LjQ4MDUgNS44MjM3NUM0OS44MTA2IDUuMzMzNTUgNTAuMzc3IDUuMDM2NjUgNTAuOTk2MiA1LjAzNjY1IDUxLjYwMTcgNS4wMzY2NSA1Mi4xNTgyIDUuMzIzNzUgNTIuNDg4MyA1LjgwMjI1TDYwLjI0MjIgMTcuOTIzMyA1Ny4zNDk3IDE3LjkyMzMgNTUuOTg2NSAxNS42Njk0IDQ5LjM1NzQgMTUuNjY5NCA0Ny45MTIyIDEzLjQyMzRNNzcuOTUxMiAxNS42Njk0IDc3Ljk1MTIgNS4xNTk3NSA3NS40OTIyIDUuMTU5NzUgNzUuNDkyMiAxNi43MDI3Qzc1LjQ5MjIgMTcuMDE3MiA3NS42MjUxIDE3LjMyNTggNzUuODU1NiAxNy41NDgzIDc2LjA5IDE3Ljc5MDYgNzYuNDEyMSAxNy45MjMzIDc2Ljc1IDE3LjkyMzNMODcuOTMxNyAxNy45MjMzIDg5LjM4ODcgMTUuNjY5NCA3Ny45NTEyIDE1LjY2OTRNMzcuMzUxMiAxMy43OTA2QzM5Ljc0MDcgMTMuNzkwNiA0MS42NjIyIDExLjg1NjkgNDEuNjYyMiA5LjQ3NDE1IDQxLjY2MjIgNy4wOTEzNSAzOS43NDA3IDUuMTU5NzUgMzcuMzUxMiA1LjE1OTc1TDI2LjYxMjkgNS4xNTk3NSAyNi42MTI5IDE3LjkyMzMgMjkuMDY2OSAxNy45MjMzIDI5LjA2NjkgNy40MTU1NSAzNy4xODggNy40MTU1NUMzOC4zMjc4IDcuNDE1NTUgMzkuMjUxNSA4LjMzNTU1IDM5LjI1MTUgOS40NzQxNSAzOS4yNTE1IDEwLjYxMDkgMzguMzI3OCAxMS41NDY0IDM3LjE4OCAxMS41NDY0TDMwLjI2NzIgMTEuNTQwNiAzNy41OTczIDE3LjkyMzMgNDEuMTU4MiAxNy45MjMzIDM2LjIzNSAxMy43OTA2IDM3LjM1MTIgMTMuNzkwNk0xMS41MTQyIDE3LjkyMzMgMTguOTMzMSAxNy45MjMzQzIyLjQ2MjUgMTcuOTIzMyAyNS4zMDQzIDE1LjA3MTggMjUuMzA0MyAxMS41NDY0IDI1LjMwNDMgOC4wMTcxNSAyMi40NjI1IDUuMTU5NzUgMTguOTMzMSA1LjE1OTc1TDExLjUxNDIgNS4xNTk3NUM3Ljk4ODg2IDUuMTU5NzUgNS4xMjk0NSA4LjAxNzE1IDUuMTI5NDUgMTEuNTQ2NCA1LjEyOTQ1IDE1LjA3MTggNy45ODg4NiAxNy45MjMzIDExLjUxNDIgMTcuOTIzM00xOC43NjMzIDE1LjY3NzIgMTEuNjc3NCAxNS42NzcyQzkuMzk3MDUgMTUuNjc3MiA3LjU0OTM1IDEzLjgyMzcgNy41NDkzNSAxMS41NDY0IDcuNTQ5MzUgOS4yNTkzNSA5LjM5NzA1IDcuNDE1NTUgMTEuNjc3NCA3LjQxNTU1TDE4Ljc2MzMgNy40MTU1NUMyMS4wNTEzIDcuNDE1NTUgMjIuODk3MSA5LjI1OTM1IDIyLjg5NzEgMTEuNTQ2NCAyMi44OTcxIDEzLjgyMzcgMjEuMDUxMyAxNS42NzcyIDE4Ljc2MzMgMTUuNjc3Mk02NS4zNjcyIDE3LjkyMzMgNzIuOTQxNSAxNy45MjMzIDc0LjM3NSAxNS42NzcyIDY1LjUzNTIgMTUuNjc3MkM2My4yNDQyIDE1LjY3NzIgNjEuMzk4NSAxMy44MjM3IDYxLjM5ODUgMTEuNTQ2NCA2MS4zOTg1IDkuMjU5MzUgNjMuMjQ0MiA3LjQxNTU1IDY1LjUzNTIgNy40MTU1NUw3Mi43MzA1IDcuNDE1NTUgNzQuMTgxNyA1LjE1OTc1IDY1LjM2NzIgNS4xNTk3NUM2MS44Mzk5IDUuMTU5NzUgNTguOTc0NiA4LjAxNzE1IDU4Ljk3NDYgMTEuNTQ2NCA1OC45NzQ3IDE1LjA3MTggNjEuODQgMTcuOTIzMyA2NS4zNjcyIDE3LjkyMzNNOTUuMzgxIDE1LjY3NzJDOTMuNDkwMyAxNS42NzcyIDkxLjg5NjUgMTQuNDA3OCA5MS40MDQ0IDEyLjY3MTRMMTAxLjg5MyAxMi42NzE0IDEwMy4zMzggMTAuNDIxNCA5MS40MDQ0IDEwLjQyMTRDOTEuODk0NyA4LjY4MTI1IDkzLjQ5MDMgNy40MTU1NSA5NS4zODEgNy40MTU1NUwxMDIuNTgyIDcuNDE1NTUgMTA0LjAyMiA1LjE1OTc1IDk1LjIxNjkgNS4xNTk3NUM5MS42OTUzIDUuMTU5NzUgODguODM3OSA4LjAxNzE1IDg4LjgzNzkgMTEuNTQ2NCA4OC44Mzc5IDE1LjA3MTggOTEuNjk1MyAxNy45MjMzIDk1LjIxNjkgMTcuOTIzM0wxMDIuNzkxIDE3LjkyMzMgMTA0LjIzMSAxNS42NzcyIDk1LjM4MSAxNS42NzcyIiBmaWxsPSIjQzc0NjM0Ii8+PC9nPjwvc3ZnPg==" alt="Oracle">
+
+  <!-- Diagram title + filename (shown after load) -->
+  <div id="diagInfo">
+    <span id="diagTitle"></span>
+    <span id="fileChip"></span>
+  </div>
+
+  <!-- Version navigation (shown after load, if version pattern matches) -->
+  <div id="verNavInline">
+    <button id="verPrev" type="button" disabled title="Previous version">&#8592;</button>
+    <span class="ver-sep">|</span>
+    <span class="ver-cur" id="verLabel">v?</span>
+    <span class="ver-sep">|</span>
+    <button id="verNext" type="button" title="Next version">&#8594;</button>
+  </div>
+
+  <div class="viewer-nav-right">
+    <button class="nav-btn" id="toggleToolbarNav" type="button" title="Show/hide edit toolbar" style="display:none">Tools</button>
+    <button class="nav-btn" id="openFileBtn" type="button">Open Diagram</button>
+  </div>
+</nav>
+
+<!-- Drop zone -->
+<div id="dropZone">
+  <div class="drop-icon"><i class="fa-solid fa-diagram-project"></i></div>
+  <h2 class="drop-title">OCI Architecture Viewer</h2>
+  <p class="drop-sub">Drop a lean diagram HTML file here, or click Open to browse</p>
+  <button class="drop-btn" id="dropOpenBtn" type="button">
+    <i class="fa-solid fa-folder-open"></i>&ensp;Open Diagram&hellip;
+  </button>
+  <input type="file" id="fileInput" accept=".html,.htm">
+</div>
+
+<!-- Diagram mount -->
+<div id="diagramMount"></div>
+
+<!-- Edit toolbar (hidden until diagram loaded) -->
+<div class="edit-toolbar" id="editToolbar" style="display:none">
+  <button id="toggleEdit" type="button">Enable Edit</button>
+  <button id="toggleAnnotate" type="button">Review Annotate</button>
+  <div id="reviewTools" class="review-tools">
+    <div class="tool-palette">
+      <button class="tool-btn active" data-review-tool="note" title="Sticky note"><i class="fa-solid fa-note-sticky"></i></button>
+      <button class="tool-btn" data-review-tool="rect" title="Rectangle"><i class="fa-solid fa-square"></i></button>
+      <button class="tool-btn" data-review-tool="ellipse" title="Oval"><i class="fa-solid fa-circle"></i></button>
+      <button class="tool-btn" data-review-tool="pen" title="Pen"><i class="fa-solid fa-pen"></i></button>
+    </div>
+    <label class="review-control-label" for="reviewLineStyle">Style</label>
+    <select id="reviewLineStyle"><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option></select>
+    <label class="review-control-label" for="reviewColor">Color</label>
+    <input id="reviewColor" type="color" value="#C74634">
+    <label class="review-control-label" for="reviewWidth">Width</label>
+    <input id="reviewWidth" type="range" min="1" max="8" step="1" value="3">
+    <button id="deleteMark" type="button" disabled>Delete Mark</button>
+  </div>
+  <button id="exportPng" type="button">Export PNG</button>
+  <button id="saveHtml" type="button">Save HTML</button>
+  <button id="copyHtml" type="button">Copy HTML</button>
+  <button id="toggleSlideLayout" type="button" class="active">Slide Layout</button>
+  <button id="toggleToolbar" type="button">Hide Tools</button>
+  <span class="edit-status" id="editStatus">Slide mode</span>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ── State ── */
+  var loadedFileName = "";
+  var loadedTitle = "";
+  var loadedSub = "";
+  var loadedFooterHtml = "";
+  var diagramCss = "";
+  var storedFileHandle = null;
+  var dirHandle = null;
+  var editMode = false;
+  var slideLayout = true;   // DEFAULT ON
+  var annotateMode = false;
+  var reviewCounter = 0;
+  var reviewMarkCounter = 0;
+  var dragState = null;
+  var drawState = null;
+  var selectedMark = null;
+  var reviewNotes = new Map();
+  var reviewStyle = { tool: "note", lineStyle: "solid", color: "#C74634", width: 3 };
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var SLIDE_W = 1366, SLIDE_H = 768;
+  var verBase = "", verN = 0, verExt = "";
+
+  /* ── DOM refs (static) ── */
+  var dropZone        = document.getElementById("dropZone");
+  var diagramMount    = document.getElementById("diagramMount");
+  var editToolbar     = document.getElementById("editToolbar");
+  var openFileBtnNav  = document.getElementById("openFileBtn");
+  var dropOpenBtn     = document.getElementById("dropOpenBtn");
+  var fileInput       = document.getElementById("fileInput");
+  var diagInfo        = document.getElementById("diagInfo");
+  var diagTitleEl     = document.getElementById("diagTitle");
+  var fileChipEl      = document.getElementById("fileChip");
+  var verNavInline    = document.getElementById("verNavInline");
+  var verPrevBtn      = document.getElementById("verPrev");
+  var verNextBtn      = document.getElementById("verNext");
+  var verLabelEl      = document.getElementById("verLabel");
+  var toggleEditBtn   = document.getElementById("toggleEdit");
+  var annotateBtn     = document.getElementById("toggleAnnotate");
+  var reviewToolBtns  = Array.from(document.querySelectorAll("[data-review-tool]"));
+  var reviewLineStyle = document.getElementById("reviewLineStyle");
+  var reviewColorIn   = document.getElementById("reviewColor");
+  var reviewWidthIn   = document.getElementById("reviewWidth");
+  var deleteMarkBtn   = document.getElementById("deleteMark");
+  var exportPngBtn    = document.getElementById("exportPng");
+  var saveHtmlBtn     = document.getElementById("saveHtml");
+  var copyHtmlBtn     = document.getElementById("copyHtml");
+  var slideBtn           = document.getElementById("toggleSlideLayout");
+  var toolbarToggle      = document.getElementById("toggleToolbar");
+  var toolbarToggleNav   = document.getElementById("toggleToolbarNav");
+  var editStatusEl       = document.getElementById("editStatus");
+
+  /* ── Dynamic DOM refs (set after inject) ── */
+  var reviewLayerEl, reviewConnectorsEl, reviewMarkupEl, diagramCanvasEl;
+
+  /* ── File open ── */
+  function triggerFileOpen() {
+    if (window.showOpenFilePicker) {
+      window.showOpenFilePicker({
+        types: [{ description: "HTML Diagrams", accept: { "text/html": [".html", ".htm"] } }]
+      }).then(function (handles) {
+        storedFileHandle = handles[0];
+        loadedFileName = storedFileHandle.name;
+        return storedFileHandle.getFile().then(function (f) { return f.text(); });
+      }).then(function (text) {
+        loadFileText(text);
+      }).catch(function () {});
+    } else {
+      fileInput.click();
+    }
+  }
+
+  fileInput.addEventListener("change", function () {
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    loadedFileName = file.name;
+    storedFileHandle = null;
+    dirHandle = null;
+    file.text().then(loadFileText);
+  });
+
+  openFileBtnNav.addEventListener("click", triggerFileOpen);
+  dropOpenBtn.addEventListener("click", triggerFileOpen);
+
+  /* ── Drag & drop ── */
+  document.addEventListener("dragover", function (e) { e.preventDefault(); dropZone.classList.add("drag-over"); });
+  document.addEventListener("dragleave", function (e) { if (!e.relatedTarget) dropZone.classList.remove("drag-over"); });
+  document.addEventListener("drop", function (e) {
+    e.preventDefault();
+    dropZone.classList.remove("drag-over");
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file || !file.name.match(/\.html?$/i)) return;
+    loadedFileName = file.name;
+    storedFileHandle = null;
+    dirHandle = null;
+    file.text().then(loadFileText);
+  });
+
+  /* ── URL ?file= param ── */
+  (function () {
+    var p = new URLSearchParams(window.location.search).get("file");
+    if (!p) return;
+    loadedFileName = p.split("/").pop();
+    fetch(p).then(function (r) {
+      if (!r.ok) throw new Error("not found");
+      return r.text();
+    }).then(loadFileText).catch(function () {});
+  })();
+
+  /* ── Parse & inject diagram ── */
+  function loadFileText(text) {
+    injectDiagram(text);
+  }
+
+  function injectDiagram(text) {
+    /* Extract diagram-specific CSS */
+    var cssMatch = text.match(/\/\*\s*DIAGRAM-CSS-START\s*\*\/([\s\S]*?)\/\*\s*DIAGRAM-CSS-END\s*\*\//);
+    diagramCss = cssMatch ? cssMatch[1].trim() : "";
+
+    /* Extract canvas content */
+    var canvasMatch = text.match(/<main[^>]*id="diagramCanvas"[^>]*>([\s\S]*?)<\/main>/i);
+    var canvasHtml = canvasMatch ? canvasMatch[1] : "<p style='padding:20px'>No canvas content found.</p>";
+    /* Strip reviewLayer from canvas if present (we inject our own) */
+    canvasHtml = canvasHtml.replace(/<div[^>]*id="reviewLayer"[\s\S]*?<\/div>\s*/i, "");
+
+    /* Extract metadata */
+    var titleMatch = text.match(/<h1[^>]*class="diagram-title"[^>]*>([\s\S]*?)<\/h1>/i);
+    var subMatch   = text.match(/<p[^>]*class="diagram-sub"[^>]*>([\s\S]*?)<\/p>/i);
+    var footerMatch= text.match(/<footer[^>]*class="diagram-footer"[^>]*>([\s\S]*?)<\/footer>/i);
+    loadedTitle    = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : loadedFileName;
+    loadedSub      = subMatch   ? subMatch[1].replace(/<[^>]+>/g, "").trim() : "";
+    loadedFooterHtml = footerMatch ? footerMatch[1] : "";
+
+    /* Build injected HTML — canvas only, no inner nav/header */
+    var styleTag = diagramCss ? '<style id="diagramInjectedCss">' + diagramCss + "</style>" : "";
+    diagramMount.innerHTML =
+      styleTag +
+      '<div id="slideViewport" class="slide-viewport">' +
+        '<div id="slideFrame" class="slide-frame">' +
+          '<div id="diagramShell" class="diagram-shell">' +
+            '<main class="diagram-canvas" id="diagramCanvas">' +
+              '<div id="reviewLayer" class="review-layer">' +
+                '<svg id="reviewConnectors" class="review-connectors" aria-hidden="true"></svg>' +
+                '<svg id="reviewMarkup" class="review-markup"></svg>' +
+              '</div>' +
+              canvasHtml +
+            '</main>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    /* Wire dynamic refs */
+    reviewLayerEl      = document.getElementById("reviewLayer");
+    reviewConnectorsEl = document.getElementById("reviewConnectors");
+    reviewMarkupEl     = document.getElementById("reviewMarkup");
+    diagramCanvasEl    = document.getElementById("diagramCanvas");
+    wireAnnotateCanvas();
+
+    /* Show diagram, hide drop zone */
+    dropZone.style.display = "none";
+    diagramMount.style.display = "block";
+    editToolbar.style.display = "flex";
+    toolbarToggleNav.style.display = "inline-flex";
+    toolbarToggle.textContent = "Hide Tools";
+    toolbarToggleNav.textContent = "Tools";
+    toolbarToggleNav.classList.remove("active");
+
+    /* Update viewer nav */
+    diagTitleEl.textContent = loadedTitle;
+    fileChipEl.textContent  = loadedFileName;
+    diagInfo.style.display  = "flex";
+    document.title = loadedTitle + " — OCI Viewer";
+
+    /* Reset toolbar state */
+    editMode = false;
+    annotateMode = false;
+    document.body.classList.remove("edit-mode", "review-annotate-mode");
+    toggleEditBtn.textContent = "Enable Edit";
+    annotateBtn.textContent = "Review Annotate";
+    editStatusEl.textContent = "Slide mode";
+    reviewNotes.clear();
+    reviewCounter = reviewMarkCounter = 0;
+    selectedMark = null;
+    dragState = drawState = null;
+
+    /* Default slide layout ON */
+    slideLayout = true;
+    document.body.classList.add("slide-layout");
+    slideBtn.classList.add("active");
+    requestAnimationFrame(applySlideScale);
+
+    /* Version nav */
+    setupVersionNav();
+  }
+
+  /* ── Slide layout ── */
+  slideBtn.addEventListener("click", function () {
+    slideLayout = !slideLayout;
+    document.body.classList.toggle("slide-layout", slideLayout);
+    slideBtn.classList.toggle("active", slideLayout);
+    editStatusEl.textContent = slideLayout ? "Slide mode" : (editMode ? "Edit mode" : "View mode");
+    if (slideLayout) applySlideScale();
+    else resetSlideScale();
+  });
+
+  /* Extra vertical reserve so toolbar + breathing room don't clip the diagram */
+  var TOOLBAR_RESERVE = 68;
+
+  function applySlideScale() {
+    var sv = document.getElementById("slideViewport");
+    var ds = document.getElementById("diagramShell");
+    var sf = document.getElementById("slideFrame");
+    if (!sv || !ds) return;
+    var r = sv.getBoundingClientRect();
+    var availW = r.width  - 24;
+    var availH = r.height - 24 - TOOLBAR_RESERVE;
+    var scale = Math.max(0.35, Math.min(1, Math.min(availW / SLIDE_W, availH / SLIDE_H)));
+    ds.style.transform = "scale(" + scale + ")";
+    if (sf) {
+      sf.style.width  = (SLIDE_W * scale) + "px";
+      sf.style.height = (SLIDE_H * scale) + "px";
+    }
+  }
+
+  function resetSlideScale() {
+    var ds = document.getElementById("diagramShell");
+    var sf = document.getElementById("slideFrame");
+    if (ds) ds.style.transform = "";
+    if (sf) { sf.style.width = ""; sf.style.height = ""; }
+  }
+
+  window.addEventListener("resize", function () { if (slideLayout) applySlideScale(); });
+
+  /* ── Version navigation ── */
+  function setupVersionNav() {
+    var m = loadedFileName.match(/^(.+?)-v(\d+)(\.html?)$/i);
+    if (!m) { verNavInline.style.display = "none"; return; }
+    verBase = m[1]; verN = parseInt(m[2], 10); verExt = m[3];
+    verLabelEl.textContent = "v" + verN;
+    verPrevBtn.disabled = (verN <= 1);
+    verNextBtn.disabled = false;
+    verNavInline.style.display = "flex";
+  }
+
+  verPrevBtn.addEventListener("click", function () { loadVersion(verN - 1); });
+  verNextBtn.addEventListener("click", function () { loadVersion(verN + 1); });
+
+  function loadVersion(n) {
+    if (n < 1) return;
+    var name = verBase + "-v" + n + verExt;
+
+    /* Already have folder permission — try directly */
+    if (dirHandle) {
+      loadFromDir(dirHandle, name);
+      return;
+    }
+
+    /* No folder permission yet — request it once via directory picker.
+       Once granted, subsequent prev/next clicks go straight to loadFromDir. */
+    if (!window.showDirectoryPicker) {
+      showToast("Folder access not supported in this browser. Use Open Diagram to load " + name + ".");
+      return;
+    }
+    var startIn = storedFileHandle || "documents";
+    showToast("Select the folder containing your diagrams to enable navigation…", 5000);
+    window.showDirectoryPicker({ startIn: startIn })
+      .then(function (dh) {
+        dirHandle = dh;
+        loadFromDir(dh, name);
+      })
+      .catch(function () {
+        /* User cancelled picker — do nothing */
+      });
+  }
+
+  function loadFromDir(dh, name) {
+    dh.getFileHandle(name)
+      .then(function (h) { return h.getFile(); })
+      .then(function (f) {
+        loadedFileName = name;
+        return f.text();
+      })
+      .then(function (text) {
+        injectDiagram(text);
+      })
+      .catch(function () {
+        /* File doesn't exist yet — friendly toast, no extra dialogs */
+        showToast(name + " not found in folder (may not exist yet).");
+      });
+  }
+
+  /* ── Toast notification ── */
+  function showToast(msg, duration) {
+    var el = document.createElement("div");
+    el.style.cssText = [
+      "position:fixed", "top:54px", "left:50%", "transform:translateX(-50%)",
+      "background:rgba(20,40,48,0.94)", "color:#fff",
+      "padding:9px 18px", "border-radius:7px",
+      "font-size:12px", "z-index:99999",
+      "pointer-events:none", "white-space:nowrap",
+      "border:1px solid rgba(255,255,255,0.14)",
+      "box-shadow:0 3px 12px rgba(0,0,0,.25)"
+    ].join(";");
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(function () { el.remove(); }, duration || 3000);
+  }
+
+  /* ── Toolbar toggle (shared by in-toolbar button + nav button) ── */
+  function toggleToolbarVisibility() {
+    var willHide = editToolbar.style.display !== "none";
+    editToolbar.style.display = willHide ? "none" : "flex";
+    toolbarToggle.textContent = willHide ? "Show Tools" : "Hide Tools";
+    toolbarToggleNav.textContent = willHide ? "Show Tools" : "Tools";
+    toolbarToggleNav.classList.toggle("active", willHide); /* highlight when it's the only way back */
+  }
+  toolbarToggle.addEventListener("click", toggleToolbarVisibility);
+  toolbarToggleNav.addEventListener("click", toggleToolbarVisibility);
+
+  /* ── Edit mode ── */
+  var editableSelector = [
+    "[data-editable='true']",
+    ".diagram-title", ".diagram-sub", ".group-label", ".card-title", ".card-items li",
+    ".review-note-title",
+    /* VAM / diagram-specific classes */
+    ".vam-card-title", ".layer-label", ".boundary-label",
+    ".ext-box-title", ".ext-item", ".obrh-title",
+    ".db-node-name", ".db-node-type",
+    ".ext-section-label", ".legend-item",
+    ".deploy-stack-label", ".deploy-tag",
+    ".swimlane-label", ".section-label"
+  ].join(", ");
+
+  toggleEditBtn.addEventListener("click", function () {
+    editMode = !editMode;
+    document.body.classList.toggle("edit-mode", editMode);
+    setEditable(editMode);
+    toggleEditBtn.textContent = editMode ? "Disable Edit" : "Enable Edit";
+    toggleEditBtn.classList.toggle("active", editMode);
+    editStatusEl.textContent = editMode ? "Edit mode" : (slideLayout ? "Slide mode" : "View mode");
+  });
+
+  function setEditable(on) {
+    document.querySelectorAll(editableSelector).forEach(function (el) {
+      el.setAttribute("contenteditable", on ? "true" : "false");
+      el.setAttribute("spellcheck", "false");
+    });
+  }
+
+  /* ── Review / Annotate ── */
+  annotateBtn.addEventListener("click", function () {
+    annotateMode = !annotateMode;
+    document.body.classList.toggle("review-annotate-mode", annotateMode);
+    annotateBtn.textContent = annotateMode ? "Stop Annotate" : "Review Annotate";
+    annotateBtn.classList.toggle("active", annotateMode);
+    editStatusEl.textContent = annotateMode ? "Annotate mode" : (editMode ? "Edit mode" : (slideLayout ? "Slide mode" : "View mode"));
+  });
+
+  reviewToolBtns.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      reviewStyle.tool = btn.dataset.reviewTool;
+      reviewToolBtns.forEach(function (b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+    });
+  });
+  reviewLineStyle.addEventListener("change", function () { reviewStyle.lineStyle = reviewLineStyle.value; });
+  reviewColorIn.addEventListener("input",  function () { reviewStyle.color = reviewColorIn.value; });
+  reviewWidthIn.addEventListener("input",  function () { reviewStyle.width = parseInt(reviewWidthIn.value, 10); });
+
+  deleteMarkBtn.addEventListener("click", function () {
+    if (!selectedMark) return;
+    var id = selectedMark.dataset.markId;
+    selectedMark.remove();
+    var note = reviewNotes.get(id);
+    if (note) { note.noteEl.remove(); note.anchorEl.remove(); reviewNotes.delete(id); }
+    var conn = reviewConnectorsEl && reviewConnectorsEl.querySelector("[data-conn-id='" + id + "']");
+    if (conn) conn.remove();
+    selectedMark = null;
+    deleteMarkBtn.disabled = true;
+  });
+
+  function wireAnnotateCanvas() {
+    if (!reviewMarkupEl) return;
+    reviewMarkupEl.addEventListener("mousedown", onMarkupMousedown);
+  }
+
+  function onMarkupMousedown(e) {
+    if (!annotateMode || !reviewMarkupEl) return;
+    var rect = reviewMarkupEl.getBoundingClientRect();
+    var x = e.clientX - rect.left, y = e.clientY - rect.top;
+    var tool = reviewStyle.tool;
+    if (tool === "note") { addNote(x, y); return; }
+    var id = "m" + (++reviewMarkCounter);
+    var el;
+    if (tool === "pen") {
+      el = document.createElementNS(SVG_NS, "polyline");
+      el.setAttribute("points", x + "," + y);
+    } else {
+      el = document.createElementNS(SVG_NS, tool === "rect" ? "rect" : "ellipse");
+      el.classList.add("review-target");
+      el.setAttribute("fill", hexRgba(reviewStyle.color, 0.08));
+      if (tool === "rect") { el.setAttribute("x", x); el.setAttribute("y", y); el.setAttribute("width", 0); el.setAttribute("height", 0); }
+      else { el.setAttribute("cx", x); el.setAttribute("cy", y); el.setAttribute("rx", 0); el.setAttribute("ry", 0); }
+    }
+    el.classList.add("review-mark");
+    el.dataset.markId = id;
+    el.setAttribute("stroke", reviewStyle.color);
+    el.setAttribute("stroke-width", reviewStyle.width);
+    el.setAttribute("stroke-dasharray", dashArr(reviewStyle.lineStyle, reviewStyle.width));
+    reviewMarkupEl.appendChild(el);
+    drawState = { id: id, el: el, tool: tool, startX: x, startY: y };
+  }
+
+  document.addEventListener("mousemove", function (e) {
+    if (drawState && reviewMarkupEl) {
+      var rect = reviewMarkupEl.getBoundingClientRect();
+      var x = e.clientX - rect.left, y = e.clientY - rect.top;
+      var ds = drawState;
+      if (ds.tool === "pen") {
+        ds.el.setAttribute("points", (ds.el.getAttribute("points") || "") + " " + x + "," + y);
+      } else if (ds.tool === "rect") {
+        var minX = Math.min(x, ds.startX), minY = Math.min(y, ds.startY);
+        ds.el.setAttribute("x", minX); ds.el.setAttribute("y", minY);
+        ds.el.setAttribute("width", Math.abs(x - ds.startX));
+        ds.el.setAttribute("height", Math.abs(y - ds.startY));
+      } else {
+        ds.el.setAttribute("cx", (x + ds.startX) / 2); ds.el.setAttribute("cy", (y + ds.startY) / 2);
+        ds.el.setAttribute("rx", Math.abs(x - ds.startX) / 2); ds.el.setAttribute("ry", Math.abs(y - ds.startY) / 2);
+      }
+    }
+    if (dragState) {
+      var dx = e.clientX - dragState.sx, dy = e.clientY - dragState.sy;
+      var nx = dragState.ol + dx, ny = dragState.ot + dy;
+      dragState.el.style.left = nx + "px";
+      dragState.el.style.top  = ny + "px";
+      if (dragState.cb) dragState.cb(nx, ny);
+    }
+  });
+
+  document.addEventListener("mouseup", function () {
+    if (drawState) {
+      (function (el) { el.addEventListener("click", function () { selectMark(el); }); })(drawState.el);
+      drawState = null;
+    }
+    dragState = null;
+  });
+
+  function selectMark(el) {
+    if (selectedMark) selectedMark.classList.remove("selected");
+    selectedMark = el;
+    el.classList.add("selected");
+    deleteMarkBtn.disabled = false;
+  }
+
+  function addNote(x, y) {
+    if (!reviewLayerEl) return;
+    var id = "n" + (++reviewCounter);
+    var noteEl = document.createElement("div");
+    noteEl.className = "review-note";
+    noteEl.dataset.noteId = id;
+    noteEl.style.left = (x + 10) + "px";
+    noteEl.style.top  = (y + 10) + "px";
+    noteEl.innerHTML =
+      '<div class="review-note-head">' +
+        '<span class="review-note-title">Note ' + reviewCounter + '</span>' +
+        '<button class="review-note-delete" type="button">&times;</button>' +
+      '</div>' +
+      '<textarea class="review-note-text" placeholder="Type note here\u2026"></textarea>';
+    reviewLayerEl.appendChild(noteEl);
+
+    var anchorEl = document.createElement("div");
+    anchorEl.className = "review-anchor";
+    anchorEl.style.left = x + "px"; anchorEl.style.top = y + "px";
+    reviewLayerEl.appendChild(anchorEl);
+
+    reviewNotes.set(id, { noteEl: noteEl, anchorEl: anchorEl, x: x, y: y });
+    updateConnector(id, x, y, x + 20, y + 20);
+
+    noteEl.querySelector(".review-note-delete").addEventListener("click", function () {
+      noteEl.remove(); anchorEl.remove();
+      var conn = reviewConnectorsEl && reviewConnectorsEl.querySelector("[data-conn-id='" + id + "']");
+      if (conn) conn.remove();
+      reviewNotes.delete(id);
+    });
+
+    makeDraggable(noteEl, function (nx, ny) {
+      var d = reviewNotes.get(id);
+      if (d) updateConnector(id, d.x, d.y, nx + 10, ny + 10);
+    });
+    makeDraggable(anchorEl, function (nx, ny) {
+      var d = reviewNotes.get(id);
+      if (d) { d.x = nx; d.y = ny; updateConnector(id, nx, ny, parseFloat(noteEl.style.left) + 10, parseFloat(noteEl.style.top) + 10); }
+    });
+  }
+
+  function updateConnector(id, ax, ay, nx, ny) {
+    if (!reviewConnectorsEl) return;
+    var ex = reviewConnectorsEl.querySelector("[data-conn-id='" + id + "']");
+    if (ex) ex.remove();
+    var line = document.createElementNS(SVG_NS, "line");
+    line.setAttribute("x1", ax); line.setAttribute("y1", ay);
+    line.setAttribute("x2", nx); line.setAttribute("y2", ny);
+    line.classList.add("review-connector");
+    line.dataset.connId = id;
+    reviewConnectorsEl.appendChild(line);
+  }
+
+  function makeDraggable(el, onMove) {
+    el.addEventListener("mousedown", function (e) {
+      if (e.button !== 0) return;
+      e.stopPropagation();
+      dragState = {
+        el: el, sx: e.clientX, sy: e.clientY,
+        ol: parseFloat(el.style.left) || 0,
+        ot: parseFloat(el.style.top)  || 0,
+        cb: onMove
+      };
+    });
+  }
+
+  /* ── Export PNG ── */
+  exportPngBtn.addEventListener("click", function () {
+    var target = document.getElementById("diagramShell") || diagramMount;
+    if (!target || typeof html2canvas === "undefined") { alert("html2canvas not available."); return; }
+    /* Temporarily disable slide transform for full-res capture */
+    var ds = document.getElementById("diagramShell");
+    var savedTransform = ds ? ds.style.transform : "";
+    if (ds) ds.style.transform = "";
+    html2canvas(target, { scale: 2, useCORS: true, allowTaint: true }).then(function (canvas) {
+      if (ds) ds.style.transform = savedTransform;
+      var a = document.createElement("a");
+      a.download = loadedFileName.replace(/\.html?$/i, "") + ".png";
+      a.href = canvas.toDataURL("image/png");
+      a.click();
+    }).catch(function () { if (ds) ds.style.transform = savedTransform; });
+  });
+
+  /* ── Save / Copy HTML (reconstructs lean-compatible HTML) ── */
+  function buildLeanHtml() {
+    var ds = document.getElementById("diagramShell");
+    var canvas = document.getElementById("diagramCanvas");
+    if (!canvas) return "";
+    /* Get canvas HTML minus the reviewLayer */
+    var canvasClone = canvas.cloneNode(true);
+    var rl = canvasClone.querySelector("#reviewLayer");
+    if (rl) rl.remove();
+    var canvasInner = canvasClone.innerHTML;
+
+    var titleHtml = document.getElementById("diagTitle") ? loadedTitle : "Diagram";
+    return "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
+      "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+      "<title>" + loadedTitle + "</title>\n" +
+      "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css\">\n" +
+      (diagramCss ? "<style>\n/* DIAGRAM-CSS-START */\n" + diagramCss + "\n/* DIAGRAM-CSS-END */\n</style>\n" : "") +
+      "</head>\n<body>\n" +
+      "<header class=\"diagram-header\"><h1 class=\"diagram-title\">" + loadedTitle + "</h1><p class=\"diagram-sub\">" + loadedSub + "</p></header>\n" +
+      "<main class=\"diagram-canvas\" id=\"diagramCanvas\">\n" + canvasInner + "\n</main>\n" +
+      "<footer class=\"diagram-footer\">" + loadedFooterHtml + "</footer>\n" +
+      "</body>\n</html>";
+  }
+
+  saveHtmlBtn.addEventListener("click", function () {
+    var html = buildLeanHtml();
+    var blob = new Blob([html], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = loadedFileName || "diagram-edited.html";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+  });
+
+  copyHtmlBtn.addEventListener("click", function () {
+    navigator.clipboard.writeText(buildLeanHtml()).then(function () {
+      var o = copyHtmlBtn.textContent;
+      copyHtmlBtn.textContent = "Copied!";
+      setTimeout(function () { copyHtmlBtn.textContent = o; }, 1500);
+    });
+  });
+
+  /* ── Helpers ── */
+  function dashArr(style, w) {
+    if (style === "dashed") return (w * 2.8).toFixed(1) + " " + (w * 1.8).toFixed(1);
+    if (style === "dotted") return "1 " + (w * 2).toFixed(1);
+    return "none";
+  }
+  function hexRgba(hex, a) {
+    var r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+  }
+
+})();
+</script>
+</body>
+</html>

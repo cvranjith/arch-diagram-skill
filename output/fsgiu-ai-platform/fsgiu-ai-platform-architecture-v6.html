@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<!--
+  Diagram: FSGIU AI Platform
+  Version: v6
+  Notes:
+  - Converted source sketch into OCI-styled logical layered architecture.
+  - Wording cleaned for presentation readability while preserving intent.
+  - Explicit OCI Generative AI model/service panel added.
+  - Added Save HTML + shape controls (rectangle/circle) in quick-edit toolbar.
+  - Replaced source DB nodes with cleaner professional database style for clarity.
+  - Consolidated OCI toolkit-style palette: neutral gray surfaces with restrained sienna/ocean accents.
+  - Increased surface contrast between section containers and foreground cards for clearer readability.
+  - Added iconography across runtime, knowledge, AI service, and source boxes.
+  - Added subtle dotted flow connectors where process sequencing is relevant.
+  - Repositioned OCI GenAI panel below RAG/Agent/Workflow columns to remove unused whitespace.
+  - Passed deterministic visual QA auto-fix/validation checks for layout, contrast, and icon uniformity.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FSGIU AI Platform Architecture - OCI Logical View</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+:root {
+  --ocean: #2C5967;
+  --sienna: #AE562C;
+  --air: #FCFBFA;
+  --neutral-1: #F5F4F2;
+  --neutral-2: #DFDCD8;
+  --neutral-3: #9E9892;
+  --neutral-4: #70736E;
+  --bark: #312D2A;
+  --oracle-red: #C74634;
+  --ivy: #759C6C;
+  --card-shadow: 0 1px 4px rgba(49,45,42,0.10), 0 0 0 1px rgba(49,45,42,0.06);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--neutral-1);
+  color: var(--bark);
+  font-family: "Oracle Sans", "Segoe UI", Arial, Calibri, sans-serif;
+}
+
+.oci-nav {
+  height: 44px;
+  background: #142830;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+}
+.oci-logo { height: 18px; filter: brightness(0) invert(1); }
+.oci-nav-sep { width: 1px; height: 16px; background: rgba(255,255,255,0.22); }
+.oci-nav-product { color: rgba(255,255,255,0.72); font-size: 12px; }
+
+.diagram-header {
+  padding: 14px 24px 10px;
+  border-bottom: 1px solid var(--neutral-2);
+}
+.diagram-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  color: var(--bark);
+}
+.diagram-sub {
+  margin: 4px 0 0;
+  color: var(--neutral-4);
+  font-size: 11px;
+}
+
+.flow-ribbon {
+  margin-top: 10px;
+  background: #F1EFEC;
+  border: 1px solid #C8C3BD;
+  border-radius: 4px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  flex-wrap: wrap;
+}
+.flow-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid #CCC8C2;
+  background: #FAF9F7;
+  color: #54676D;
+  font-weight: 600;
+}
+.flow-arrow { color: var(--bark); font-size: 10px; }
+
+.diagram-canvas {
+  padding: 16px 24px 20px;
+}
+
+.layer {
+  background: #E8E4DF;
+  border: 1px solid #C3BDB7;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.layer-title {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neutral-4);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.apps-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.app-card,
+.service-card,
+.kb-source,
+.doc-card,
+.ai-service-card {
+  background: #fff;
+  border: 1px solid rgba(49,45,42,0.12);
+  box-shadow: var(--card-shadow);
+  border-radius: 4px;
+}
+
+.app-card {
+  min-height: 66px;
+  padding: 10px 10px 8px 12px;
+  position: relative;
+}
+.app-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 4px 0 0 4px;
+  background: var(--accent, var(--ocean));
+}
+.app-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.card-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  color: var(--accent, var(--ocean));
+  flex-shrink: 0;
+}
+.card-icon.fa {
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+.app-title {
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--accent, var(--ocean));
+}
+.app-sub {
+  font-size: 9px;
+  color: var(--neutral-4);
+}
+
+.runtime-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr 330px;
+  gap: 10px;
+}
+
+.orchestrator-box,
+.kb-box {
+  border-radius: 4px;
+  padding: 12px 12px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  min-height: 172px;
+  position: relative;
+  overflow: hidden;
+}
+.orchestrator-box {
+  background: #ECE8E3;
+  border: 1px solid #C6BCB3;
+  color: var(--bark);
+  box-shadow: var(--card-shadow);
+}
+.orchestrator-box::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #AE562C;
+}
+.kb-box {
+  background: #E6E9E5;
+  border: 1px solid #BCC4BE;
+  color: var(--bark);
+  box-shadow: var(--card-shadow);
+  min-height: 140px;
+}
+.kb-box::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #2C5967;
+  opacity: 0.82;
+}
+.box-title {
+  font-size: 22px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+.box-sub {
+  font-size: 11px;
+  color: #4A4A49;
+}
+.orchestrator-box > .card-icon,
+.kb-box > .card-icon { display: none; }
+.box-icon {
+  width: 24px;
+  height: 24px;
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #2C5967;
+}
+.orchestrator-box .box-icon { color: #AE562C; }
+
+.capability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.cap-col {
+  background: #F7F5F2;
+  border: 1px solid #C8C2BC;
+  border-radius: 4px;
+  padding: 9px;
+  min-height: 172px;
+  position: relative;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+}
+.cap-col:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 23px;
+  width: 10px;
+  border-top: 1px dashed #9E9892;
+}
+.cap-col:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 20px;
+  border-left: 5px solid #9E9892;
+  border-top: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+}
+.cap-title {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #714934;
+  text-align: center;
+  background: #E7D8CF;
+  border: 1px solid #D2B7AA;
+  border-radius: 4px;
+  padding: 5px 6px;
+}
+.cap-title i {
+  margin-right: 6px;
+  font-size: 11px;
+}
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid #CFC9C2;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.09);
+  padding: 8px 9px;
+  margin-bottom: 8px;
+}
+.service-card:last-child { margin-bottom: 0; }
+.service-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.service-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.service-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--bark);
+}
+.service-meta {
+  margin-top: 2px;
+  font-size: 9px;
+  color: var(--neutral-4);
+}
+
+.genai-panel {
+  background: #ECE9E6;
+  border: 1px solid #C6C0BA;
+  border-radius: 4px;
+  padding: 10px;
+}
+.genai-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  color: var(--ocean);
+}
+.genai-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.genai-group {
+  margin-bottom: 9px;
+  background: #FAF9F7;
+  border: 1px solid #CEC9C3;
+  border-radius: 4px;
+  padding: 8px;
+}
+.genai-group:last-child { margin-bottom: 0; }
+.group-name {
+  margin: 0 0 7px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--neutral-4);
+  font-weight: 700;
+}
+.model-chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.model-chip {
+  font-size: 9px;
+  font-weight: 600;
+  color: #425258;
+  background: #F2F0ED;
+  border: 1px solid #CCC7C1;
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.ai-service-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.ai-service-card {
+  padding: 8px 7px;
+}
+.ai-service-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-service-icon {
+  width: 13px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.ai-service-title {
+  font-size: 10px;
+  font-weight: 700;
+  margin: 0;
+}
+.ai-service-sub {
+  font-size: 9px;
+  color: var(--neutral-4);
+  margin-top: 2px;
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 10px;
+}
+.knowledge-main {
+  background: #F1EFEC;
+  border: 1px solid #CBC6C0;
+  border-radius: 4px;
+  padding: 8px;
+}
+.knowledge-ribbon {
+  background: #F8F7F5;
+  color: #2C5967;
+  border: 1px solid #BDB7B1;
+  border-left: 4px solid #2C5967;
+  box-shadow: none;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  text-align: left;
+}
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.doc-card {
+  padding: 9px;
+  min-height: 56px;
+}
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.doc-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.doc-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+}
+.doc-sub {
+  margin-top: 3px;
+  font-size: 9px;
+  color: var(--neutral-4);
+}
+
+.ingestion-strip {
+  background: #F6F4F1;
+  border: 1px solid #C4BEB8;
+  box-shadow: var(--card-shadow);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+.ingestion-title {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+.ingestion-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.ingest-pill {
+  border: 1px solid #CEC9C3;
+  background: #F4F2EF;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 9px;
+  color: #62615C;
+}
+
+.sources-grid {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+.kb-source {
+  padding: 14px 12px;
+  min-height: 100px;
+  background: #D5D7D6;
+  border: 1px solid #B6B9B8;
+}
+.source-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.source-head .fa-solid {
+  color: #2C5967;
+  font-size: 14px;
+  margin-top: 2px;
+}
+.kb-source h4 {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.source-db-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+.db-node {
+  position: relative;
+  min-height: 82px;
+  border-radius: 6px;
+  border: 1px solid #B6B1AB;
+  background: #FAF9F7;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.10);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #312D2A;
+  padding: 10px 8px;
+}
+.db-node::before {
+  content: '';
+  position: absolute;
+  top: -7px;
+  left: 10px;
+  right: 10px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid #B6B1AB;
+  background: #F1EEEA;
+}
+.db-glyph {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  opacity: 0.95;
+  z-index: 1;
+}
+.db-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.2;
+  color: #312D2A;
+  z-index: 1;
+}
+
+.flow-up {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 10px;
+  color: var(--neutral-4);
+  margin: -4px 0 6px;
+  position: relative;
+  padding: 2px 0;
+}
+.flow-up::before {
+  content: "";
+  position: absolute;
+  left: 20%;
+  right: 20%;
+  top: 50%;
+  border-top: 1px dashed #A8A29C;
+  transform: translateY(-50%);
+}
+.flow-up span,
+.flow-up i {
+  position: relative;
+  z-index: 1;
+  background: var(--neutral-1);
+  padding: 0 5px;
+}
+.flow-up i { color: var(--bark); }
+
+.diagram-footer {
+  border-top: 1px solid var(--neutral-2);
+  background: #fff;
+  min-height: 36px;
+  padding: 8px 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 9px;
+  color: var(--neutral-4);
+}
+.diagram-confidential { margin-left: auto; color: var(--neutral-3); font-style: italic; }
+
+.shape-layer {
+  position: absolute;
+  inset: 20px 24px;
+  pointer-events: none;
+  z-index: 40;
+}
+
+.diagram-shape {
+  position: absolute;
+  min-width: 80px;
+  min-height: 44px;
+  border: 1px solid var(--ocean);
+  background: rgba(44, 89, 103, 0.08);
+  color: var(--ocean);
+  box-shadow: 0 1px 3px rgba(49,45,42,0.08);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  cursor: move;
+  user-select: none;
+}
+
+.diagram-shape.shape-rect { border-radius: 4px; }
+.diagram-shape.shape-circle {
+  width: 86px;
+  height: 86px;
+  min-width: 86px;
+  min-height: 86px;
+  border-radius: 999px;
+}
+
+.diagram-shape.selected {
+  outline: 2px dashed var(--sienna);
+  outline-offset: 2px;
+}
+
+.edit-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(20,40,48,0.96);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 8px;
+  flex-wrap: wrap;
+  max-width: min(90vw, 980px);
+}
+.edit-toolbar button {
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.edit-toolbar button:hover { background: rgba(255,255,255,0.16); }
+.edit-status { color: #d3e7ef; font-size: 11px; align-self: center; }
+body.edit-mode [contenteditable="true"] {
+  outline: 1px dashed var(--sienna);
+  outline-offset: 2px;
+  background: rgba(174,86,44,0.05);
+}
+
+@media (max-width: 1280px) {
+  .apps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .runtime-grid { grid-template-columns: 1fr; }
+  .knowledge-grid { grid-template-columns: 1fr; }
+  .doc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sources-grid { grid-template-columns: 1fr; }
+  .source-db-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .diagram-title { font-size: 24px; }
+  .apps-grid { grid-template-columns: 1fr; }
+  .capability-grid { grid-template-columns: 1fr; }
+  .cap-col:not(:last-child)::after,
+  .cap-col:not(:last-child)::before { display: none; }
+  .doc-grid { grid-template-columns: 1fr; }
+  .source-db-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Visual QA Auto-Fix: begin */
+/* Visual QA Auto-Fix: layout + icon uniformity + contrast */
+.runtime-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  grid-template-areas:
+    "orchestrator capabilities"
+    "orchestrator genai";
+  gap: 10px;
+  align-items: start;
+}
+.orchestrator-box { grid-area: orchestrator; }
+.capability-grid { grid-area: capabilities; }
+.genai-panel { grid-area: genai; }
+.layer {
+  background: #E8E4DF;
+  border: 1px solid #C3BDB7;
+}
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid #CFC9C2;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.09);
+}
+.service-head,
+.ai-service-head,
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.service-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+.ai-service-icon {
+  width: 13px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 11px;
+}
+.doc-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .runtime-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "orchestrator"
+      "capabilities"
+      "genai";
+  }
+  .cap-col:not(:last-child)::after,
+  .cap-col:not(:last-child)::before {
+    display: none;
+  }
+}
+/* Visual QA Auto-Fix: end */
+</style>
+</head>
+<body>
+<nav class="oci-nav">
+  <img class="oci-logo" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTA5LjM2IDIyLjk2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0ibG9nbyIgb3ZlcmZsb3c9ImhpZGRlbiI+PGc+PHBhdGggZD0iTTQ3LjkxMjIgMTMuNDIzNCA1NC40NTkgMTMuNDIzNCA1MSA3Ljg0MTM1IDQ0LjY1MDUgMTcuOTIzMyA0MS43NSAxNy45MjMzIDQ5LjQ4MDUgNS44MjM3NUM0OS44MTA2IDUuMzMzNTUgNTAuMzc3IDUuMDM2NjUgNTAuOTk2MiA1LjAzNjY1IDUxLjYwMTcgNS4wMzY2NSA1Mi4xNTgyIDUuMzIzNzUgNTIuNDg4MyA1LjgwMjI1TDYwLjI0MjIgMTcuOTIzMyA1Ny4zNDk3IDE3LjkyMzMgNTUuOTg2NSAxNS42Njk0IDQ5LjM1NzQgMTUuNjY5NCA0Ny45MTIyIDEzLjQyMzRNNzcuOTUxMiAxNS42Njk0IDc3Ljk1MTIgNS4xNTk3NSA3NS40OTIyIDUuMTU5NzUgNzUuNDkyMiAxNi43MDI3Qzc1LjQ5MjIgMTcuMDE3MiA3NS42MjUxIDE3LjMyNTggNzUuODU1NiAxNy41NDgzIDc2LjA5IDE3Ljc5MDYgNzYuNDEyMSAxNy45MjMzIDc2Ljc1IDE3LjkyMzNMODcuOTMxNyAxNy45MjMzIDg5LjM4ODcgMTUuNjY5NCA3Ny45NTEyIDE1LjY2OTRNMzcuMzUxMiAxMy43OTA2QzM5Ljc0MDcgMTMuNzkwNiA0MS42NjIyIDExLjg1NjkgNDEuNjYyMiA5LjQ3NDE1IDQxLjY2MjIgNy4wOTEzNSAzOS43NDA3IDUuMTU5NzUgMzcuMzUxMiA1LjE1OTc1TDI2LjYxMjkgNS4xNTk3NSAyNi42MTI5IDE3LjkyMzMgMjkuMDY2OSAxNy45MjMzIDI5LjA2NjkgNy40MTU1NSAzNy4xODggNy40MTU1NUMzOC4zMjc4IDcuNDE1NTUgMzkuMjUxNSA4LjMzNTU1IDM5LjI1MTUgOS40NzQxNSAzOS4yNTE1IDEwLjYxMDkgMzguMzI3OCAxMS41NDY0IDM3LjE4OCAxMS41NDY0TDMwLjI2NzIgMTEuNTQwNiAzNy41OTczIDE3LjkyMzMgNDEuMTU4MiAxNy45MjMzIDM2LjIzNSAxMy43OTA2IDM3LjM1MTIgMTMuNzkwNk0xMS41MTQyIDE3LjkyMzMgMTguOTMzMSAxNy45MjMzQzIyLjQ2MjUgMTcuOTIzMyAyNS4zMDQzIDE1LjA3MTggMjUuMzA0MyAxMS41NDY0IDI1LjMwNDMgOC4wMTcxNSAyMi40NjI1IDUuMTU5NzUgMTguOTMzMSA1LjE1OTc1TDExLjUxNDIgNS4xNTk3NUM3Ljk4ODg2IDUuMTU5NzUgNS4xMjk0NSA4LjAxNzE1IDUuMTI5NDUgMTEuNTQ2NCA1LjEyOTQ1IDE1LjA3MTggNy45ODg4NiAxNy45MjMzIDExLjUxNDIgMTcuOTIzM00xOC43NjMzIDE1LjY3NzIgMTEuNjc3NCAxNS42NzcyQzkuMzk3MDUgMTUuNjc3MiA3LjU0OTM1IDEzLjgyMzcgNy41NDkzNSAxMS41NDY0IDcuNTQ5MzUgOS4yNTkzNSA5LjM5NzA1IDcuNDE1NTUgMTEuNjc3NCA3LjQxNTU1TDE4Ljc2MzMgNy40MTU1NUMyMS4wNTEzIDcuNDE1NTUgMjIuODk3MSA5LjI1OTM1IDIyLjg5NzEgMTEuNTQ2NCAyMi44OTcxIDEzLjgyMzcgMjEuMDUxMyAxNS42NzcyIDE4Ljc2MzMgMTUuNjc3Mk02NS4zNjcyIDE3LjkyMzMgNzIuOTQxNSAxNy45MjMzIDc0LjM3NSAxNS42NzcyIDY1LjUzNTIgMTUuNjc3MkM2My4yNDQyIDE1LjY3NzIgNjEuMzk4NSAxMy44MjM3IDYxLjM5ODUgMTEuNTQ2NCA2MS4zOTg1IDkuMjU5MzUgNjMuMjQ0MiA3LjQxNTU1IDY1LjUzNTIgNy40MTU1NUw3Mi43MzA1IDcuNDE1NTUgNzQuMTgxNyA1LjE1OTc1IDY1LjM2NzIgNS4xNTk3NUM2MS44Mzk5IDUuMTU5NzUgNTguOTc0NiA4LjAxNzE1IDU4Ljk3NDYgMTEuNTQ2NCA1OC45NzQ3IDE1LjA3MTggNjEuODQgMTcuOTIzMyA2NS4zNjcyIDE3LjkyMzNNOTUuMzgxIDE1LjY3NzJDOTMuNDkwMyAxNS42NzcyIDkxLjg5NjUgMTQuNDA3OCA5MS40MDQ0IDEyLjY3MTRMMTAxLjg5MyAxMi42NzE0IDEwMy4zMzggMTAuNDIxNCA5MS40MDQ0IDEwLjQyMTRDOTEuODk0NyA4LjY4MTI1IDkzLjQ5MDMgNy40MTU1NSA5NS4zODEgNy40MTU1NUwxMDIuNTgyIDcuNDE1NTUgMTA0LjAyMiA1LjE1OTc1IDk1LjIxNjkgNS4xNTk3NUM5MS42OTUzIDUuMTU5NzUgODguODM3OSA4LjAxNzE1IDg4LjgzNzkgMTEuNTQ2NCA4OC44Mzc5IDE1LjA3MTggOTEuNjk1MyAxNy45MjMzIDk1LjIxNjkgMTcuOTIzM0wxMDIuNzkxIDE3LjkyMzMgMTA0LjIzMSAxNS42NzcyIDk1LjM4MSAxNS42NzcyIiBmaWxsPSIjQzc0NjM0Ii8+PC9nPjwvc3ZnPg==" alt="Oracle">
+  <span class="oci-nav-sep"></span>
+  <span class="oci-nav-product" data-editable="true">Cloud Infrastructure</span>
+</nav>
+
+<header class="diagram-header">
+  <h1 class="diagram-title" data-editable="true">FSGIU AI Platform</h1>
+  <p class="diagram-sub" data-editable="true">Logical layered architecture for AI-assisted banking operations, migration, integration, and knowledge workflows</p>
+  <div class="flow-ribbon">
+    <span class="flow-step" data-editable="true">Source Systems</span>
+    <i class="fa-solid fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" data-editable="true">Data Ingestion & Governance</span>
+    <i class="fa-solid fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" data-editable="true">Vectorized Knowledge Base</span>
+    <i class="fa-solid fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" data-editable="true">Knowledge & Retrieval</span>
+    <i class="fa-solid fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" data-editable="true">RAG / Agent / Workflow</span>
+    <i class="fa-solid fa-arrow-right flow-arrow"></i>
+    <span class="flow-step" data-editable="true">Micro Applications</span>
+  </div>
+</header>
+
+<main class="diagram-canvas" id="diagramCanvas">
+  <section class="layer">
+    <div class="layer-title">Experience & Channel Applications</div>
+    <div class="apps-grid">
+      <article class="app-card" style="--accent:#9A6B52">
+        <div class="app-head">
+          <i class="fa-solid fa-table-columns card-icon fa"></i>
+          <h3 class="app-title" data-editable="true">Oracle APEX Micro Apps</h3>
+        </div>
+        <div class="app-sub" data-editable="true">Channel-specific business UI experiences</div>
+      </article>
+      <article class="app-card" style="--accent:#5F7A70">
+        <div class="app-head">
+          <img class="card-icon" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIuMzggNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMzQuMiA0MS41IDM0LjIgMzkuMDIgMzcuMjEgMzkuMDIgMjMuMTYgMjQuOTZDMjIuNzkgMjkuNzIgMjEuNyAzMy45MSAxOS45OSAzNy4xNCAxNy44OSA0MC43IDE1Ljc3IDQxLjQzIDE0LjM2IDQxLjQzIDE0LjExIDQxLjQzIDEzLjg1IDQxLjQxIDEzLjYgNDEuMzYgOS41NyA0MC42MiA3LjE0IDM0LjU3IDYuMiAyOS4xNSA1LjgyIDI3LjEyIDUuNTggMjQuNzQgNS41MyAyMi4yNEwwLjUgMjIuMjQgMC41IDE5Ljc2IDUuNTMgMTkuNzZDNS41OSAxNy4xNyA1Ljg0IDE0LjY5IDYuMjUgMTIuNTkgNy41NiA1LjIzIDEwLjY5IDAuNjQgMTQuNDIgMC42IDE2LjYgMC42IDIwLjUgMi4xOSAyMi42IDEyLjgzIDIyLjg0IDE0LjE4IDIzLjAxIDE1LjU4IDIzLjEzIDE3LjAzTDM3LjE3IDIuOTggMzQuMiAyLjk4IDM0LjIgMC41IDQxLjUgMC41IDQxLjUgNy44IDM5LjAyIDcuOCAzOS4wMiA0LjY0IDIzLjkgMTkuNzYgMzYuNzggMTkuNzYgMzQuNzggMTcuODUgMzYuNDkgMTYuMDUgNDEuNjYgMjAuOTcgMzYuNTIgMjYuMTEgMzQuNzcgMjQuMzYgMzYuODkgMjIuMjMgMjMuOTUgMjIuMjMgMzkuMDIgMzcuMyAzOS4wMiAzNC4yIDQxLjUgMzQuMiA0MS41IDQxLjUgMzQuMiA0MS41WiIgZmlsbD0iI0ZGRkZGRiIvPjxwYXRoIGQ9Ik00MSAxIDQxIDcuMyAzOS41MiA3LjMgMzkuNTIgMy40NCAyMi43OSAyMC4xN0MyMi43OSAyMC4yIDIyLjc5IDIwLjIzIDIyLjc5IDIwLjI2TDM4LjA0IDIwLjI2IDM1LjQ5IDE3LjgzIDM2LjUxIDE2Ljc2IDQwLjk1IDIwLjk5IDM2LjUyIDI1LjQyIDM1LjQ3IDI0LjM3IDM4LjA5IDIxLjc1IDIyLjc5IDIxLjc1QzIyLjc5IDIxLjc3IDIyLjc5IDIxLjc4IDIyLjc5IDIxLjhMMzkuNTEgMzguNTIgMzkuNTEgMzQuNyA0MSAzNC43IDQxIDQxIDM0LjcgNDEgMzQuNyAzOS41MiAzOC40MiAzOS41MiAyMi43MiAyMy44MkMyMi40NyAyOC4zOSAyMS41NSAzMy4xIDE5LjU0IDM2LjlMMTkuNTIgMzYuOTRDMTcuNjQgNDAuMTMgMTUuNzcgNDAuOTMgMTQuMzUgNDAuOTMgMTQuMTEgNDAuOTMgMTMuODggNDAuOTEgMTMuNjcgNDAuODcgOS44OSA0MC4xOCA3LjU0IDM0LjA4IDYuNjggMjkuMDYgNi4yNiAyNi44NiA2LjA0IDI0LjMxIDYgMjEuNzRMMSAyMS43NCAxIDIwLjI2IDYuMDIgMjAuMjZDNi4wNiAxNy41OSA2LjMgMTQuOTUgNi43NCAxMi42OCA4IDUuNTcgMTAuOTUgMS4xMyAxNC40MiAxLjEgMTQuNDMgMS4xIDE0LjQ0IDEuMSAxNC40NiAxLjEgMTYuNDYgMS4xIDIwLjA4IDIuNjUgMjIuMSAxMi45MkwyMi4xIDEyLjk0QzIyLjM3IDE0LjUgMjIuNTkgMTYuMjcgMjIuNyAxOC4xNUwzOC4zOCAyLjQ4IDM0LjcgMi40OCAzNC43IDEgNDEgMU00MiAwIDQxIDAgMzQuNyAwIDMzLjcgMCAzMy43IDEgMzMuNyAyLjQ4IDMzLjcgMy40OCAzNC43IDMuNDggMzUuOTYgMy40OCAyMy41MyAxNS45MkMyMy40MiAxNC44MyAyMy4yNyAxMy43OCAyMy4wOSAxMi43NyAyMS4wMiAyLjI5IDE3LjI2IDAuMSAxNC40NiAwLjEgMTAuMzcgMC4xNCA3LjEzIDQuNzggNS43NSAxMi41MSA1LjM2IDE0LjUgNS4xMiAxNi44MiA1LjA0IDE5LjI2TDEgMTkuMjYgMCAxOS4yNiAwIDIwLjI2IDAgMjEuNzQgMCAyMi43NCAxIDIyLjc0IDUuMDQgMjIuNzRDNS4xMiAyNS4wOCA1LjM1IDI3LjMyIDUuNzEgMjkuMjUgNi42NyAzNC44MiA5LjIyIDQxLjA3IDEzLjUxIDQxLjg1IDEzLjc5IDQxLjkgMTQuMDggNDEuOTMgMTQuMzcgNDEuOTMgMTUuOTEgNDEuOTMgMTguMjEgNDEuMTUgMjAuNCAzNy40NUwyMC40IDM3LjQ0IDIwLjQzIDM3LjM5QzIyLjA1IDM0LjMzIDIzLjEyIDMwLjQ1IDIzLjU3IDI2LjA2TDM2LjAyIDM4LjUxIDM0LjcgMzguNTEgMzMuNyAzOC41MSAzMy43IDM5LjUxIDMzLjcgNDEgMzMuNyA0MiAzNC43IDQyIDQxIDQyIDQyIDQyIDQyIDQxIDQyIDM0LjcgNDIgMzMuNyA0MSAzMy43IDM5LjUyIDMzLjcgMzguNTIgMzMuNyAzOC41MiAzNC43IDM4LjUyIDM2LjEgMjUuMTYgMjIuNzQgMzUuNjkgMjIuNzQgMzQuNzcgMjMuNjYgMzQuMDYgMjQuMzcgMzQuNzcgMjUuMDggMzUuODIgMjYuMTMgMzYuNTMgMjYuODQgMzcuMjQgMjYuMTMgNDEuNjcgMjEuNyA0Mi4zOSAyMC45OCA0MS42NSAyMC4yNyAzNy4yMSAxNi4wNCAzNi40OSAxNS4zNSAzNS44IDE2LjA3IDM0Ljc4IDE3LjE0IDM0LjA5IDE3Ljg2IDM0LjgxIDE4LjU1IDM1LjU1IDE5LjI1IDI1LjExIDE5LjI1IDM4LjUyIDUuODUgMzguNTIgNy4zIDM4LjUyIDguMyAzOS41MiA4LjMgNDEgOC4zIDQyIDguMyA0MiA3LjMgNDIgMSA0MiAwIDQyIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0xNC40NiAyLjk1QzE0LjQ1IDIuOTUgMTQuNDUgMi45NSAxNC40NCAyLjk1IDEyLjQ3IDIuOTcgOS43OCA2LjEzIDguNTYgMTMuMDFMOC41NiAxMy4wM0M4LjE0IDE1LjIgNy45MSAxNy43MSA3Ljg3IDIwLjI2TDE2Ljc1IDIwLjI2IDE0LjAxIDE3LjY1IDE1LjAzIDE2LjU4IDE5LjY1IDIwLjk5IDE1LjIyIDI1LjQxIDE0LjE3IDI0LjM2IDE2Ljc5IDIxLjc0IDcuODYgMjEuNzRDNy45IDI0LjIgOC4xMSAyNi42MyA4LjUxIDI4LjczIDkuNDcgMzQuMyAxMS43OCAzOC42MyAxNC4wMiAzOS4wNCAxNC4xMyAzOS4wNiAxNC4yNSAzOS4wNyAxNC4zNiAzOS4wNyAxNS43OSAzOS4wNyAxNy4wNyAzNy40NCAxNy45MiAzNi4wMSAyMS4yMSAyOS43NiAyMS40OCAyMC4wOSAyMC4yOCAxMy4yNiAxOC43OCA1LjY2IDE2LjI5IDIuOTUgMTQuNDYgMi45NVoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNNDEgNy4zIDQxIDEgMzQuNyAxIDM0LjcgMi40OCAzOC4zNyAyLjQ4IDIyLjcxIDE4LjE1QzIyLjYgMTYuMjcgMjIuMzkgMTQuNSAyMi4xMSAxMi45NEwyMi4xMSAxMi45MkMyMC4wOCAyLjY1IDE2LjQ2IDEuMSAxNC40NiAxLjEgMTQuNDUgMS4xIDE0LjQ0IDEuMSAxNC40MiAxLjEgMTAuOTUgMS4xMyA4IDUuNTcgNi43NCAxMi42OCA2LjMgMTQuOTUgNi4wNiAxNy41OSA2LjAyIDIwLjI2TDEgMjAuMjYgMSAyMS43NCA2LjAxIDIxLjc0QzYuMDUgMjQuMzIgNi4yNyAyNi44NiA2LjY5IDI5LjA2IDcuNTUgMzQuMDcgOS45IDQwLjE3IDEzLjY4IDQwLjg3IDEzLjg5IDQwLjkxIDE0LjEyIDQwLjkzIDE0LjM2IDQwLjkzIDE1Ljc3IDQwLjkzIDE3LjY0IDQwLjEzIDE5LjUzIDM2Ljk0TDE5LjU1IDM2LjlDMjEuNTYgMzMuMSAyMi40OCAyOC4zOSAyMi43MyAyMy44MkwzOC40MyAzOS41MiAzNC43IDM5LjUyIDM0LjcgNDEgNDEgNDEgNDEgMzQuNyAzOS41MiAzNC43IDM5LjUyIDM4LjUxIDIyLjc5IDIxLjc5QzIyLjc5IDIxLjc3IDIyLjc5IDIxLjc2IDIyLjc5IDIxLjc0TDM4LjEgMjEuNzQgMzUuNDggMjQuMzYgMzYuNTMgMjUuNDEgNDAuOTYgMjAuOTggMzYuNTIgMTYuNzUgMzUuNSAxNy44MiAzOC4wNSAyMC4yNSAyMi43OSAyMC4yNUMyMi43OSAyMC4yMiAyMi43OSAyMC4xOSAyMi43OSAyMC4xNkwzOS41MiAzLjQ0IDM5LjUyIDcuMyA0MSA3LjNaTTE3LjkyIDM2LjAyQzE3LjA3IDM3LjQ1IDE1Ljc5IDM5LjA4IDE0LjM2IDM5LjA4IDE0LjI1IDM5LjA4IDE0LjEzIDM5LjA3IDE0LjAyIDM5LjA1IDExLjc5IDM4LjY0IDkuNDcgMzQuMzEgOC41MSAyOC43NCA4LjExIDI2LjYzIDcuOSAyNC4yIDcuODYgMjEuNzVMMTYuOCAyMS43NSAxNC4xOCAyNC4zNyAxNS4yMyAyNS40MiAxOS42NiAyMSAxNS4wNCAxNi41OSAxNC4wMiAxNy42NiAxNi43NiAyMC4yNyA3Ljg2IDIwLjI3QzcuOSAxNy43MiA4LjEzIDE1LjIxIDguNTUgMTMuMDRMOC41NSAxMy4wMkM5Ljc3IDYuMTMgMTIuNDYgMi45OCAxNC40MyAyLjk2IDE0LjQ0IDIuOTYgMTQuNDQgMi45NiAxNC40NSAyLjk2IDE2LjI4IDIuOTYgMTguNzcgNS42NyAyMC4yOCAxMy4yOCAyMS40OCAyMC4wOSAyMS4yMSAyOS43NyAxNy45MiAzNi4wMloiIGZpbGw9IiMyQzU5NjciLz48L2c+PC9nPjwvZz48L3N2Zz4=" alt="Analytics">
+          <h3 class="app-title" data-editable="true">Operations Reporting Reimagined</h3>
+        </div>
+        <div class="app-sub" data-editable="true">Assisted reporting, narrative insights, and traceability</div>
+      </article>
+      <article class="app-card" style="--accent:#656A73">
+        <div class="app-head">
+          <i class="fa-solid fa-database card-icon fa"></i>
+          <h3 class="app-title" data-editable="true">Data Migration Genie</h3>
+        </div>
+        <div class="app-sub" data-editable="true">Guided migration planning and execution support</div>
+      </article>
+      <article class="app-card" style="--accent:#656A73">
+        <div class="app-head">
+          <img class="card-icon" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgb3ZlcmZsb3c9ImhpZGRlbiI+PGRlZnM+PC9kZWZzPjxnPjxnPjxyZWN0IHg9IjAuNSIgeT0iMC41IiB3aWR0aD0iNDEiIGhlaWdodD0iNDEiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNNDEgMSA0MSA0MSAxIDQxIDEgMSA0MSAxTTQyIDAgNDEgMCAxIDAgMCAwIDAgMSAwIDQxIDAgNDIgMSA0MiA0MSA0MiA0MiA0MiA0MiA0MSA0MiAxIDQyIDAgNDIgMFoiIGZpbGw9IiNGRkZGRkYiLz48L2c+PGc+PHBhdGggZD0iTTEgMSAxIDQxIDQxIDQxIDQxIDEgMSAxWk0zOS41IDEzLjggMTMuNiAxMy44IDEzLjYgMi41IDM5LjUgMi41IDM5LjUgMTMuOFpNMi41IDI4LjIgMTIuMSAyOC4yIDEyLjEgMzkuNiAyLjUgMzkuNiAyLjUgMjguMlpNMTIuMSAyLjUgMTIuMSAxMy45IDIuNSAxMy45IDIuNSAyLjUgMTIuMSAyLjVaTTEyLjEgMTUuMyAxMi4xIDI2LjcgMi41IDI2LjcgMi41IDE1LjMgMTIuMSAxNS4zWk0xMy42IDM5LjUgMTMuNiAyOC4yIDM5LjUgMjguMiAzOS41IDM5LjYgMTMuNiAzOS42Wk0xMy42IDI2LjcgMTMuNiAxNS4zIDM5LjUgMTUuMyAzOS41IDI2LjcgMTMuNiAyNi43WiIgZmlsbD0iI0JCNTEyNyIvPjxwYXRoIGQ9Ik0xNSAxMi4zIDE2LjcgMTIuMyAxNy42IDEwLjYgMTguNSAxMi4zIDIwLjEgMTIuMyAxOC42IDkuNiAyMCA3LjEgMTguNCA3LjEgMTcuNiA4LjcgMTYuNyA3LjEgMTUuMSA3LjEgMTYuNiA5LjZaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjAuOSIgeT0iMTEuMSIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMjUgMTIuMyAyNS45IDEwLjYgMjYuOCAxMi4zIDI4LjQgMTIuMyAyNi44IDkuNiAyOC4zIDcuMSAyNi44IDcuMSAyNS45IDguNyAyNSA3LjEgMjMuNCA3LjEgMjQuOSA5LjYgMjMuNCAxMi4zWiIgZmlsbD0iI0JCNTEyNyIvPjxyZWN0IHg9IjI4LjkiIHk9IjExLjEiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTMyLjcgMTIuMyAzMy42IDEwLjYgMzQuNiAxMi4zIDM2LjEgMTIuMyAzNC42IDkuNiAzNiA3LjEgMzQuNSA3LjEgMzMuNiA4LjcgMzIuNyA3LjEgMzEuMiA3LjEgMzIuNiA5LjYgMzEuMSAxMi4zWiIgZmlsbD0iI0JCNTEyNyIvPjxyZWN0IHg9IjM2LjYiIHk9IjExLjEiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTIwIDIwLjEgMTguNCAyMC4xIDE3LjYgMjEuNyAxNi43IDIwLjEgMTUuMSAyMC4xIDE2LjYgMjIuNiAxNSAyNS4zIDE2LjcgMjUuMyAxNy42IDIzLjYgMTguNSAyNS4zIDIwLjEgMjUuMyAxOC42IDIyLjZaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjAuOSIgeT0iMjQiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTI4LjMgMjAuMSAyNi44IDIwLjEgMjUuOSAyMS43IDI1IDIwLjEgMjMuNCAyMC4xIDI0LjkgMjIuNiAyMy40IDI1LjMgMjUgMjUuMyAyNS45IDIzLjYgMjYuOCAyNS4zIDI4LjQgMjUuMyAyNi44IDIyLjZaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjguOSIgeT0iMjQiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTM2IDIwLjEgMzQuNSAyMC4xIDMzLjYgMjEuNyAzMi43IDIwLjEgMzEuMiAyMC4xIDMyLjYgMjIuNiAzMS4xIDI1LjMgMzIuNyAyNS4zIDMzLjYgMjMuNiAzNC42IDI1LjMgMzYuMSAyNS4zIDM0LjYgMjIuNloiIGZpbGw9IiNCQjUxMjciLz48cmVjdCB4PSIzNi42IiB5PSIyNCIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMjAgMzIuOSAxOC40IDMyLjkgMTcuNiAzNC40IDE2LjcgMzIuOSAxNS4xIDMyLjkgMTYuNiAzNS4zIDE1IDM4IDE2LjcgMzggMTcuNiAzNi4zIDE4LjUgMzggMjAuMSAzOCAxOC42IDM1LjRaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjAuOSIgeT0iMzYuOCIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMjguMyAzMi45IDI2LjggMzIuOSAyNS45IDM0LjQgMjUgMzIuOSAyMy40IDMyLjkgMjQuOSAzNS4zIDIzLjQgMzggMjUgMzggMjUuOSAzNi4zIDI2LjggMzggMjguNCAzOCAyNi44IDM1LjRaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjguOSIgeT0iMzYuOCIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMzYgMzIuOSAzNC41IDMyLjkgMzMuNiAzNC40IDMyLjcgMzIuOSAzMS4yIDMyLjkgMzIuNiAzNS4zIDMxLjEgMzggMzIuNyAzOCAzMy42IDM2LjMgMzQuNiAzOCAzNi4xIDM4IDM0LjYgMzUuNFoiIGZpbGw9IiNCQjUxMjciLz48cmVjdCB4PSIzNi42IiB5PSIzNi44IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjEuMiIgZmlsbD0iI0JCNTEyNyIvPjwvZz48L2c+PC9zdmc+" alt="Integration">
+          <h3 class="app-title" data-editable="true">Integration Bot</h3>
+        </div>
+        <div class="app-sub" data-editable="true">Connector recommendations and integration advisory</div>
+      </article>
+      <article class="app-card" style="--accent:#656A73">
+        <div class="app-head">
+          <i class="fa-solid fa-book-open-reader card-icon fa"></i>
+          <h3 class="app-title" data-editable="true">Knowledge Assist</h3>
+        </div>
+        <div class="app-sub" data-editable="true">Context-aware support for product and implementation teams</div>
+      </article>
+    </div>
+  </section>
+
+  <div class="flow-up"><i class="fa-solid fa-arrow-up"></i><span data-editable="true">Application requests are orchestrated through AI runtime capabilities</span></div>
+
+  <section class="layer">
+    <div class="layer-title">AI Runtime & Orchestration</div>
+    <div class="runtime-grid">
+      <aside class="orchestrator-box">
+        <img class="card-icon" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgb3ZlcmZsb3c9ImhpZGRlbiI+PGRlZnM+PC9kZWZzPjxnPjxnPjxyZWN0IHg9IjAuNSIgeT0iMC41IiB3aWR0aD0iNDEiIGhlaWdodD0iNDEiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNNDEgMSA0MSA0MSAxIDQxIDEgMSA0MSAxTTQyIDAgNDEgMCAxIDAgMCAwIDAgMSAwIDQxIDAgNDIgMSA0MiA0MSA0MiA0MiA0MiA0MiA0MSA0MiAxIDQyIDAgNDIgMFoiIGZpbGw9IiNGRkZGRkYiLz48L2c+PGc+PHBhdGggZD0iTTEgMSAxIDQxIDQxIDQxIDQxIDEgMSAxWk0zOS41IDEzLjggMTMuNiAxMy44IDEzLjYgMi41IDM5LjUgMi41IDM5LjUgMTMuOFpNMi41IDI4LjIgMTIuMSAyOC4yIDEyLjEgMzkuNiAyLjUgMzkuNiAyLjUgMjguMlpNMTIuMSAyLjUgMTIuMSAxMy45IDIuNSAxMy45IDIuNSAyLjUgMTIuMSAyLjVaTTEyLjEgMTUuMyAxMi4xIDI2LjcgMi41IDI2LjcgMi41IDE1LjMgMTIuMSAxNS4zWk0xMy42IDM5LjUgMTMuNiAyOC4yIDM5LjUgMjguMiAzOS41IDM5LjYgMTMuNiAzOS42Wk0xMy42IDI2LjcgMTMuNiAxNS4zIDM5LjUgMTUuMyAzOS41IDI2LjcgMTMuNiAyNi43WiIgZmlsbD0iI0JCNTEyNyIvPjxwYXRoIGQ9Ik0xNSAxMi4zIDE2LjcgMTIuMyAxNy42IDEwLjYgMTguNSAxMi4zIDIwLjEgMTIuMyAxOC42IDkuNiAyMCA3LjEgMTguNCA3LjEgMTcuNiA4LjcgMTYuNyA3LjEgMTUuMSA3LjEgMTYuNiA5LjZaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjAuOSIgeT0iMTEuMSIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMjUgMTIuMyAyNS45IDEwLjYgMjYuOCAxMi4zIDI4LjQgMTIuMyAyNi44IDkuNiAyOC4zIDcuMSAyNi44IDcuMSAyNS45IDguNyAyNSA3LjEgMjMuNCA3LjEgMjQuOSA5LjYgMjMuNCAxMi4zWiIgZmlsbD0iI0JCNTEyNyIvPjxyZWN0IHg9IjI4LjkiIHk9IjExLjEiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTMyLjcgMTIuMyAzMy42IDEwLjYgMzQuNiAxMi4zIDM2LjEgMTIuMyAzNC42IDkuNiAzNiA3LjEgMzQuNSA3LjEgMzMuNiA4LjcgMzIuNyA3LjEgMzEuMiA3LjEgMzIuNiA5LjYgMzEuMSAxMi4zWiIgZmlsbD0iI0JCNTEyNyIvPjxyZWN0IHg9IjM2LjYiIHk9IjExLjEiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTIwIDIwLjEgMTguNCAyMC4xIDE3LjYgMjEuNyAxNi43IDIwLjEgMTUuMSAyMC4xIDE2LjYgMjIuNiAxNSAyNS4zIDE2LjcgMjUuMyAxNy42IDIzLjYgMTguNSAyNS4zIDIwLjEgMjUuMyAxOC42IDIyLjZaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjAuOSIgeT0iMjQiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTI4LjMgMjAuMSAyNi44IDIwLjEgMjUuOSAyMS43IDI1IDIwLjEgMjMuNCAyMC4xIDI0LjkgMjIuNiAyMy40IDI1LjMgMjUgMjUuMyAyNS45IDIzLjYgMjYuOCAyNS4zIDI4LjQgMjUuMyAyNi44IDIyLjZaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjguOSIgeT0iMjQiIHdpZHRoPSIxLjQiIGhlaWdodD0iMS4yIiBmaWxsPSIjQkI1MTI3Ii8+PHBhdGggZD0iTTM2IDIwLjEgMzQuNSAyMC4xIDMzLjYgMjEuNyAzMi43IDIwLjEgMzEuMiAyMC4xIDMyLjYgMjIuNiAzMS4xIDI1LjMgMzIuNyAyNS4zIDMzLjYgMjMuNiAzNC42IDI1LjMgMzYuMSAyNS4zIDM0LjYgMjIuNloiIGZpbGw9IiNCQjUxMjciLz48cmVjdCB4PSIzNi42IiB5PSIyNCIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMjAgMzIuOSAxOC40IDMyLjkgMTcuNiAzNC40IDE2LjcgMzIuOSAxNS4xIDMyLjkgMTYuNiAzNS4zIDE1IDM4IDE2LjcgMzggMTcuNiAzNi4zIDE4LjUgMzggMjAuMSAzOCAxOC42IDM1LjRaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjAuOSIgeT0iMzYuOCIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMjguMyAzMi45IDI2LjggMzIuOSAyNS45IDM0LjQgMjUgMzIuOSAyMy40IDMyLjkgMjQuOSAzNS4zIDIzLjQgMzggMjUgMzggMjUuOSAzNi4zIDI2LjggMzggMjguNCAzOCAyNi44IDM1LjRaIiBmaWxsPSIjQkI1MTI3Ii8+PHJlY3QgeD0iMjguOSIgeT0iMzYuOCIgd2lkdGg9IjEuNCIgaGVpZ2h0PSIxLjIiIGZpbGw9IiNCQjUxMjciLz48cGF0aCBkPSJNMzYgMzIuOSAzNC41IDMyLjkgMzMuNiAzNC40IDMyLjcgMzIuOSAzMS4yIDMyLjkgMzIuNiAzNS4zIDMxLjEgMzggMzIuNyAzOCAzMy42IDM2LjMgMzQuNiAzOCAzNi4xIDM4IDM0LjYgMzUuNFoiIGZpbGw9IiNCQjUxMjciLz48cmVjdCB4PSIzNi42IiB5PSIzNi44IiB3aWR0aD0iMS40IiBoZWlnaHQ9IjEuMiIgZmlsbD0iI0JCNTEyNyIvPjwvZz48L2c+PC9zdmc+" alt="Orchestrator" style="width:22px;height:22px">
+        <i class="fa-solid fa-sliders box-icon" aria-hidden="true"></i>
+        <div class="box-title" data-editable="true">AI Orchestrator</div>
+        <div class="box-sub" data-editable="true">Request routing, policy checks, context assembly, and response composition</div>
+      </aside>
+
+      <div class="capability-grid">
+        <div class="cap-col">
+          <h3 class="cap-title" data-editable="true"><i class="fa-solid fa-book-open" aria-hidden="true"></i>RAG</h3>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-magnifying-glass service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Query Processing</p>
+            </div>
+            <p class="service-meta" data-editable="true">Intent parsing, retrieval strategy selection</p>
+          </article>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-quote-left service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Response Citation</p>
+            </div>
+            <p class="service-meta" data-editable="true">Grounded answers with source traceability</p>
+          </article>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-shield-halved service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Re-ranking & Guardrails</p>
+            </div>
+            <p class="service-meta" data-editable="true">Relevance ranking and policy-safe output filters</p>
+          </article>
+        </div>
+
+        <div class="cap-col">
+          <h3 class="cap-title" data-editable="true"><i class="fa-solid fa-robot" aria-hidden="true"></i>Agent</h3>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-diagram-project service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Task Interpretation</p>
+            </div>
+            <p class="service-meta" data-editable="true">Goal decomposition and execution planning</p>
+          </article>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-toolbox service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">MCP Tools Registry</p>
+            </div>
+            <p class="service-meta" data-editable="true">Tool discovery, invocation, and result handling</p>
+          </article>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-circle-check service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Action Validation</p>
+            </div>
+            <p class="service-meta" data-editable="true">Pre-action checks and execution constraints</p>
+          </article>
+        </div>
+
+        <div class="cap-col">
+          <h3 class="cap-title" data-editable="true"><i class="fa-solid fa-gears" aria-hidden="true"></i>Workflow</h3>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-file-lines service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Document Understanding Pipeline</p>
+            </div>
+            <p class="service-meta" data-editable="true">Ingestion, extraction, and structured interpretation</p>
+          </article>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-tags service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Enrichment</p>
+            </div>
+            <p class="service-meta" data-editable="true">Metadata tagging, taxonomy mapping, confidence scoring</p>
+          </article>
+          <article class="service-card">
+            <div class="service-head">
+              <i class="fa-solid fa-route service-icon" aria-hidden="true"></i>
+              <p class="service-title" data-editable="true">Process Orchestration</p>
+            </div>
+            <p class="service-meta" data-editable="true">Step sequencing, retries, and status progression</p>
+          </article>
+        </div>
+      </div>
+
+      <aside class="genai-panel">
+        <div class="genai-header">
+          <img class="card-icon" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDguNDcgNDIuMDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48cGF0aCBkPSJNMjIuNSA0MS41MkMxOS4zOCA0MS41MiAxNi40MyA0MS4yMyAxNC4yMSA0MC42OSAxMS4yNiAzOS45OCA5LjgyIDM4LjkxIDkuODIgMzcuNEw5LjgyIDIyLjkgMC41NCAyMi45IDAuNjUgMjEuMzhDMC45MiAxNy43MSAzLjA0IDE0LjQ5IDYuMyAxMi43NyA3LjAxIDEyLjM5IDcuNTEgMTEuNzMgNy42NiAxMC45NiA4LjE3IDguMzYgOS45MiA2LjE4IDEyLjM0IDUuMTEgMTMuMzYgNC42NiAxNC40OSA0LjQzIDE1LjYgNC40MyAxNS44NSA0LjQzIDE2LjEgNC40NCAxNi4zNSA0LjQ2IDE2LjQ0IDQuNDcgMTYuNTIgNC40NyAxNi42MSA0LjQ3IDE3LjMyIDQuNDcgMTcuOTcgNC4xOSAxOC40MyAzLjY5IDIwLjE1IDEuODQgMjIuNDQgMC43MyAyNC45NCAwLjU0TDI0Ljk0IDAuNTQgMjUuOTQgMC41MiAyNS45NCAwLjUzQzI5LjYzIDAuNjEgMzIuOTMgMi43IDM0LjU5IDYuMDIgMzQuNzEgNi4yNiAzNC44OCA2LjQ5IDM1LjA3IDYuNjkgMzUuMzEgNy4wNCAzNS42MyA3LjQ5IDM1LjkxIDcuODkgMzguOTEgNy45OSA0MS42NCA5LjU2IDQzLjI0IDEyLjEzTDQzLjI4IDEyLjIgNDMuNjMgMTMuNzMgNDcuNzUgMTcuODUgNDUuNzQgMTkuODYgNDQuNDQgMTguNTZDNDMuNjUgMjIuNzUgMzkuOTUgMjUuOSAzNS41OSAyNS45IDM1LjQ1IDI1LjkgMzUuMzEgMjUuOSAzNS4xNyAyNS44OUwzNS4xNyAzNy40MkMzNS4xNyAzOC45MiAzMy43MyA0MCAzMC43OCA0MC43MSAyOC41NyA0MS4yMyAyNS42MiA0MS41MiAyMi41IDQxLjUyWiIgZmlsbD0iI0ZGRkZGRiIvPjxwYXRoIGQ9Ik0yNS43MiAxLjAyQzI5LjMxIDEuMDIgMzIuNTUgMy4wMiAzNC4xNSA2LjI0IDM0LjMgNi41NCAzNC41IDYuODEgMzQuNzMgNy4wNCAzNC45NSA3LjM4IDM1LjM1IDcuOTQgMzUuNjYgOC4zOCAzOC42NCA4LjQgNDEuMzIgOS45NyA0Mi44MiAxMi4zOUw0My4xOSAxMy45NyA0Ny4wNiAxNy44NCA0NS43NiAxOS4xNCA0NC4wOSAxNy40N0M0My43OSAyMS44OSA0MC4xIDI1LjM5IDM1LjYxIDI1LjM5IDM1LjMgMjUuMzkgMzQuOTkgMjUuMzYgMzQuNjkgMjUuMzNMMzQuNjkgMzcuNDFDMzQuNjkgMzguNjUgMzMuMzggMzkuNTcgMzAuNjkgNDAuMjEgMjguNDkgNDAuNzQgMjUuNTkgNDEuMDIgMjIuNTEgNDEuMDIgMTkuNDMgNDEuMDIgMTYuNTMgNDAuNzMgMTQuMzMgNDAuMjEgMTEuNjQgMzkuNTcgMTAuMzMgMzguNjUgMTAuMzMgMzcuNDFMMTAuMzMgMjIuNCAxLjA4IDIyLjQgMS4xNSAyMS40MUMxLjQxIDE3LjkxIDMuNDIgMTQuODUgNi41NCAxMy4yMSA3LjM5IDEyLjc2IDcuOTggMTEuOTggOC4xNiAxMS4wNSA4LjY0IDguNjEgMTAuMjggNi41NiAxMi41NSA1LjU2IDEzLjUyIDUuMTQgMTQuNTYgNC45MiAxNS42MSA0LjkyIDE1Ljg1IDQuOTIgMTYuMDggNC45MyAxNi4zMSA0Ljk1IDE2LjQxIDQuOTYgMTYuNTEgNC45NiAxNi42MiA0Ljk2IDE3LjQ2IDQuOTYgMTguMjUgNC42MyAxOC44MSA0LjAyIDIwLjU1IDIuMTUgMjIuOTEgMS4wOCAyNS40NiAxLjAxTDI1LjQ4IDEuOTMgMjUuNDYgMS4wMUMyNS41NSAxLjAyIDI1LjYzIDEuMDIgMjUuNzIgMS4wMk0yNi40NCAwIDI1LjQ0IDAuMDNDMjUuNDMgMC4wMyAyNS40MyAwLjAzIDI1LjQyIDAuMDNMMjQuNDQgMC4wNiAyNC40NCAwLjExQzIyIDAuNCAxOS43NyAxLjUzIDE4LjA4IDMuMzYgMTcuNzEgMy43NiAxNy4xOSAzLjk4IDE2LjYyIDMuOTggMTYuNTUgMy45OCAxNi40OCAzLjk4IDE2LjQxIDMuOTcgMTYuMTQgMy45NSAxNS44OCAzLjkzIDE1LjYxIDMuOTMgMTQuNDMgMy45MyAxMy4yMyA0LjE4IDEyLjE1IDQuNjYgOS41OCA1Ljc5IDcuNzIgOC4xMSA3LjE4IDEwLjg3IDcuMDYgMTEuNSA2LjY1IDEyLjAzIDYuMDcgMTIuMzMgMi42NSAxNC4xMyAwLjQ0IDE3LjUgMC4xNSAyMS4zNEwwLjA4IDIyLjMzIDAgMjMuNCAxLjA4IDIzLjQgOS4zMiAyMy40IDkuMzIgMzcuNDFDOS4zMiA0MC4wNCAxMi45MSA0MC45IDE0LjA5IDQxLjE4IDE2LjM2IDQxLjcyIDE5LjM1IDQyLjAyIDIyLjUgNDIuMDIgMjUuNjYgNDIuMDIgMjguNjQgNDEuNzIgMzAuOTEgNDEuMTggMzIuMDkgNDAuOSAzNS42OCA0MC4wNCAzNS42OCAzNy40MUwzNS42OCAyNi4zOUMzOS45MyAyNi4zNSA0My41OCAyMy40OCA0NC43MyAxOS41M0w0NS4wNSAxOS44NSA0NS43NiAyMC41NiA0Ni40NyAxOS44NSA0Ny43NyAxOC41NSA0OC40OCAxNy44NCA0Ny43NyAxNy4xMyA0NC4xIDEzLjQ2IDQzLjggMTIuMTUgNDMuNzYgMTIgNDMuNjcgMTEuODZDNDIuMDMgOS4yMyAzOS4yNiA3LjU5IDM2LjE5IDcuNCAzNS45NiA3LjA3IDM1LjcyIDYuNzIgMzUuNTYgNi40OUwzNS41MSA2LjQxIDM1LjQ0IDYuMzRDMzUuMjggNi4xNyAzNS4xNCA1Ljk5IDM1LjA1IDUuNzkgMzMuMzggMi40NSAzMC4xMyAwLjI5IDI2LjQ0IDAuMDRMMjYuNDQgMCAyNi40NCAwWiIgZmlsbD0iI0ZGRkZGRiIvPjwvZz48cGF0aCBkPSJNMy4xMiAyMC41NiA4Ljk0IDIwLjU2IDguOTQgMjIuNCAxLjA4IDIyLjQgMS4xNSAyMS40MUMxLjQxIDE3LjkxIDMuNDIgMTQuODUgNi41NCAxMy4yMSA3LjM5IDEyLjc2IDcuOTggMTEuOTggOC4xNiAxMS4wNSA4LjY0IDguNjEgMTAuMjggNi41NiAxMi41NSA1LjU2IDEzLjczIDUuMDQgMTUuMDMgNC44MyAxNi4zMSA0Ljk1IDE3LjI3IDUuMDQgMTguMTggNC43IDE4LjgxIDQuMDIgMjAuNTUgMi4xNSAyMi45MSAxLjA4IDI1LjQ2IDEuMDFMMjUuNDYgMS4wMUMyNS41NCAxLjAxIDI1LjYzIDEuMDEgMjUuNzEgMS4wMSAyOS4zIDEuMDEgMzIuNTQgMy4wMSAzNC4xNCA2LjIzIDM0LjI5IDYuNTMgMzQuNDkgNi44IDM0LjcyIDcuMDMgMzQuMDMgNy4wOSAzMy4zNSA3LjIyIDMyLjcxIDcuNDIgMzIuNjQgNy4zIDMyLjU3IDcuMTggMzIuNSA3LjA1IDMxLjIxIDQuNDYgMjguNiAyLjg1IDI1LjcxIDIuODUgMjUuNjQgMi44NSAyNS41NyAyLjg1IDI1LjUgMi44NSAyMy40NSAyLjkgMjEuNTQgMy43NyAyMC4xNCA1LjI3IDE5LjEyIDYuMzcgMTcuNjUgNi45MiAxNi4xMiA2Ljc4IDE1LjE1IDYuNjkgMTQuMTcgNi44NSAxMy4yNyA3LjI0IDExLjU1IDggMTAuMzEgOS41NSA5Ljk0IDExLjQgOS42NSAxMi44NyA4LjcxIDE0LjEyIDcuMzcgMTQuODMgNS4xNCAxNi4wMiAzLjU5IDE4LjEyIDMuMTIgMjAuNTZNMzQuNjkgMTIgMzYuNTEgMTIgMzkuMDYgMjAuODYgMzcuMSAyMC44NiAzNi42NiAxOSAzNC40NSAxOSAzNC4wMiAyMC44NiAzMi4xMiAyMC44NiAzNC42OSAxMlpNMzQuOCAxNy40OSAzNi4zMiAxNy40OSAzNS41NiAxNC4xOCAzNC44IDE3LjQ5Wk0yNy4xMiAxNi4zIDI1LjQ1IDE0LjYzIDI0LjE1IDE1LjkzIDI4LjAyIDE5LjggMzEuODkgMTUuOTMgMzAuNTkgMTQuNjMgMjguOTcgMTYuMjVDMjkuMjkgMTIuODcgMzIuMTUgMTAuMjMgMzUuNiAxMC4yMyAzOC4xIDEwLjIzIDQwLjM0IDExLjYzIDQxLjQ4IDEzLjc1TDQyLjgyIDEyLjQxQzQxLjMgOS45OCAzOC42IDguNCAzNS42IDguNCAzMS4xMSA4LjM4IDI3LjQyIDExLjg4IDI3LjEyIDE2LjNNNDcuMDYgMTcuODQgNDMuMTkgMTMuOTcgMzkuMzIgMTcuODQgNDAuNjIgMTkuMTQgNDIuMjQgMTcuNTJDNDEuOTIgMjAuOSAzOS4wNiAyMy41NCAzNS42MSAyMy41NCAzMy4xMSAyMy41NCAzMC44NyAyMi4xNCAyOS43MyAyMC4wMkwyOC4zOSAyMS4zNkMyOS45MSAyMy43OSAzMi42MSAyNS4zNyAzNS42MSAyNS4zNyA0MC4xIDI1LjM3IDQzLjc5IDIxLjg3IDQ0LjA5IDE3LjQ1TDQ1Ljc2IDE5LjEyIDQ3LjA2IDE3Ljg0Wk0zMi44NSAyNi41OEMzMy40NCAyNi43NiAzNC4wNiAyNi44OCAzNC42OSAyNi45NEwzNC42OSAzNy40QzM0LjY5IDM4LjY0IDMzLjM4IDM5LjU2IDMwLjY5IDQwLjIgMjguNDkgNDAuNzMgMjUuNTkgNDEuMDEgMjIuNTEgNDEuMDEgMTkuNDMgNDEuMDEgMTYuNTMgNDAuNzIgMTQuMzMgNDAuMiAxMS42NCAzOS41NiAxMC4zMyAzOC42NCAxMC4zMyAzNy40TDEwLjMzIDE3LjhDMTAuMzMgMTYuNTUgMTEuNjUgMTUuNjYgMTQuMzUgMTUuMDcgMTYuNDggMTQuNjEgMTkuMzggMTQuMzUgMjIuNTEgMTQuMzUgMjIuNjYgMTQuMzUgMjIuODIgMTQuMzUgMjIuOTcgMTQuMzVMMjIuOTcgMTYuMTlDMjIuODIgMTYuMTkgMjIuNjcgMTYuMTkgMjIuNTEgMTYuMTkgMTUuOTYgMTYuMTkgMTIuNTggMTcuMjYgMTIuMTcgMTcuODZMMTIuMTcgMTcuOTdDMTIuNjEgMTguNjQgMTYuMzYgMTkuODEgMjIuNTEgMTkuODEgMjMuNzggMTkuODEgMjQuOTUgMTkuNzYgMjYuMDEgMTkuNjggMjYuMTkgMjAuMyAyNi40MiAyMC45IDI2LjcxIDIxLjQ2IDI1LjM5IDIxLjU4IDIzLjk3IDIxLjY1IDIyLjUxIDIxLjY1IDE5LjQzIDIxLjY1IDE2LjUzIDIxLjM2IDE0LjMzIDIwLjg0IDEzLjQ3IDIwLjYzIDEyLjc1IDIwLjQgMTIuMTYgMjAuMTNMMTIuMTYgMjQuNDFDMTIuNiAyNS4wOCAxNi4zNSAyNi4yNSAyMi41IDI2LjI1IDI1LjkxIDI2LjI1IDI4LjU3IDI1Ljg5IDMwLjM1IDI1LjQ2IDMxLjExIDI1Ljk0IDMxLjk0IDI2LjMyIDMyLjgyIDI2LjU4IDMyLjI0IDI2Ljg0IDMxLjUzIDI3LjA3IDMwLjY4IDI3LjI3IDI4LjQ4IDI3LjggMjUuNTggMjguMDggMjIuNSAyOC4wOCAxOS40MiAyOC4wOCAxNi41MiAyNy43OSAxNC4zMiAyNy4yNyAxMy40NiAyNy4wNiAxMi43NCAyNi44MyAxMi4xNSAyNi41NkwxMi4xNSAzMC44OUMxMi41OSAzMS41NiAxNi4zNCAzMi43MyAyMi40OSAzMi43MyAyOC42NCAzMi43MyAzMi40IDMxLjU2IDMyLjgzIDMwLjg5TDMyLjgzIDI2LjU4Wk0zMi44NSAzMy4wNkMzMi4yNyAzMy4zMiAzMS41NSAzMy41NiAzMC42OCAzMy43NyAyOC40OCAzNC4zIDI1LjU4IDM0LjU4IDIyLjUgMzQuNTggMTkuNDIgMzQuNTggMTYuNTIgMzQuMjkgMTQuMzIgMzMuNzcgMTMuNDYgMzMuNTYgMTIuNzQgMzMuMzMgMTIuMTUgMzMuMDZMMTIuMTUgMzcuMzVDMTIuNTQgMzcuOTEgMTUuOTQgMzkuMTkgMjIuNDkgMzkuMTkgMjkuMDQgMzkuMTkgMzIuNDUgMzcuOTIgMzIuODMgMzcuMzVMMzIuODMgMzMuMDZaIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvc3ZnPg==" alt="Generative AI" style="width:20px;height:20px;">
+          <h3 data-editable="true">OCI GenAI LLM Services</h3>
+        </div>
+
+        <div class="genai-group">
+          <p class="group-name" data-editable="true">Foundational Model Access</p>
+          <div class="model-chip-wrap">
+            <span class="model-chip" data-editable="true">Cohere Command A / A Reasoning / A Vision</span>
+            <span class="model-chip" data-editable="true">Meta Llama 4 Maverick / Scout</span>
+            <span class="model-chip" data-editable="true">xAI Grok 4 / Grok 4 Fast / Grok 3</span>
+            <span class="model-chip" data-editable="true">OpenAI gpt-oss-120b / gpt-oss-20b</span>
+            <span class="model-chip" data-editable="true">Google Gemini 2.5 Pro / Flash / Flash-Lite</span>
+          </div>
+        </div>
+
+        <div class="genai-group">
+          <p class="group-name" data-editable="true">Representational OCI AI Services (Non-FM)</p>
+          <div class="ai-service-grid">
+            <article class="ai-service-card">
+              <div class="ai-service-head">
+                <i class="fa-solid fa-file-invoice ai-service-icon" aria-hidden="true"></i>
+                <p class="ai-service-title" data-editable="true">Document Understanding</p>
+              </div>
+              <p class="ai-service-sub" data-editable="true">OCR, key-value and table extraction</p>
+            </article>
+            <article class="ai-service-card">
+              <div class="ai-service-head">
+                <i class="fa-solid fa-microphone-lines ai-service-icon" aria-hidden="true"></i>
+                <p class="ai-service-title" data-editable="true">OCI Speech</p>
+              </div>
+              <p class="ai-service-sub" data-editable="true">Speech-to-text and speech synthesis</p>
+            </article>
+            <article class="ai-service-card">
+              <div class="ai-service-head">
+                <i class="fa-solid fa-language ai-service-icon" aria-hidden="true"></i>
+                <p class="ai-service-title" data-editable="true">OCI Language</p>
+              </div>
+              <p class="ai-service-sub" data-editable="true">Classification, entities, sentiment</p>
+            </article>
+            <article class="ai-service-card">
+              <div class="ai-service-head">
+                <i class="fa-solid fa-eye ai-service-icon" aria-hidden="true"></i>
+                <p class="ai-service-title" data-editable="true">OCI Vision</p>
+              </div>
+              <p class="ai-service-sub" data-editable="true">Image analysis and document visuals</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="genai-group">
+          <p class="group-name" data-editable="true">Operational Controls</p>
+          <div class="model-chip-wrap">
+            <span class="model-chip" data-editable="true">Model routing</span>
+            <span class="model-chip" data-editable="true">Latency/cost policy</span>
+            <span class="model-chip" data-editable="true">Safety moderation</span>
+            <span class="model-chip" data-editable="true">Audit logging</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <div class="flow-up"><i class="fa-solid fa-arrow-up"></i><span data-editable="true">Runtime capabilities consume governed knowledge context</span></div>
+
+  <section class="layer">
+    <div class="layer-title">Knowledge Layer</div>
+    <div class="knowledge-grid">
+      <aside class="kb-box">
+        <img class="card-icon" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDQuNSA0MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgaWQ9IkxheWVyXzEiIG92ZXJmbG93PSJoaWRkZW4iPjxnPjxnPjxwYXRoIGQ9Ik0yMi4zIDQxLjVDMjEuNyA0MS41IDIxLjEgNDEuNSAyMC41IDQxLjUgMTguOSA0MS40IDE2LjYgNDEuMyAxNC40IDQwLjggMTMuNyA0MC43IDEzLjEgNDAuNSAxMi42IDQwLjMgMTIgNDAuMSAxMS41IDM5LjkgMTEuMSAzOS42IDEwLjEgMzkgOS42IDM4LjMgOS42IDM3LjRMOS42IDIyLjcgMC42IDIyLjcgMC43IDIxLjJDMSAxNy42IDMuMSAxNC40IDYuMyAxMi43IDcgMTIuMyA3LjUgMTEuNyA3LjYgMTAuOSA4LjEgOC4zIDkuOCA2LjEgMTIuMiA1IDEzLjIgNC42IDE0LjMgNC4zIDE1LjQgNC4zIDE1LjYgNC4zIDE1LjkgNC4zIDE2LjEgNC4zIDE2LjIgNC4zIDE2LjMgNC4zIDE2LjQgNC4zIDE3LjEgNC4zIDE3LjcgNCAxOC4yIDMuNSAyMC4xIDEuNSAyMi43IDAuNCAyNS40IDAuNCAyOS4yIDAuNCAzMi41IDIuNSAzNC4yIDUuOCAzNC42IDYuNSAzNS4yIDcgMzYgNy4yIDM3LjEgNy40IDM4LjIgNy45IDM5LjIgOC41IDQzLjcgMTEuMyA0NS4yIDE3LjEgNDIuNyAyMS44TDQyLjMgMjIuNSAzNC44IDIyLjUgMzQuOCAzNy4zQzM0LjggMzggMzQuNSAzOC41IDMzLjkgMzkuMSAzMy43IDM5LjIgMzMuNSAzOS40IDMzLjMgMzkuNSAzMS4yIDQwLjcgMjcuMiA0MS4yIDI1IDQxLjMgMjQuMSA0MS41IDIzLjIgNDEuNSAyMi4zIDQxLjVaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTI1LjUgMUMyOS4xIDEgMzIuMyAzIDMzLjkgNi4yIDM0LjMgNyAzNS4xIDcuNiAzNiA3LjggMzcuMSA4IDM4LjEgOC41IDM5IDkgNDMuMiAxMS43IDQ0LjcgMTcuMiA0Mi4zIDIxLjZMNDIgMjIuMSAzNC4zIDIyLjEgMzQuMyAzNy40QzM0LjMgMzcuOSAzNCAzOC40IDMzLjYgMzguOCAzMy40IDM4LjkgMzMuMyAzOS4xIDMzLjEgMzkuMiAzMS4zIDQwLjIgMjggNDAuNyAyNSA0MC45IDI0IDQxIDIzIDQxIDIyLjIgNDEgMjEuNiA0MSAyMSA0MSAyMC40IDQxIDE4LjUgNDAuOSAxNi4zIDQwLjcgMTQuNCA0MC4zIDEzLjggNDAuMiAxMy4yIDQwIDEyLjcgMzkuOCAxMi4yIDM5LjYgMTEuNyAzOS40IDExLjMgMzkuMiAxMC41IDM4LjcgMTAgMzguMiAxMCAzNy41TDEwIDIyLjIgMSAyMi4yIDEuMSAyMS4yQzEuNCAxNy43IDMuNCAxNC43IDYuNCAxMy4xIDcuMiAxMi43IDcuOCAxMS45IDggMTEgOC41IDguNiAxMC4xIDYuNiAxMi40IDUuNiAxMy40IDUuMiAxNC40IDUgMTUuNCA1IDE1LjYgNSAxNS45IDUgMTYuMSA1IDE2LjIgNSAxNi4zIDUgMTYuNCA1IDE3LjIgNSAxOCA0LjcgMTguNiA0LjEgMjAuNCAyLjEgMjIuOSAxIDI1LjUgMU0yNS41IDBDMjIuNiAwIDE5LjkgMS4yIDE3LjkgMy4zIDE3LjUgMy43IDE3IDMuOSAxNi41IDMuOSAxNi40IDMuOSAxNi40IDMuOSAxNi4zIDMuOSAxNiAzLjkgMTUuOCAzLjkgMTUuNSAzLjkgMTQuMyAzLjkgMTMuMSA0LjEgMTIuMSA0LjYgOS41IDUuNyA3LjcgOCA3LjEgMTAuNyA3IDExLjQgNi42IDExLjkgNiAxMi4yIDIuNiAxNCAwLjQgMTcuMyAwLjEgMjEuMUwtMy42MDgyMmUtMTYgMjIuMSAwIDIzLjIgMS4xIDIzLjIgOS4xIDIzLjIgOS4xIDM3LjVDOS4xIDM4LjIgOS40IDM5LjIgMTAuOSA0MC4xIDExLjMgNDAuNCAxMS45IDQwLjYgMTIuNSA0MC44IDEzIDQxIDEzLjcgNDEuMiAxNC4zIDQxLjMgMTYuNSA0MS44IDE4LjggNDEuOSAyMC40IDQyIDIxIDQyIDIxLjcgNDIgMjIuMyA0MiAyMy4yIDQyIDI0LjIgNDIgMjUuMiA0MS45IDI3LjkgNDEuNyAzMS43IDQxLjMgMzMuOCA0MCAzNCAzOS45IDM0LjMgMzkuNyAzNC41IDM5LjUgMzUuNCAzOC43IDM1LjYgMzcuOSAzNS42IDM3LjRMMzUuNiAyMy4yIDQyLjMgMjMuMiA0Mi45IDIzLjIgNDMuMiAyMi43IDQzLjUgMjIuMkM0Ni4xIDE3LjMgNDQuNSAxMS4yIDM5LjggOC4zIDM4LjggNy42IDM3LjYgNy4yIDM2LjUgNi45IDM1LjkgNi44IDM1LjMgNi4zIDM1IDUuOCAzMyAyLjIgMjkuNCAwIDI1LjUgMEwyNS41IDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOSA5LjFDMzguMSA4LjUgMzcgOC4xIDM2IDcuOSAzNS4xIDcuNyAzNC4zIDcuMSAzMy45IDYuMiAzMi4zIDMgMjkuMSAxIDI1LjUgMSAyMi45IDEgMjAuNCAyLjEgMTguNyA0IDE4LjEgNC43IDE3LjIgNSAxNi4yIDQuOSAxNC45IDQuOCAxMy42IDUgMTIuNSA1LjUgMTAuMiA2LjUgOC42IDguNSA4LjEgMTAuOSA3LjkgMTEuOCA3LjMgMTIuNiA2LjUgMTMgMy40IDE0LjYgMS40IDE3LjcgMS4yIDIxLjFMMS4xIDIyLjEgNi44IDIyLjEgNyAyMi4xIDkgMjIuMSA5IDIwLjMgNyAyMC4zIDYuOCAyMC4zIDMuMSAyMC4zQzMuNiAxNy45IDUuMSAxNS44IDcuMyAxNC42IDguNiAxMy45IDkuNiAxMi43IDkuOCAxMS4yIDEwLjIgOS40IDExLjQgNy44IDEzLjEgNy4xIDE0LjEgNi44IDE1IDYuNiAxNiA2LjcgMTcuNSA2LjggMTkgNi4zIDIwIDUuMiAyMS40IDMuNyAyMy40IDIuOCAyNS41IDIuOCAyOC40IDIuOCAzMC45IDQuNCAzMi4yIDcgMzIuOSA4LjMgMzQuMSA5LjMgMzUuNiA5LjYgMzYuNSA5LjggMzcuMyAxMC4xIDM4LjEgMTAuNiA0MS40IDEyLjcgNDIuNiAxNi45IDQxIDIwLjNMMzUuNCAyMC4zIDM1LjQgMjIuMSA0Mi4xIDIyLjEgNDIuNCAyMS42QzQ0LjcgMTcuMyA0My4zIDExLjcgMzkgOS4xWiIgZmlsbD0iIzJDNTk2NyIvPjxwYXRoIGQ9Ik0zNC40IDE3LjZDMzQuNCAxNy42IDM0LjQgMTcuNSAzNC40IDE3LjYgMzQuNCAxNy41IDM0LjQgMTcuNCAzNC40IDE3LjQgMzQuNCAxNi45IDM0LjEgMTYuNCAzMy43IDE2IDMzLjUgMTUuOSAzMy40IDE1LjcgMzMuMiAxNS42IDMxLjQgMTQuNSAyOC4xIDE0IDI1LjEgMTMuOCAyNC4xIDEzLjcgMjMuMSAxMy43IDIyLjMgMTMuNyAyMS43IDEzLjcgMjEuMSAxMy43IDIwLjUgMTMuNyAxOC42IDEzLjggMTYuNCAxNCAxNC41IDE0LjQgMTMuOSAxNC41IDEzLjMgMTQuNyAxMi44IDE0LjkgMTIuMyAxNS4xIDExLjggMTUuMyAxMS40IDE1LjUgMTAuNiAxNiAxMC4xIDE2LjYgMTAuMSAxNy4zIDEwLjEgMTcuMyAxMC4xIDE3LjQgMTAuMSAxNy40IDEwLjEgMTcuNCAxMC4xIDE3LjUgMTAuMSAxNy41TDEwLjEgMjMuOCAxMC4xIDI0LjEgMTAuMSAzMC41IDEwLjEgMzAuNyAxMC4xIDM3LjNDMTAuMSAzOCAxMC42IDM4LjYgMTEuNCAzOSAxMS44IDM5LjIgMTIuMyAzOS40IDEyLjggMzkuNiAxMy4zIDM5LjggMTMuOSAzOS45IDE0LjUgNDAuMSAxNi40IDQwLjUgMTguNSA0MC43IDIwLjUgNDAuOCAyMS4xIDQwLjggMjEuOCA0MC44IDIyLjMgNDAuOCAyMy4xIDQwLjggMjQuMSA0MC44IDI1LjEgNDAuNyAyOC4xIDQwLjUgMzEuNCA0MCAzMy4yIDM5IDMzLjQgMzguOSAzMy42IDM4LjggMzMuNyAzOC42IDM0LjIgMzguMiAzNC40IDM3LjggMzQuNCAzNy4yTDM0LjQgMzAuNiAzNC40IDMwLjQgMzQuNCAyNCAzNC40IDIzLjcgMzQuNCAxNy42Wk0yMi4yIDE1LjRDMjguNiAxNS40IDMyLjQgMTYuNyAzMi43IDE3LjQgMzIuNCAxOC4xIDI4LjUgMTkuNCAyMi4yIDE5LjQgMTUuOSAxOS40IDEyIDE4LjEgMTEuNyAxNy40IDEyLjEgMTYuNyAxNS45IDE1LjQgMjIuMiAxNS40Wk0xMS43IDE5LjRDMTQuMiAyMC43IDE5IDIxIDIyLjIgMjEgMjUuNCAyMSAzMC4yIDIwLjYgMzIuNyAxOS40TDMyLjcgMjQuMkMzMi41IDI0LjYgMjkuNSAyNi4xIDIyLjIgMjYuMSAxNC45IDI2LjEgMTIgMjQuNyAxMS43IDI0LjJMMTEuNyAxOS40Wk0zMi44IDI2LjIgMzIuOCAzMC44QzMyLjYgMzEuMiAyOS42IDMyLjcgMjIuMyAzMi43IDE1IDMyLjcgMTIgMzEuMyAxMS43IDMwLjhMMTEuNyAyNi4yQzE0LjIgMjcuNCAxOSAyNy44IDIyLjIgMjcuOCAyNS40IDI3LjggMzAuMyAyNy40IDMyLjggMjYuMlpNMjIuMiAzOS40QzE0LjkgMzkuNCAxMS45IDM3LjkgMTEuNyAzNy41TDExLjcgMzIuOEMxNC4yIDM0IDE5IDM0LjQgMjIuMiAzNC40IDI1LjQgMzQuNCAzMC4yIDM0IDMyLjcgMzIuOEwzMi43IDM3LjVDMzIuNSAzNy45IDI5LjYgMzkuNCAyMi4yIDM5LjRaIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L3N2Zz4=" alt="Knowledge Base" style="width:22px;height:22px">
+        <i class="fa-solid fa-database box-icon" aria-hidden="true"></i>
+        <div class="box-title" data-editable="true">Oracle Banking Knowledge Base</div>
+        <div class="box-sub" data-editable="true">Vectorized corpus for semantic retrieval and grounding</div>
+      </aside>
+      <div class="knowledge-main">
+        <div class="knowledge-ribbon" data-editable="true">Knowledge & Retrieval</div>
+        <div class="doc-grid">
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-atlas doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">Data Dictionary</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Canonical terms and field definitions</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-book-open doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">User Manuals</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Functional runbooks and operational guidance</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-plug doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">Integration Guides</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Connector and API implementation patterns</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-file-signature doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">RFP Responses</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Reference answer bank for bids and proposals</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-screwdriver-wrench doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">Product Installation</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Deployment prerequisites and checklists</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-sliders doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">Configuration Guides</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Environment and module tuning practices</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-diagram-project doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">Product Architecture</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Design artifacts and dependency maps</p>
+          </article>
+          <article class="doc-card">
+            <div class="doc-head">
+              <i class="fa-solid fa-life-ring doc-icon" aria-hidden="true"></i>
+              <p class="doc-title" data-editable="true">Service Requests</p>
+            </div>
+            <p class="doc-sub" data-editable="true">Issue history, troubleshooting, and resolutions</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="flow-up"><i class="fa-solid fa-arrow-up"></i><span data-editable="true">Ingestion and governance continuously refresh the knowledge layer</span></div>
+
+  <section class="layer">
+    <div class="layer-title">Control Layer</div>
+    <div class="ingestion-strip">
+      <h3 class="ingestion-title" data-editable="true">Data Ingestion & Governance</h3>
+      <div class="ingestion-pills">
+        <span class="ingest-pill" data-editable="true">Source connectors</span>
+        <span class="ingest-pill" data-editable="true">Normalization</span>
+        <span class="ingest-pill" data-editable="true">Metadata tagging</span>
+        <span class="ingest-pill" data-editable="true">Quality checks</span>
+        <span class="ingest-pill" data-editable="true">Lineage</span>
+        <span class="ingest-pill" data-editable="true">Access policy</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="flow-up"><i class="fa-solid fa-arrow-up"></i><span data-editable="true">Authoritative banking systems feed governed data pipelines</span></div>
+
+  <section class="layer">
+    <div class="layer-title">Source Systems</div>
+    <div class="sources-grid">
+      <article class="kb-source">
+        <div class="source-head">
+          <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+          <h4 data-editable="true">Oracle Banking Product Data</h4>
+        </div>
+      </article>
+      <div class="source-db-row">
+        <div class="db-node"><img class="db-glyph" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIgNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMi42NyA0MS41QzEuNDggNDEuNSAwLjUgNDAuNTMgMC41IDM5LjMzTDAuNSAyLjY3QzAuNSAxLjQ4IDEuNDcgMC41IDIuNjcgMC41TDM5LjM0IDAuNUM0MC41MyAwLjUgNDEuNTEgMS40NyA0MS41MSAyLjY3TDQxLjUxIDM5LjM0QzQxLjUxIDQwLjUzIDQwLjU0IDQxLjUxIDM5LjM0IDQxLjUxTDIuNjcgNDEuNTFaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTM5LjMzIDFDNDAuMjUgMSA0MSAxLjc1IDQxIDIuNjdMNDEgMzkuMzRDNDEgNDAuMjYgNDAuMjUgNDEuMDEgMzkuMzMgNDEuMDFMMi42NyA0MS4wMUMxLjc1IDQxIDEgNDAuMjUgMSAzOS4zM0wxIDIuNjdDMSAxLjc1IDEuNzUgMSAyLjY3IDFMMzkuMzMgMU0zOS4zMyAwIDIuNjcgMEMxLjIgMCAwIDEuMiAwIDIuNjdMMCAzOS4zNEMwIDQwLjggMS4yIDQyIDIuNjcgNDJMMzkuMzQgNDJDNDAuOCA0MiA0MiA0MC44IDQyIDM5LjMzTDQyIDIuNjdDNDIgMS4yIDQwLjggMCAzOS4zMyAwTDM5LjMzIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOS4zMyAxIDIuNjcgMUMxLjc1IDEgMSAxLjc1IDEgMi42N0wxIDM5LjM0QzEgNDAuMjUgMS43NSA0MSAyLjY3IDQxTDM5LjM0IDQxQzQwLjI2IDQxIDQxLjAxIDQwLjI1IDQxLjAxIDM5LjMzTDQxLjAxIDIuNjdDNDEgMS43NSA0MC4yNSAxIDM5LjMzIDFaTTM5LjUyIDM5LjMzQzM5LjUyIDM5LjQzIDM5LjQ0IDM5LjUyIDM5LjMzIDM5LjUyTDIuNjcgMzkuNTJDMi41NyAzOS41MiAyLjQ4IDM5LjQ0IDIuNDggMzkuMzNMMi40OCAyLjY3QzIuNDggMi41NyAyLjU2IDIuNDggMi42NyAyLjQ4TDM5LjM0IDIuNDhDMzkuNDQgMi40OCAzOS41MyAyLjU2IDM5LjUzIDIuNjdMMzkuNTMgMzkuMzNaIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMzYuMzcgMzYuNTUgMzYuMzcgMzYuNTUgMjcuNDggNS40NCAyNy40OCA1LjQ0IDM2LjM3Wk02LjkzIDI4Ljk2IDM1LjA4IDI4Ljk2IDM1LjA4IDM0Ljg5IDYuOTMgMzQuODkgNi45MyAyOC45NloiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjMxLjkzIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMTQuMzMgMzYuNTUgMTQuMzMgMzYuNTUgNS40NCA1LjQ0IDUuNDQgNS40NCAxNC4zM1pNNi45MyA2LjkzIDM1LjA4IDYuOTMgMzUuMDggMTIuODYgNi45MyAxMi44NiA2LjkzIDYuOTNaIiBmaWxsPSIjMkM1OTY3Ii8+PGNpcmNsZSBjeD0iMzEuNzQiIGN5PSI5Ljg5IiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMjUuNDQgMzYuNTUgMjUuNDQgMzYuNTUgMTYuNTUgNS40NCAxNi41NSA1LjQ0IDI1LjQ0Wk02LjkzIDE4LjA0IDM1LjA4IDE4LjA0IDM1LjA4IDIzLjk3IDYuOTMgMjMuOTcgNi45MyAxOC4wNFoiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjIxIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L2c+PC9zdmc+" alt="Database"><span class="db-label" data-editable="true">Banking ODT</span></div>
+        <div class="db-node"><img class="db-glyph" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIgNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMi42NyA0MS41QzEuNDggNDEuNSAwLjUgNDAuNTMgMC41IDM5LjMzTDAuNSAyLjY3QzAuNSAxLjQ4IDEuNDcgMC41IDIuNjcgMC41TDM5LjM0IDAuNUM0MC41MyAwLjUgNDEuNTEgMS40NyA0MS41MSAyLjY3TDQxLjUxIDM5LjM0QzQxLjUxIDQwLjUzIDQwLjU0IDQxLjUxIDM5LjM0IDQxLjUxTDIuNjcgNDEuNTFaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTM5LjMzIDFDNDAuMjUgMSA0MSAxLjc1IDQxIDIuNjdMNDEgMzkuMzRDNDEgNDAuMjYgNDAuMjUgNDEuMDEgMzkuMzMgNDEuMDFMMi42NyA0MS4wMUMxLjc1IDQxIDEgNDAuMjUgMSAzOS4zM0wxIDIuNjdDMSAxLjc1IDEuNzUgMSAyLjY3IDFMMzkuMzMgMU0zOS4zMyAwIDIuNjcgMEMxLjIgMCAwIDEuMiAwIDIuNjdMMCAzOS4zNEMwIDQwLjggMS4yIDQyIDIuNjcgNDJMMzkuMzQgNDJDNDAuOCA0MiA0MiA0MC44IDQyIDM5LjMzTDQyIDIuNjdDNDIgMS4yIDQwLjggMCAzOS4zMyAwTDM5LjMzIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOS4zMyAxIDIuNjcgMUMxLjc1IDEgMSAxLjc1IDEgMi42N0wxIDM5LjM0QzEgNDAuMjUgMS43NSA0MSAyLjY3IDQxTDM5LjM0IDQxQzQwLjI2IDQxIDQxLjAxIDQwLjI1IDQxLjAxIDM5LjMzTDQxLjAxIDIuNjdDNDEgMS43NSA0MC4yNSAxIDM5LjMzIDFaTTM5LjUyIDM5LjMzQzM5LjUyIDM5LjQzIDM5LjQ0IDM5LjUyIDM5LjMzIDM5LjUyTDIuNjcgMzkuNTJDMi41NyAzOS41MiAyLjQ4IDM5LjQ0IDIuNDggMzkuMzNMMi40OCAyLjY3QzIuNDggMi41NyAyLjU2IDIuNDggMi42NyAyLjQ4TDM5LjM0IDIuNDhDMzkuNDQgMi40OCAzOS41MyAyLjU2IDM5LjUzIDIuNjdMMzkuNTMgMzkuMzNaIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMzYuMzcgMzYuNTUgMzYuMzcgMzYuNTUgMjcuNDggNS40NCAyNy40OCA1LjQ0IDM2LjM3Wk02LjkzIDI4Ljk2IDM1LjA4IDI4Ljk2IDM1LjA4IDM0Ljg5IDYuOTMgMzQuODkgNi45MyAyOC45NloiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjMxLjkzIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMTQuMzMgMzYuNTUgMTQuMzMgMzYuNTUgNS40NCA1LjQ0IDUuNDQgNS40NCAxNC4zM1pNNi45MyA2LjkzIDM1LjA4IDYuOTMgMzUuMDggMTIuODYgNi45MyAxMi44NiA2LjkzIDYuOTNaIiBmaWxsPSIjMkM1OTY3Ii8+PGNpcmNsZSBjeD0iMzEuNzQiIGN5PSI5Ljg5IiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMjUuNDQgMzYuNTUgMjUuNDQgMzYuNTUgMTYuNTUgNS40NCAxNi41NSA1LjQ0IDI1LjQ0Wk02LjkzIDE4LjA0IDM1LjA4IDE4LjA0IDM1LjA4IDIzLjk3IDYuOTMgMjMuOTcgNi45MyAxOC4wNFoiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjIxIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L2c+PC9zdmc+" alt="Database"><span class="db-label" data-editable="true">Banking OBMA</span></div>
+        <div class="db-node"><img class="db-glyph" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIgNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMi42NyA0MS41QzEuNDggNDEuNSAwLjUgNDAuNTMgMC41IDM5LjMzTDAuNSAyLjY3QzAuNSAxLjQ4IDEuNDcgMC41IDIuNjcgMC41TDM5LjM0IDAuNUM0MC41MyAwLjUgNDEuNTEgMS40NyA0MS41MSAyLjY3TDQxLjUxIDM5LjM0QzQxLjUxIDQwLjUzIDQwLjU0IDQxLjUxIDM5LjM0IDQxLjUxTDIuNjcgNDEuNTFaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTM5LjMzIDFDNDAuMjUgMSA0MSAxLjc1IDQxIDIuNjdMNDEgMzkuMzRDNDEgNDAuMjYgNDAuMjUgNDEuMDEgMzkuMzMgNDEuMDFMMi42NyA0MS4wMUMxLjc1IDQxIDEgNDAuMjUgMSAzOS4zM0wxIDIuNjdDMSAxLjc1IDEuNzUgMSAyLjY3IDFMMzkuMzMgMU0zOS4zMyAwIDIuNjcgMEMxLjIgMCAwIDEuMiAwIDIuNjdMMCAzOS4zNEMwIDQwLjggMS4yIDQyIDIuNjcgNDJMMzkuMzQgNDJDNDAuOCA0MiA0MiA0MC44IDQyIDM5LjMzTDQyIDIuNjdDNDIgMS4yIDQwLjggMCAzOS4zMyAwTDM5LjMzIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOS4zMyAxIDIuNjcgMUMxLjc1IDEgMSAxLjc1IDEgMi42N0wxIDM5LjM0QzEgNDAuMjUgMS43NSA0MSAyLjY3IDQxTDM5LjM0IDQxQzQwLjI2IDQxIDQxLjAxIDQwLjI1IDQxLjAxIDM5LjMzTDQxLjAxIDIuNjdDNDEgMS43NSA0MC4yNSAxIDM5LjMzIDFaTTM5LjUyIDM5LjMzQzM5LjUyIDM5LjQzIDM5LjQ0IDM5LjUyIDM5LjMzIDM5LjUyTDIuNjcgMzkuNTJDMi41NyAzOS41MiAyLjQ4IDM5LjQ0IDIuNDggMzkuMzNMMi40OCAyLjY3QzIuNDggMi41NyAyLjU2IDIuNDggMi42NyAyLjQ4TDM5LjM0IDIuNDhDMzkuNDQgMi40OCAzOS41MyAyLjU2IDM5LjUzIDIuNjdMMzkuNTMgMzkuMzNaIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMzYuMzcgMzYuNTUgMzYuMzcgMzYuNTUgMjcuNDggNS40NCAyNy40OCA1LjQ0IDM2LjM3Wk02LjkzIDI4Ljk2IDM1LjA4IDI4Ljk2IDM1LjA4IDM0Ljg5IDYuOTMgMzQuODkgNi45MyAyOC45NloiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjMxLjkzIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMTQuMzMgMzYuNTUgMTQuMzMgMzYuNTUgNS40NCA1LjQ0IDUuNDQgNS40NCAxNC4zM1pNNi45MyA2LjkzIDM1LjA4IDYuOTMgMzUuMDggMTIuODYgNi45MyAxMi44NiA2LjkzIDYuOTNaIiBmaWxsPSIjMkM1OTY3Ii8+PGNpcmNsZSBjeD0iMzEuNzQiIGN5PSI5Ljg5IiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMjUuNDQgMzYuNTUgMjUuNDQgMzYuNTUgMTYuNTUgNS40NCAxNi41NSA1LjQ0IDI1LjQ0Wk02LjkzIDE4LjA0IDM1LjA4IDE4LjA0IDM1LjA4IDIzLjk3IDYuOTMgMjMuOTcgNi45MyAxOC4wNFoiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjIxIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L2c+PC9zdmc+" alt="Database"><span class="db-label" data-editable="true">OFSAA</span></div>
+        <div class="db-node"><img class="db-glyph" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIgNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMi42NyA0MS41QzEuNDggNDEuNSAwLjUgNDAuNTMgMC41IDM5LjMzTDAuNSAyLjY3QzAuNSAxLjQ4IDEuNDcgMC41IDIuNjcgMC41TDM5LjM0IDAuNUM0MC41MyAwLjUgNDEuNTEgMS40NyA0MS41MSAyLjY3TDQxLjUxIDM5LjM0QzQxLjUxIDQwLjUzIDQwLjU0IDQxLjUxIDM5LjM0IDQxLjUxTDIuNjcgNDEuNTFaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTM5LjMzIDFDNDAuMjUgMSA0MSAxLjc1IDQxIDIuNjdMNDEgMzkuMzRDNDEgNDAuMjYgNDAuMjUgNDEuMDEgMzkuMzMgNDEuMDFMMi42NyA0MS4wMUMxLjc1IDQxIDEgNDAuMjUgMSAzOS4zM0wxIDIuNjdDMSAxLjc1IDEuNzUgMSAyLjY3IDFMMzkuMzMgMU0zOS4zMyAwIDIuNjcgMEMxLjIgMCAwIDEuMiAwIDIuNjdMMCAzOS4zNEMwIDQwLjggMS4yIDQyIDIuNjcgNDJMMzkuMzQgNDJDNDAuOCA0MiA0MiA0MC44IDQyIDM5LjMzTDQyIDIuNjdDNDIgMS4yIDQwLjggMCAzOS4zMyAwTDM5LjMzIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOS4zMyAxIDIuNjcgMUMxLjc1IDEgMSAxLjc1IDEgMi42N0wxIDM5LjM0QzEgNDAuMjUgMS43NSA0MSAyLjY3IDQxTDM5LjM0IDQxQzQwLjI2IDQxIDQxLjAxIDQwLjI1IDQxLjAxIDM5LjMzTDQxLjAxIDIuNjdDNDEgMS43NSA0MC4yNSAxIDM5LjMzIDFaTTM5LjUyIDM5LjMzQzM5LjUyIDM5LjQzIDM5LjQ0IDM5LjUyIDM5LjMzIDM5LjUyTDIuNjcgMzkuNTJDMi41NyAzOS41MiAyLjQ4IDM5LjQ0IDIuNDggMzkuMzNMMi40OCAyLjY3QzIuNDggMi41NyAyLjU2IDIuNDggMi42NyAyLjQ4TDM5LjM0IDIuNDhDMzkuNDQgMi40OCAzOS41MyAyLjU2IDM5LjUzIDIuNjdMMzkuNTMgMzkuMzNaIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMzYuMzcgMzYuNTUgMzYuMzcgMzYuNTUgMjcuNDggNS40NCAyNy40OCA1LjQ0IDM2LjM3Wk02LjkzIDI4Ljk2IDM1LjA4IDI4Ljk2IDM1LjA4IDM0Ljg5IDYuOTMgMzQuODkgNi45MyAyOC45NloiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjMxLjkzIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMTQuMzMgMzYuNTUgMTQuMzMgMzYuNTUgNS40NCA1LjQ0IDUuNDQgNS40NCAxNC4zM1pNNi45MyA2LjkzIDM1LjA4IDYuOTMgMzUuMDggMTIuODYgNi45MyAxMi44NiA2LjkzIDYuOTNaIiBmaWxsPSIjMkM1OTY3Ii8+PGNpcmNsZSBjeD0iMzEuNzQiIGN5PSI5Ljg5IiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMjUuNDQgMzYuNTUgMjUuNDQgMzYuNTUgMTYuNTUgNS40NCAxNi41NSA1LjQ0IDI1LjQ0Wk02LjkzIDE4LjA0IDM1LjA4IDE4LjA0IDM1LjA4IDIzLjk3IDYuOTMgMjMuOTcgNi45MyAxOC4wNFoiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjIxIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L2c+PC9zdmc+" alt="Database"><span class="db-label" data-editable="true">ORMB</span></div>
+        <div class="db-node"><img class="db-glyph" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIgNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMi42NyA0MS41QzEuNDggNDEuNSAwLjUgNDAuNTMgMC41IDM5LjMzTDAuNSAyLjY3QzAuNSAxLjQ4IDEuNDcgMC41IDIuNjcgMC41TDM5LjM0IDAuNUM0MC41MyAwLjUgNDEuNTEgMS40NyA0MS41MSAyLjY3TDQxLjUxIDM5LjM0QzQxLjUxIDQwLjUzIDQwLjU0IDQxLjUxIDM5LjM0IDQxLjUxTDIuNjcgNDEuNTFaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTM5LjMzIDFDNDAuMjUgMSA0MSAxLjc1IDQxIDIuNjdMNDEgMzkuMzRDNDEgNDAuMjYgNDAuMjUgNDEuMDEgMzkuMzMgNDEuMDFMMi42NyA0MS4wMUMxLjc1IDQxIDEgNDAuMjUgMSAzOS4zM0wxIDIuNjdDMSAxLjc1IDEuNzUgMSAyLjY3IDFMMzkuMzMgMU0zOS4zMyAwIDIuNjcgMEMxLjIgMCAwIDEuMiAwIDIuNjdMMCAzOS4zNEMwIDQwLjggMS4yIDQyIDIuNjcgNDJMMzkuMzQgNDJDNDAuOCA0MiA0MiA0MC44IDQyIDM5LjMzTDQyIDIuNjdDNDIgMS4yIDQwLjggMCAzOS4zMyAwTDM5LjMzIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOS4zMyAxIDIuNjcgMUMxLjc1IDEgMSAxLjc1IDEgMi42N0wxIDM5LjM0QzEgNDAuMjUgMS43NSA0MSAyLjY3IDQxTDM5LjM0IDQxQzQwLjI2IDQxIDQxLjAxIDQwLjI1IDQxLjAxIDM5LjMzTDQxLjAxIDIuNjdDNDEgMS43NSA0MC4yNSAxIDM5LjMzIDFaTTM5LjUyIDM5LjMzQzM5LjUyIDM5LjQzIDM5LjQ0IDM5LjUyIDM5LjMzIDM5LjUyTDIuNjcgMzkuNTJDMi41NyAzOS41MiAyLjQ4IDM5LjQ0IDIuNDggMzkuMzNMMi40OCAyLjY3QzIuNDggMi41NyAyLjU2IDIuNDggMi42NyAyLjQ4TDM5LjM0IDIuNDhDMzkuNDQgMi40OCAzOS41MyAyLjU2IDM5LjUzIDIuNjdMMzkuNTMgMzkuMzNaIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMzYuMzcgMzYuNTUgMzYuMzcgMzYuNTUgMjcuNDggNS40NCAyNy40OCA1LjQ0IDM2LjM3Wk02LjkzIDI4Ljk2IDM1LjA4IDI4Ljk2IDM1LjA4IDM0Ljg5IDYuOTMgMzQuODkgNi45MyAyOC45NloiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjMxLjkzIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMTQuMzMgMzYuNTUgMTQuMzMgMzYuNTUgNS40NCA1LjQ0IDUuNDQgNS40NCAxNC4zM1pNNi45MyA2LjkzIDM1LjA4IDYuOTMgMzUuMDggMTIuODYgNi45MyAxMi44NiA2LjkzIDYuOTNaIiBmaWxsPSIjMkM1OTY3Ii8+PGNpcmNsZSBjeD0iMzEuNzQiIGN5PSI5Ljg5IiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMjUuNDQgMzYuNTUgMjUuNDQgMzYuNTUgMTYuNTUgNS40NCAxNi41NSA1LjQ0IDI1LjQ0Wk02LjkzIDE4LjA0IDM1LjA4IDE4LjA0IDM1LjA4IDIzLjk3IDYuOTMgMjMuOTcgNi45MyAxOC4wNFoiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjIxIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L2c+PC9zdmc+" alt="Database"><span class="db-label" data-editable="true">OHI</span></div>
+      </div>
+    </div>
+  </section>
+  <div id="shapeLayer" class="shape-layer" aria-label="Diagram annotation layer"></div>
+</main>
+
+<footer class="diagram-footer">
+  <span data-editable="true">Logical architecture view</span>
+  <span data-editable="true">OCI style-aligned palette and card patterns</span>
+  <span data-editable="true">Icons: OCI-first, Font Awesome fallback</span>
+  <span class="diagram-confidential" data-editable="true">Oracle Confidential</span>
+</footer>
+
+<div class="edit-toolbar" role="toolbar" aria-label="Diagram quick edit tools">
+  <button id="toggleEdit" type="button">Enable Edit</button>
+  <button id="saveHtml" type="button">Save HTML</button>
+  <button id="copyHtml" type="button">Copy HTML</button>
+  <button id="addRect" type="button">Add Rectangle</button>
+  <button id="addCircle" type="button">Add Circle</button>
+  <button id="deleteShape" type="button">Delete Shape</button>
+  <button id="reloadPage" type="button">Reset</button>
+  <span class="edit-status" id="editStatus">View mode</span>
+</div>
+
+<script>
+(function () {
+  const toggleBtn = document.getElementById("toggleEdit");
+  const saveBtn = document.getElementById("saveHtml");
+  const copyBtn = document.getElementById("copyHtml");
+  const addRectBtn = document.getElementById("addRect");
+  const addCircleBtn = document.getElementById("addCircle");
+  const deleteShapeBtn = document.getElementById("deleteShape");
+  const reloadBtn = document.getElementById("reloadPage");
+  const status = document.getElementById("editStatus");
+  const shapeLayer = document.getElementById("shapeLayer");
+
+  const editableSelector = "[data-editable='true'], .diagram-title, .diagram-sub, .service-title, .service-meta, .db-label";
+
+  let editMode = false;
+  let selectedShape = null;
+
+  function setEditable(enabled) {
+    document.querySelectorAll(editableSelector).forEach((el) => {
+      el.setAttribute("contenteditable", enabled ? "true" : "false");
+      el.setAttribute("spellcheck", "false");
+    });
+  }
+
+  function serializeHtml() {
+    return "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  }
+
+  function fileNameFromPath() {
+    const path = (window.location.pathname || "diagram.html").split("/").pop();
+    return path && path.includes(".") ? path : "diagram-edited.html";
+  }
+
+  async function saveHtmlToFile() {
+    const html = serializeHtml();
+
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileNameFromPath(),
+          types: [{ description: "HTML file", accept: { "text/html": [".html"] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(html);
+        await writable.close();
+        status.textContent = "Saved HTML to file";
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") {
+          status.textContent = "Save canceled";
+          return;
+        }
+      }
+    }
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileNameFromPath();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+    status.textContent = "Downloaded edited HTML";
+  }
+
+  function clearShapeSelection() {
+    document.querySelectorAll(".diagram-shape.selected").forEach((node) => node.classList.remove("selected"));
+    selectedShape = null;
+  }
+
+  function selectShape(shape) {
+    clearShapeSelection();
+    selectedShape = shape;
+    shape.classList.add("selected");
+  }
+
+  function makeShapeDraggable(shape) {
+    let drag = null;
+
+    shape.addEventListener("mousedown", (event) => {
+      if (!editMode) { return; }
+      if (event.button !== 0) { return; }
+      event.preventDefault();
+      selectShape(shape);
+      const rect = shapeLayer.getBoundingClientRect();
+      const shapeRect = shape.getBoundingClientRect();
+      drag = {
+        offsetX: event.clientX - shapeRect.left,
+        offsetY: event.clientY - shapeRect.top,
+        layerRect: rect
+      };
+    });
+
+    window.addEventListener("mousemove", (event) => {
+      if (!drag || !editMode) { return; }
+      const nextX = event.clientX - drag.layerRect.left - drag.offsetX;
+      const nextY = event.clientY - drag.layerRect.top - drag.offsetY;
+      const maxX = Math.max(0, drag.layerRect.width - shape.offsetWidth);
+      const maxY = Math.max(0, drag.layerRect.height - shape.offsetHeight);
+      shape.style.left = Math.max(0, Math.min(nextX, maxX)) + "px";
+      shape.style.top = Math.max(0, Math.min(nextY, maxY)) + "px";
+    });
+
+    window.addEventListener("mouseup", () => { drag = null; });
+  }
+
+  function createShape(type) {
+    const shape = document.createElement("div");
+    shape.className = "diagram-shape " + (type === "circle" ? "shape-circle" : "shape-rect");
+    shape.setAttribute("contenteditable", editMode ? "true" : "false");
+    shape.setAttribute("spellcheck", "false");
+    shape.style.left = "18px";
+    shape.style.top = "18px";
+    shape.textContent = type === "circle" ? "Circle" : "Rectangle";
+    shapeLayer.appendChild(shape);
+    makeShapeDraggable(shape);
+    selectShape(shape);
+  }
+
+  function setMode(enabled) {
+    editMode = enabled;
+    document.body.classList.toggle("edit-mode", enabled);
+    setEditable(enabled);
+    document.querySelectorAll(".diagram-shape").forEach((shape) => {
+      shape.setAttribute("contenteditable", enabled ? "true" : "false");
+    });
+    toggleBtn.textContent = enabled ? "Disable Edit" : "Enable Edit";
+    status.textContent = enabled ? "Edit mode on" : "View mode";
+  }
+
+  if (shapeLayer) {
+    shapeLayer.addEventListener("mousedown", (event) => {
+      if (!event.target.classList.contains("diagram-shape")) {
+        clearShapeSelection();
+      }
+    });
+  }
+
+  toggleBtn.addEventListener("click", () => setMode(!editMode));
+  saveBtn.addEventListener("click", saveHtmlToFile);
+
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(serializeHtml());
+      status.textContent = "Copied HTML to clipboard";
+    } catch (err) {
+      status.textContent = "Clipboard blocked by browser";
+    }
+  });
+
+  addRectBtn.addEventListener("click", () => {
+    createShape("rect");
+    status.textContent = "Rectangle added";
+  });
+
+  addCircleBtn.addEventListener("click", () => {
+    createShape("circle");
+    status.textContent = "Circle added";
+  });
+
+  deleteShapeBtn.addEventListener("click", () => {
+    if (!selectedShape) {
+      status.textContent = "No shape selected";
+      return;
+    }
+    selectedShape.remove();
+    selectedShape = null;
+    status.textContent = "Shape deleted";
+  });
+
+  reloadBtn.addEventListener("click", () => window.location.reload());
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && editMode) {
+      setMode(false);
+      clearShapeSelection();
+    }
+    if ((event.key === "Delete" || event.key === "Backspace") && selectedShape && editMode) {
+      event.preventDefault();
+      selectedShape.remove();
+      selectedShape = null;
+      status.textContent = "Shape deleted";
+    }
+  });
+
+  setMode(false);
+})();
+</script>
+</body>
+</html>

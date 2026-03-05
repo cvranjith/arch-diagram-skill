@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<!--
+  Diagram: DRCC Kubernetes Deployment on OCI with AIDP Foundation
+  Version: v2
+  Notes:
+  - New OCI-styled DRCC architecture for two data centers in one OCI region.
+  - Preserved lane structure: Control Plane + OBA-NS + OBLCM-NS + Coherence Data Grid.
+  - Updated Kubernetes-native pod, master-node, and worker-node icon representations.
+  - Improved database visual treatment with iconized DB chips and stronger Oracle DB cues.
+  - Added Oracle AIDP platform expansion with six logical capability boxes.
+  - Included quick-edit mode, Save HTML, Copy HTML, Export PNG, slide layout, and toolbar toggle.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DRCC Kubernetes Deployment Architecture - OCI Region</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --ocean: #2C5967;
+  --sienna: #AE562C;
+  --air: #FCFBFA;
+  --neutral-1: #F5F4F2;
+  --neutral-2: #DFDCD8;
+  --neutral-3: #9E9892;
+  --neutral-4: #70736E;
+  --bark: #312D2A;
+  --oracle-red: #C74634;
+  --ivy: #759C6C;
+  --card-shadow: 0 1px 4px rgba(49,45,42,0.10), 0 0 0 1px rgba(49,45,42,0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--neutral-1);
+  font-family: "Oracle Sans", "Segoe UI", Arial, Calibri, sans-serif;
+  color: var(--bark);
+}
+
+.diagram-shell { min-height: 100vh; }
+
+body.slide-layout .diagram-shell {
+  max-width: 1366px;
+  min-height: 768px;
+  margin: 0 auto;
+  background: var(--neutral-1);
+  box-shadow: 0 0 0 1px rgba(49,45,42,0.12);
+}
+
+.oci-nav {
+  height: 44px;
+  background: #142830;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.oci-logo {
+  color: var(--oracle-red);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+.oci-nav-right {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+.nav-btn {
+  border: 1px solid rgba(255,255,255,0.24);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.95);
+  border-radius: 5px;
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.nav-btn:hover { background: rgba(255,255,255,0.16); }
+
+.nav-btn.active {
+  border-color: rgba(255,255,255,0.52);
+  background: rgba(255,255,255,0.22);
+}
+
+.diagram-header {
+  padding: 14px 24px 10px;
+  border-bottom: 1px solid var(--neutral-2);
+}
+
+.diagram-title {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.15;
+  color: var(--bark);
+}
+
+.diagram-sub {
+  margin: 4px 0 8px;
+  color: var(--neutral-4);
+  font-size: 11px;
+}
+
+.badge-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 9.5px;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 10px;
+}
+
+.badge-ocean { background: #EDF4F7; color: #2C5967; border: 1px solid #b8d0d8; }
+.badge-sienna { background: #FDF5F1; color: #AE562C; border: 1px solid #e8c4a8; }
+.badge-green { background: #EDF4EB; color: #4a6944; border: 1px solid #c4d8c0; }
+.badge-neutral { background: #F5F4F2; color: #70736E; border: 1px solid #DFDCD8; }
+
+.diagram-canvas {
+  padding: 16px 24px 20px;
+  min-height: calc(100vh - 44px - 102px - 36px);
+}
+
+body.slide-layout .diagram-canvas {
+  min-height: calc(768px - 44px - 102px - 36px);
+}
+
+.region-box {
+  border: 2px dashed var(--ivy);
+  border-radius: 6px;
+  padding: 10px;
+  background: #F0F2EE;
+  box-shadow: inset 0 0 0 1px rgba(117,156,108,0.12);
+  position: relative;
+}
+
+.region-chip {
+  position: absolute;
+  top: -12px;
+  left: 12px;
+  background: #E5EEE3;
+  border: 1px solid #9CB992;
+  color: #3F5A3A;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.k8s-cluster {
+  margin-top: 14px;
+  border: 1px solid #B7B1AA;
+  border-radius: 4px;
+  overflow: auto;
+  background: #E5E1DC;
+}
+
+.site-head {
+  display: grid;
+  grid-template-columns: 92px 1fr 1fr;
+  gap: 0;
+  background: #E3E0DB;
+  border-bottom: 1px solid #B7B1AA;
+  min-width: 940px;
+}
+
+.site-head .blank {
+  border-right: 1px solid #B7B1AA;
+}
+
+.site-tag {
+  padding: 6px 8px;
+  border-right: 1px dashed #B7B1AA;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--bark);
+  background: #ECE9E5;
+}
+
+.site-tag:last-child {
+  border-right: 0;
+}
+
+.cluster-row {
+  display: grid;
+  grid-template-columns: 92px 1fr 1fr;
+  min-height: 76px;
+  border-bottom: 1px solid #B7B1AA;
+  min-width: 940px;
+}
+
+.cluster-row:last-child {
+  border-bottom: 0;
+}
+
+.lane-label {
+  border-right: 1px solid #B7B1AA;
+  border-left: 4px solid var(--ocean);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--bark);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px;
+  background: #F0EEEA;
+}
+
+.lane-control .lane-label {
+  border-left-color: #7A4B8B;
+  background: #E8DDEB;
+}
+
+.lane-oba .lane-label {
+  border-left-color: #2C5967;
+  background: #D9E5EA;
+}
+
+.lane-oblcm .lane-label {
+  border-left-color: #AE562C;
+  background: #EEDCD3;
+}
+
+.lane-grid .lane-label {
+  border-left-color: #5A7A86;
+  background: #DDE5E8;
+}
+
+.dc-cell {
+  border-right: 1px dashed #B7B1AA;
+  padding: 8px 10px;
+  background: #F7F5F2;
+}
+
+.dc-cell:last-child {
+  border-right: 0;
+}
+
+.control-cell {
+  background: #F1E9F3;
+}
+
+.oba-cell {
+  background: #EAF2F6;
+}
+
+.oblcm-cell {
+  background: #F7EDE8;
+}
+
+.grid-cell {
+  background: #EFF2F4;
+}
+
+.cell-title {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--neutral-4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oci-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.k8s-node-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.pod-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.pod-card {
+  position: relative;
+  border: 1px solid #B7B1AA;
+  border-radius: 4px;
+  background: #FFFFFF;
+  padding: 5px 5px 4px 26px;
+  min-height: 34px;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.08);
+}
+
+.pod-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 4px 0 0 4px;
+  background: var(--pod-accent, var(--ocean));
+}
+
+.pod-icon {
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.pod-name {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--bark);
+}
+
+.pod-meta {
+  margin-top: 1px;
+  font-size: 8px;
+  color: var(--neutral-4);
+}
+
+.arrow-band {
+  display: grid;
+  grid-template-columns: 92px 1fr 1fr;
+  border-bottom: 1px solid #B7B1AA;
+  background: #E9E5E0;
+  min-height: 26px;
+  min-width: 940px;
+}
+
+.arrow-spacer {
+  border-right: 1px solid #B7B1AA;
+}
+
+.arrow-cell {
+  border-right: 1px dashed #B7B1AA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bark);
+  font-size: 12px;
+}
+
+.arrow-cell:last-child {
+  border-right: 0;
+}
+
+.grid-sync {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 9px;
+  color: var(--neutral-4);
+}
+
+.sync-arrow {
+  font-size: 11px;
+  color: var(--bark);
+}
+
+.database-tier {
+  margin-top: 10px;
+  border: 1px solid #B7B1AA;
+  border-radius: 4px;
+  background: #E9E5E0;
+  padding: 8px;
+}
+
+.tier-title {
+  margin: 0 0 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neutral-4);
+  font-weight: 700;
+}
+
+.db-grid {
+  display: grid;
+  grid-template-columns: 1fr 150px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.db-box {
+  border: 1px solid #B7B1AA;
+  border-radius: 4px;
+  background: #F9F8F6;
+  padding: 8px;
+  min-height: 84px;
+  box-shadow: var(--card-shadow);
+}
+
+.db-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 6px;
+}
+
+.db-head h3 {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ocean);
+}
+
+.db-pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.db-pill {
+  border: 1px solid #C8C1BA;
+  border-radius: 11px;
+  background: #F1EFEC;
+  color: #4D4B48;
+  font-size: 9px;
+  padding: 3px 7px 3px 5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.db-mini-icon {
+  width: 11px;
+  height: 11px;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
+.dg-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 60px;
+  border: 1px dashed #9E9892;
+  border-radius: 4px;
+  background: #F3F1EE;
+  color: var(--bark);
+  font-size: 10px;
+  line-height: 1.35;
+  padding: 4px 8px;
+}
+
+.aidp-layer {
+  margin-top: 10px;
+  border: 1px solid #B7B1AA;
+  border-radius: 4px;
+  background: #E7E4DF;
+  padding: 9px;
+}
+
+.aidp-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.aidp-header h2 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ocean);
+}
+
+.aidp-sub {
+  margin: 0 0 8px;
+  font-size: 10px;
+  color: var(--neutral-4);
+}
+
+.aidp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.aidp-box {
+  border: 1px solid #C8C2BC;
+  background: #FFFFFF;
+  border-radius: 4px;
+  padding: 8px 8px 8px 11px;
+  min-height: 70px;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.08);
+  position: relative;
+}
+
+.aidp-box::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  border-radius: 4px 0 0 4px;
+  background: var(--aidp-accent, var(--ocean));
+}
+
+.aidp-box-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aidp-box-head i {
+  width: 14px;
+  text-align: center;
+  color: var(--aidp-accent, var(--ocean));
+  font-size: 12px;
+}
+
+.aidp-box-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--aidp-accent, var(--ocean));
+  line-height: 1.25;
+}
+
+.aidp-box-sub {
+  margin-top: 3px;
+  font-size: 9px;
+  color: var(--neutral-4);
+  line-height: 1.35;
+}
+
+.reporting-tier {
+  margin-top: 10px;
+  border: 1px solid #B7B1AA;
+  border-radius: 4px;
+  background: #ECE9E5;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reporting-tier i {
+  color: var(--ocean);
+}
+
+.reporting-tier p {
+  margin: 0;
+  font-size: 10px;
+  color: var(--bark);
+}
+
+.diagram-footer {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid var(--neutral-2);
+  background: #FFFFFF;
+  padding: 8px 24px;
+  font-size: 10px;
+  color: var(--neutral-4);
+}
+
+.diagram-confidential {
+  margin-left: auto;
+  color: var(--neutral-3);
+  font-style: italic;
+}
+
+.edit-toolbar {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(20,40,48,0.96);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 8px;
+  flex-wrap: wrap;
+  max-width: min(90vw, 980px);
+}
+
+body.toolbar-hidden .edit-toolbar { display: none; }
+
+.edit-toolbar button {
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: #FFFFFF;
+  border-radius: 6px;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.edit-toolbar button:hover { background: rgba(255,255,255,0.16); }
+
+body.edit-mode [contenteditable="true"] {
+  outline: 1px dashed var(--sienna);
+  outline-offset: 2px;
+  background: rgba(174,86,44,0.05);
+}
+
+.edit-status {
+  color: #D3E7EF;
+  font-size: 11px;
+  align-self: center;
+  padding: 0 4px;
+}
+
+@media (max-width: 1120px) {
+  .pod-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .aidp-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .db-grid { grid-template-columns: 1fr; }
+  .dg-arrow { min-height: 46px; }
+}
+
+@media (max-width: 880px) {
+  .site-head .blank,
+  .arrow-spacer,
+  .lane-label { font-size: 9px; }
+  .aidp-grid { grid-template-columns: 1fr; }
+}
+
+body.slide-layout .diagram-header { padding: 10px 18px 8px; }
+body.slide-layout .diagram-title { font-size: 26px; }
+body.slide-layout .diagram-sub { font-size: 10px; margin-bottom: 6px; }
+body.slide-layout .diagram-canvas { padding: 10px 18px 12px; }
+body.slide-layout .region-box { padding: 8px; }
+body.slide-layout .cluster-row { min-height: 70px; }
+body.slide-layout .pod-card { min-height: 33px; }
+body.slide-layout .pod-name { font-size: 8px; }
+body.slide-layout .pod-meta { font-size: 7px; }
+body.slide-layout .aidp-box { min-height: 64px; }
+body.slide-layout .diagram-footer { min-height: 34px; padding: 6px 18px; font-size: 8px; }
+
+/* Visual QA Auto-Fix: begin */
+/* Visual QA Auto-Fix: layout + icon uniformity + contrast */
+.runtime-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  grid-template-areas:
+    "orchestrator capabilities"
+    "orchestrator genai";
+  gap: 10px;
+  align-items: start;
+}
+.orchestrator-box { grid-area: orchestrator; }
+.capability-grid { grid-area: capabilities; }
+.genai-panel { grid-area: genai; }
+.layer {
+  background: #E8E4DF;
+  border: 1px solid #C3BDB7;
+}
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid #CFC9C2;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.09);
+}
+.service-head,
+.ai-service-head,
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.service-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+.ai-service-icon {
+  width: 13px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 11px;
+}
+.doc-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .runtime-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "orchestrator"
+      "capabilities"
+      "genai";
+  }
+  .cap-col:not(:last-child)::after,
+  .cap-col:not(:last-child)::before {
+    display: none;
+  }
+}
+/* Visual QA Auto-Fix: end */
+</style>
+</head>
+<body>
+<div id="diagramShell" class="diagram-shell">
+  <nav class="oci-nav">
+    <span class="oci-logo" aria-label="Oracle">ORACLE</span>
+    <div class="oci-nav-right">
+      <button id="toggleSlideLayout" class="nav-btn" type="button">Slide Layout</button>
+      <button id="toggleToolbar" class="nav-btn" type="button">Hide Tools</button>
+    </div>
+  </nav>
+
+  <header class="diagram-header">
+    <h1 class="diagram-title" data-editable="true">DRCC Kubernetes Deployment Architecture</h1>
+    <p class="diagram-sub" data-editable="true">Dual data center DRCC deployment in one OCI region with retained control/data plane namespaces and Oracle AIDP foundation</p>
+    <div class="badge-row">
+      <span class="badge badge-ocean" data-editable="true">OCI Region: Mumbai</span>
+      <span class="badge badge-sienna" data-editable="true">Topology: Active-Active DRCC</span>
+      <span class="badge badge-green" data-editable="true">Platform: Oracle AIDP</span>
+      <span class="badge badge-neutral" data-editable="true">Kubernetes Runtime</span>
+    </div>
+  </header>
+
+  <main class="diagram-canvas" id="diagramCanvas">
+    <section class="region-box">
+      <span class="region-chip" data-editable="true">OCI Region Boundary</span>
+
+      <div class="k8s-cluster">
+        <div class="site-head">
+          <div class="blank"></div>
+          <div class="site-tag" data-editable="true">Mumbai - Chandivali</div>
+          <div class="site-tag" data-editable="true">Mumbai - Rabale</div>
+        </div>
+
+        <div class="cluster-row lane-control">
+          <div class="lane-label" data-editable="true">Control Plane</div>
+          <div class="dc-cell control-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-master" alt="Master Node"><span data-editable="true">Master Nodes</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 1</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 2</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 3</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 4</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 5</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+            </div>
+          </div>
+          <div class="dc-cell control-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-master" alt="Master Node"><span data-editable="true">Master Nodes</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 6</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 7</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 8</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 9</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+              <article class="pod-card" style="--pod-accent:#7A4B8B"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Master Node 10</p><div class="pod-meta" data-editable="true">Control Pod</div></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="cluster-row lane-oba">
+          <div class="lane-label" data-editable="true">Worker Nodes - OBA-NS</div>
+          <div class="dc-cell oba-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-worker" alt="Worker Node"><span data-editable="true">Application + Coherence Client Pods</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#2C5967"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">App + Coherence Client POD</p><div class="pod-meta" data-editable="true">Tenant A</div></article>
+              <article class="pod-card" style="--pod-accent:#2C5967"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">App + Coherence Client POD</p><div class="pod-meta" data-editable="true">Tenant B</div></article>
+              <article class="pod-card" style="--pod-accent:#2C5967"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">App + Coherence Client POD</p><div class="pod-meta" data-editable="true">Tenant C</div></article>
+            </div>
+          </div>
+          <div class="dc-cell oba-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-worker" alt="Worker Node"><span data-editable="true">Application + Coherence Client Pods</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#2C5967"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">App + Coherence Client POD</p><div class="pod-meta" data-editable="true">Tenant A</div></article>
+              <article class="pod-card" style="--pod-accent:#2C5967"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">App + Coherence Client POD</p><div class="pod-meta" data-editable="true">Tenant B</div></article>
+              <article class="pod-card" style="--pod-accent:#2C5967"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">App + Coherence Client POD</p><div class="pod-meta" data-editable="true">Tenant C</div></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="cluster-row lane-oblcm">
+          <div class="lane-label" data-editable="true">Worker Nodes - OBLCM-NS</div>
+          <div class="dc-cell oblcm-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-worker" alt="Worker Node"><span data-editable="true">Coherence Client Pods</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#AE562C"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Client POD</p><div class="pod-meta" data-editable="true">Batch 1</div></article>
+              <article class="pod-card" style="--pod-accent:#AE562C"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Client POD</p><div class="pod-meta" data-editable="true">Batch 2</div></article>
+              <article class="pod-card" style="--pod-accent:#AE562C"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Client POD</p><div class="pod-meta" data-editable="true">Batch 3</div></article>
+            </div>
+          </div>
+          <div class="dc-cell oblcm-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-worker" alt="Worker Node"><span data-editable="true">Coherence Client Pods</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#AE562C"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Client POD</p><div class="pod-meta" data-editable="true">Batch 1</div></article>
+              <article class="pod-card" style="--pod-accent:#AE562C"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Client POD</p><div class="pod-meta" data-editable="true">Batch 2</div></article>
+              <article class="pod-card" style="--pod-accent:#AE562C"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Client POD</p><div class="pod-meta" data-editable="true">Batch 3</div></article>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow-band">
+          <div class="arrow-spacer"></div>
+          <div class="arrow-cell"><i class="fa-solid fa-arrow-down"></i></div>
+          <div class="arrow-cell"><i class="fa-solid fa-arrow-down"></i></div>
+        </div>
+
+        <div class="cluster-row lane-grid">
+          <div class="lane-label" data-editable="true">Worker Nodes - Coherence Data Grid</div>
+          <div class="dc-cell grid-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-worker" alt="Worker Node"><span data-editable="true">Coherence Storage Pods</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#5A7A86"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Storage POD</p><div class="pod-meta" data-editable="true">Partition A</div></article>
+              <article class="pod-card" style="--pod-accent:#5A7A86"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Storage POD</p><div class="pod-meta" data-editable="true">Partition B</div></article>
+              <article class="pod-card" style="--pod-accent:#5A7A86"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Storage POD</p><div class="pod-meta" data-editable="true">Partition C</div></article>
+            </div>
+            <div class="grid-sync">
+              <span class="sync-arrow"><i class="fa-solid fa-right-left"></i></span>
+              <span data-editable="true">Synchronous TCMP (Site-Safe Policy)</span>
+            </div>
+          </div>
+          <div class="dc-cell grid-cell">
+            <p class="cell-title"><img class="oci-icon k8s-node-icon" data-icon="k8s-worker" alt="Worker Node"><span data-editable="true">Coherence Storage Pods</span></p>
+            <div class="pod-grid">
+              <article class="pod-card" style="--pod-accent:#5A7A86"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Storage POD</p><div class="pod-meta" data-editable="true">Partition A</div></article>
+              <article class="pod-card" style="--pod-accent:#5A7A86"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Storage POD</p><div class="pod-meta" data-editable="true">Partition B</div></article>
+              <article class="pod-card" style="--pod-accent:#5A7A86"><img class="pod-icon" data-icon="container" alt="Pod"><p class="pod-name" data-editable="true">Coherence Storage POD</p><div class="pod-meta" data-editable="true">Partition C</div></article>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="database-tier">
+        <h3 class="tier-title" data-editable="true">Database Layer</h3>
+        <div class="db-grid">
+          <article class="db-box">
+            <div class="db-head">
+              <img class="oci-icon" data-icon="database" alt="Database">
+              <h3 data-editable="true">Primary Database Stack</h3>
+            </div>
+            <div class="db-pill-row">
+              <span class="db-pill"><img class="db-mini-icon" data-icon="database" alt="DB"><span data-editable="true">OBA PDB</span></span>
+              <span class="db-pill"><img class="db-mini-icon" data-icon="database" alt="DB"><span data-editable="true">OBLCM PDB</span></span>
+              <span class="db-pill"><img class="db-mini-icon" data-icon="database" alt="DB"><span data-editable="true">CDB</span></span>
+            </div>
+          </article>
+
+          <div class="dg-arrow" data-editable="true">
+            <div>
+              <i class="fa-solid fa-right-left"></i><br>
+              Autonomous Data Guard
+            </div>
+          </div>
+
+          <article class="db-box">
+            <div class="db-head">
+              <img class="oci-icon" data-icon="database" alt="Database">
+              <h3 data-editable="true">Standby Database Stack</h3>
+            </div>
+            <div class="db-pill-row">
+              <span class="db-pill"><img class="db-mini-icon" data-icon="database" alt="DB"><span data-editable="true">OBA PDB</span></span>
+              <span class="db-pill"><img class="db-mini-icon" data-icon="database" alt="DB"><span data-editable="true">OBLCM PDB</span></span>
+              <span class="db-pill"><img class="db-mini-icon" data-icon="database" alt="DB"><span data-editable="true">CDB</span></span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="aidp-layer">
+        <div class="aidp-header">
+          <i class="fa-solid fa-arrow-down"></i>
+          <h2 data-editable="true">Oracle AIDP Platform (Foundation Layer)</h2>
+        </div>
+        <p class="aidp-sub" data-editable="true">Expanded logical capabilities under the DRCC Kubernetes platform for model lifecycle, governance, and serving</p>
+        <div class="aidp-grid">
+          <article class="aidp-box" style="--aidp-accent:#2C5967">
+            <div class="aidp-box-head">
+              <i class="fa-solid fa-right-to-bracket"></i>
+              <h4 class="aidp-box-title" data-editable="true">Data Ingestion</h4>
+            </div>
+            <div class="aidp-box-sub" data-editable="true">Event streams, batch feeds, CDC adapters</div>
+          </article>
+
+          <article class="aidp-box" style="--aidp-accent:#AE562C">
+            <div class="aidp-box-head">
+              <i class="fa-solid fa-layer-group"></i>
+              <h4 class="aidp-box-title" data-editable="true">Feature & Metadata Store</h4>
+            </div>
+            <div class="aidp-box-sub" data-editable="true">Reusable features, lineage, semantic catalog</div>
+          </article>
+
+          <article class="aidp-box" style="--aidp-accent:#2C5967">
+            <div class="aidp-box-head">
+              <i class="fa-solid fa-gears"></i>
+              <h4 class="aidp-box-title" data-editable="true">Model Training Pipeline</h4>
+            </div>
+            <div class="aidp-box-sub" data-editable="true">Distributed training, experiment tracking, tuning</div>
+          </article>
+
+          <article class="aidp-box" style="--aidp-accent:#AE562C">
+            <div class="aidp-box-head">
+              <i class="fa-solid fa-folder-tree"></i>
+              <h4 class="aidp-box-title" data-editable="true">Model Registry</h4>
+            </div>
+            <div class="aidp-box-sub" data-editable="true">Version governance, approval workflows, rollback metadata</div>
+          </article>
+
+          <article class="aidp-box" style="--aidp-accent:#2C5967">
+            <div class="aidp-box-head">
+              <i class="fa-solid fa-rocket"></i>
+              <h4 class="aidp-box-title" data-editable="true">Online Inference / Serving</h4>
+            </div>
+            <div class="aidp-box-sub" data-editable="true">Low-latency endpoints, canary deployment, autoscaling</div>
+          </article>
+
+          <article class="aidp-box" style="--aidp-accent:#AE562C">
+            <div class="aidp-box-head">
+              <i class="fa-solid fa-shield-halved"></i>
+              <h4 class="aidp-box-title" data-editable="true">Observability & Governance</h4>
+            </div>
+            <div class="aidp-box-sub" data-editable="true">Model drift, policy checks, audit trails, compliance metrics</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="reporting-tier">
+        <i class="fa-solid fa-chart-line"></i>
+        <p data-editable="true">Reporting Layer: AIDP Datastore + operational analytics for DRCC platform telemetry and business reporting</p>
+      </section>
+    </section>
+  </main>
+
+  <footer class="diagram-footer">
+    <span data-editable="true">Legend</span>
+    <span data-editable="true">Pod cards: Kubernetes runtime entities</span>
+    <span data-editable="true">Synchronous TCMP: site-safe Coherence replication</span>
+    <span data-editable="true">Autonomous Data Guard: DB cross-site protection</span>
+    <span class="diagram-confidential" data-editable="true">Oracle Confidential</span>
+  </footer>
+</div>
+
+<div class="edit-toolbar" role="toolbar" aria-label="Diagram quick edit tools">
+  <button id="toggleEdit" type="button">Enable Edit</button>
+  <button id="exportPng" type="button">Export PNG</button>
+  <button id="saveHtml" type="button">Save HTML</button>
+  <button id="copyHtml" type="button">Copy HTML</button>
+  <button id="reloadPage" type="button">Reset</button>
+  <span class="edit-status" id="editStatus">View mode</span>
+</div>
+
+<script>
+(function () {
+  const ICONS = {
+    kubernetes: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDIiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCA0MiA0MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgb3ZlcmZsb3c9ImhpZGRlbiI+PGRlZnM+PC9kZWZzPjxnPjxnPjxwYXRoIGQ9Ik0yLjcgNDEuNUMxLjUgNDEuNSAwLjUgNDAuNSAwLjUgMzkuM0wwLjUgMi43QzAuNSAxLjUgMS41IDAuNSAyLjcgMC41TDM5LjQgMC41QzQwLjYgMC41IDQxLjYgMS41IDQxLjYgMi43TDQxLjYgMzkuNEM0MS42IDQwLjYgNDAuNiA0MS42IDM5LjQgNDEuNkwyLjcgNDEuNloiIGZpbGw9IiNGRkZGRkYiLz48cGF0aCBkPSJNMzkuMyAxQzQwLjMgMSA0MSAxLjcgNDEgMi43TDQxIDM5LjRDNDEgNDAuMyA0MC4zIDQxLjEgMzkuMyA0MS4xTDIuNyA0MS4xQzEuNyA0MSAxIDQwLjMgMSAzOS4zTDEgMi43QzEgMS43IDEuNyAxIDIuNyAxTDM5LjMgMU0zOS4zIDAgMi43IDBDMS4yIDAgMCAxLjIgMCAyLjdMMCAzOS40QzAgNDAuOCAxLjIgNDIgMi43IDQyTDM5LjQgNDJDNDAuOSA0MiA0Mi4xIDQwLjggNDIuMSAzOS4zTDQyLjEgMi43QzQyIDEuMiA0MC44IDAgMzkuMyAwTDM5LjMgMFoiIGZpbGw9IiNGRkZGRkYiLz48L2c+PGc+PHBhdGggZD0iTTM5LjMgMSAyLjcgMUMxLjcgMSAxIDEuNyAxIDIuN0wxIDM5LjRDMSA0MC4zIDEuNyA0MSAyLjcgNDFMMzkuNCA0MUM0MC4zIDQxIDQxLjEgNDAuMyA0MS4xIDM5LjNMNDEuMSAyLjdDNDEgMS43IDQwLjMgMSAzOS4zIDFaTTM5LjUgMzkuM0MzOS41IDM5LjQgMzkuNCAzOS41IDM5LjMgMzkuNUwyLjcgMzkuNUMyLjYgMzkuNSAyLjUgMzkuNCAyLjUgMzkuM0wyLjUgMi43QzIuNSAyLjYgMi42IDIuNSAyLjcgMi41TDM5LjQgMi41QzM5LjUgMi41IDM5LjYgMi42IDM5LjYgMi43TDM5LjYgMzkuM1oiIGZpbGw9IiMzOTUzQTQiLz48cGF0aCBkPSJNNS40IDM2LjQgMzYuNSAzNi40IDM2LjUgMjcuNSA1LjQgMjcuNSA1LjQgMzYuNFpNNi45IDI5IDM1IDI5IDM1IDM0LjkgNi45IDM0LjkgNi45IDI5WiIgZmlsbD0iIzM5NTNBNCIvPjxjaXJjbGUgY3g9IjMxLjciIGN5PSIzMS45IiByPSIxLjEiIGZpbGw9IiMzOTUzQTQiLz48cGF0aCBkPSJNNS40IDE0LjMgMzYuNSAxNC4zIDM2LjUgNS40IDUuNCA1LjQgNS40IDE0LjNaTTYuOSA2LjkgMzUgNi45IDM1IDEyLjggNi45IDEyLjggNi45IDYuOVoiIGZpbGw9IiMzOTUzQTQiLz48Y2lyY2xlIGN4PSIzMS43IiBjeT0iOS45IiByPSIxLjEiIGZpbGw9IiMzOTUzQTQiLz48cGF0aCBkPSJNNS40IDI1LjQgMzYuNSAyNS40IDM2LjUgMTYuNSA1LjQgMTYuNSA1LjQgMjUuNFpNNi45IDE4IDM1IDE4IDM1IDI0IDYuOSAyNCA2LjkgMThaIiBmaWxsPSIjMzk1M0E0Ii8+PGNpcmNsZSBjeD0iMzEuNyIgY3k9IjIxIiByPSIxLjEiIGZpbGw9IiMzOTUzQTQiLz48L2c+PC9nPjwvc3ZnPg==",
+    container: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBvbHlnb24gcG9pbnRzPSIzMiwyIDU3LDE2IDU3LDQ4IDMyLDYyIDcsNDggNywxNiIgZmlsbD0iIzNGNkZEQiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjYgMzIsMjEgNDIsMjYgMzIsMzEiIGZpbGw9IiNEOURERTMiLz4KICA8cG9seWdvbiBwb2ludHM9IjIyLDI2IDMyLDMxIDMyLDQxIDIyLDM2IiBmaWxsPSIjQzdDQ0Q0Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSI0MiwyNiAzMiwzMSAzMiw0MSA0MiwzNiIgZmlsbD0iI0IzQjlDMyIvPgogIDx0ZXh0IHg9IjMyIiB5PSI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjRkZGRkZGIiBmb250LXdlaWdodD0iNzAwIj5wb2Q8L3RleHQ+Cjwvc3ZnPg==",
+    database: "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDIgNDIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIGlkPSJMYXllcl8xIiBvdmVyZmxvdz0iaGlkZGVuIj48Zz48Zz48Zz48cGF0aCBkPSJNMi42NyA0MS41QzEuNDggNDEuNSAwLjUgNDAuNTMgMC41IDM5LjMzTDAuNSAyLjY3QzAuNSAxLjQ4IDEuNDcgMC41IDIuNjcgMC41TDM5LjM0IDAuNUM0MC41MyAwLjUgNDEuNTEgMS40NyA0MS41MSAyLjY3TDQxLjUxIDM5LjM0QzQxLjUxIDQwLjUzIDQwLjU0IDQxLjUxIDM5LjM0IDQxLjUxTDIuNjcgNDEuNTFaIiBmaWxsPSIjRkZGRkZGIi8+PHBhdGggZD0iTTM5LjMzIDFDNDAuMjUgMSA0MSAxLjc1IDQxIDIuNjdMNDEgMzkuMzRDNDEgNDAuMjYgNDAuMjUgNDEuMDEgMzkuMzMgNDEuMDFMMi42NyA0MS4wMUMxLjc1IDQxIDEgNDAuMjUgMSAzOS4zM0wxIDIuNjdDMSAxLjc1IDEuNzUgMSAyLjY3IDFMMzkuMzMgMU0zOS4zMyAwIDIuNjcgMEMxLjIgMCAwIDEuMiAwIDIuNjdMMCAzOS4zNEMwIDQwLjggMS4yIDQyIDIuNjcgNDJMMzkuMzQgNDJDNDAuOCA0MiA0MiA0MC44IDQyIDM5LjMzTDQyIDIuNjdDNDIgMS4yIDQwLjggMCAzOS4zMyAwTDM5LjMzIDBaIiBmaWxsPSIjRkZGRkZGIi8+PC9nPjxnPjxwYXRoIGQ9Ik0zOS4zMyAxIDIuNjcgMUMxLjc1IDEgMSAxLjc1IDEgMi42N0wxIDM5LjM0QzEgNDAuMjUgMS43NSA0MSAyLjY3IDQxTDM5LjM0IDQxQzQwLjI2IDQxIDQxLjAxIDQwLjI1IDQxLjAxIDM5LjMzTDQxLjAxIDIuNjdDNDEgMS43NSA0MC4yNSAxIDM5LjMzIDFaTTM5LjUyIDM5LjMzQzM5LjUyIDM5LjQzIDM5LjQ0IDM5LjUyIDM5LjMzIDM5LjUyTDIuNjcgMzkuNTJDMi41NyAzOS41MiAyLjQ4IDM5LjQ0IDIuNDggMzkuMzNMMi40OCAyLjY3QzIuNDggMi41NyAyLjU2IDIuNDggMi42NyAyLjQ4TDM5LjM0IDIuNDhDMzkuNDQgMi40OCAzOS41MyAyLjU2IDM5LjUzIDIuNjdMMzkuNTMgMzkuMzNaIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMzYuMzcgMzYuNTUgMzYuMzcgMzYuNTUgMjcuNDggNS40NCAyNy40OCA1LjQ0IDM2LjM3Wk02LjkzIDI4Ljk2IDM1LjA4IDI4Ljk2IDM1LjA4IDM0Ljg5IDYuOTMgMzQuODkgNi45MyAyOC45NloiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjMxLjkzIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMTQuMzMgMzYuNTUgMTQuMzMgMzYuNTUgNS40NCA1LjQ0IDUuNDQgNS40NCAxNC4zM1pNNi45MyA2LjkzIDM1LjA4IDYuOTMgMzUuMDggMTIuODYgNi45MyAxMi44NiA2LjkzIDYuOTNaIiBmaWxsPSIjMkM1OTY3Ii8+PGNpcmNsZSBjeD0iMzEuNzQiIGN5PSI5Ljg5IiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PHBhdGggZD0iTTUuNDQgMjUuNDQgMzYuNTUgMjUuNDQgMzYuNTUgMTYuNTUgNS40NCAxNi41NSA1LjQ0IDI1LjQ0Wk02LjkzIDE4LjA0IDM1LjA4IDE4LjA0IDM1LjA4IDIzLjk3IDYuOTMgMjMuOTcgNi45MyAxOC4wNFoiIGZpbGw9IiMyQzU5NjciLz48Y2lyY2xlIGN4PSIzMS43NCIgY3k9IjIxIiByPSIxLjExIiBmaWxsPSIjMkM1OTY3Ii8+PC9nPjwvZz48L2c+PC9zdmc+",
+    "k8s-pod": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBvbHlnb24gcG9pbnRzPSIzMiwyIDU3LDE2IDU3LDQ4IDMyLDYyIDcsNDggNywxNiIgZmlsbD0iIzNGNkZEQiIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjYgMzIsMjEgNDIsMjYgMzIsMzEiIGZpbGw9IiNEOURERTMiLz4KICA8cG9seWdvbiBwb2ludHM9IjIyLDI2IDMyLDMxIDMyLDQxIDIyLDM2IiBmaWxsPSIjQzdDQ0Q0Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSI0MiwyNiAzMiwzMSAzMiw0MSA0MiwzNiIgZmlsbD0iI0IzQjlDMyIvPgogIDx0ZXh0IHg9IjMyIiB5PSI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjRkZGRkZGIiBmb250LXdlaWdodD0iNzAwIj5wb2Q8L3RleHQ+Cjwvc3ZnPg==",
+    "k8s-master": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBvbHlnb24gcG9pbnRzPSIzMiwyIDU3LDE2IDU3LDQ4IDMyLDYyIDcsNDggNywxNiIgZmlsbD0iIzVFNTZCOSIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjYgMzIsMjEgNDIsMjYgMzIsMzEiIGZpbGw9IiNEOURERTMiLz4KICA8cG9seWdvbiBwb2ludHM9IjIyLDI2IDMyLDMxIDMyLDQxIDIyLDM2IiBmaWxsPSIjQzdDQ0Q0Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSI0MiwyNiAzMiwzMSAzMiw0MSA0MiwzNiIgZmlsbD0iI0IzQjlDMyIvPgogIDx0ZXh0IHg9IjMyIiB5PSI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjRkZGRkZGIiBmb250LXdlaWdodD0iNzAwIj5jcDwvdGV4dD4KPC9zdmc+",
+    "k8s-worker": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPHBvbHlnb24gcG9pbnRzPSIzMiwyIDU3LDE2IDU3LDQ4IDMyLDYyIDcsNDggNywxNiIgZmlsbD0iIzJGN0E5MyIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjIsMjYgMzIsMjEgNDIsMjYgMzIsMzEiIGZpbGw9IiNEOURERTMiLz4KICA8cG9seWdvbiBwb2ludHM9IjIyLDI2IDMyLDMxIDMyLDQxIDIyLDM2IiBmaWxsPSIjQzdDQ0Q0Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSI0MiwyNiAzMiwzMSAzMiw0MSA0MiwzNiIgZmlsbD0iI0IzQjlDMyIvPgogIDx0ZXh0IHg9IjMyIiB5PSI1NSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjEyIiBmaWxsPSIjRkZGRkZGIiBmb250LXdlaWdodD0iNzAwIj53azwvdGV4dD4KPC9zdmc+"
+  };
+
+  document.querySelectorAll("img[data-icon]").forEach((img) => {
+    const key = img.getAttribute("data-icon");
+    if (ICONS[key]) {
+      img.src = ICONS[key];
+    }
+  });
+
+  const slideLayoutBtn = document.getElementById("toggleSlideLayout");
+  const toolbarToggleBtn = document.getElementById("toggleToolbar");
+  const toggleBtn = document.getElementById("toggleEdit");
+  const exportPngBtn = document.getElementById("exportPng");
+  const saveBtn = document.getElementById("saveHtml");
+  const copyBtn = document.getElementById("copyHtml");
+  const reloadBtn = document.getElementById("reloadPage");
+  const status = document.getElementById("editStatus");
+  const diagramShell = document.getElementById("diagramShell");
+
+  const editableSelector = "[data-editable='true'], .diagram-title, .diagram-sub";
+
+  let editMode = false;
+  let slideLayout = false;
+  let toolbarVisible = true;
+
+  function setEditable(enabled) {
+    document.querySelectorAll(editableSelector).forEach((el) => {
+      el.setAttribute("contenteditable", enabled ? "true" : "false");
+      el.setAttribute("spellcheck", "false");
+    });
+  }
+
+  function serializeHtml() {
+    return "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  }
+
+  function fileNameFromPath() {
+    const path = (window.location.pathname || "diagram.html").split("/").pop();
+    return path && path.includes(".") ? path : "diagram-edited.html";
+  }
+
+  function pngNameFromPath() {
+    return fileNameFromPath().replace(/\.html?$/i, "") + ".png";
+  }
+
+  function setSlideLayout(enabled) {
+    slideLayout = enabled;
+    document.body.classList.toggle("slide-layout", enabled);
+    slideLayoutBtn.classList.toggle("active", enabled);
+    slideLayoutBtn.textContent = enabled ? "Full Layout" : "Slide Layout";
+    status.textContent = enabled ? "Slide layout on" : "Full layout on";
+  }
+
+  function setToolbarVisible(enabled) {
+    toolbarVisible = enabled;
+    document.body.classList.toggle("toolbar-hidden", !enabled);
+    toolbarToggleBtn.classList.toggle("active", !enabled);
+    toolbarToggleBtn.textContent = enabled ? "Hide Tools" : "Show Tools";
+  }
+
+  async function saveHtmlToFile() {
+    const html = serializeHtml();
+
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileNameFromPath(),
+          types: [{ description: "HTML file", accept: { "text/html": [".html"] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(html);
+        await writable.close();
+        status.textContent = "Saved HTML to file";
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") {
+          status.textContent = "Save canceled";
+          return;
+        }
+      }
+    }
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileNameFromPath();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+    status.textContent = "Downloaded edited HTML";
+  }
+
+  async function exportPng() {
+    if (!diagramShell) {
+      status.textContent = "Unable to export: diagram shell missing";
+      return;
+    }
+
+    if (!window.html2canvas) {
+      status.textContent = "PNG export unavailable. Use screenshot.";
+      return;
+    }
+
+    const wasVisible = toolbarVisible;
+    setToolbarVisible(false);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const canvas = await window.html2canvas(diagramShell, {
+        backgroundColor: "#F5F4F2",
+        scale: 2,
+        useCORS: true
+      });
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          status.textContent = "PNG export failed";
+          return;
+        }
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = pngNameFromPath();
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+        status.textContent = "Downloaded PNG";
+      }, "image/png");
+    } catch (err) {
+      status.textContent = "PNG export failed";
+    } finally {
+      setToolbarVisible(wasVisible);
+    }
+  }
+
+  function setMode(enabled) {
+    editMode = enabled;
+    document.body.classList.toggle("edit-mode", enabled);
+    setEditable(enabled);
+    toggleBtn.textContent = enabled ? "Disable Edit" : "Enable Edit";
+    status.textContent = enabled ? "Edit mode on" : "View mode";
+  }
+
+  slideLayoutBtn.addEventListener("click", () => setSlideLayout(!slideLayout));
+  toolbarToggleBtn.addEventListener("click", () => setToolbarVisible(!toolbarVisible));
+  toggleBtn.addEventListener("click", () => setMode(!editMode));
+  exportPngBtn.addEventListener("click", exportPng);
+  saveBtn.addEventListener("click", saveHtmlToFile);
+
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(serializeHtml());
+      status.textContent = "Copied HTML to clipboard";
+    } catch (err) {
+      status.textContent = "Clipboard blocked by browser";
+    }
+  });
+
+  reloadBtn.addEventListener("click", () => window.location.reload());
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && editMode) {
+      setMode(false);
+    }
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("layout") === "slide") {
+    setSlideLayout(true);
+  } else {
+    setSlideLayout(false);
+  }
+  setToolbarVisible(true);
+  setMode(false);
+})();
+</script>
+</body>
+</html>

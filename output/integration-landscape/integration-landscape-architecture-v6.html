@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<!--
+  Diagram: Integration Landscape (single-slide)
+  Version: v6
+  Notes:
+  - Reconstructed from provided reference image into a clean logical architecture.
+  - Preserved key constructs: customer channels, BEST filtering, OBPM hub, ESB context, and payment networks.
+  - Optimized spacing for 16:9 slide capture and reduced remaining blank areas from review notes.
+  - Added Review Annotate mode: draggable translucent sticky notes with draggable pointer targets and dotted connectors.
+  - Updated core lane label to Payment HUB and tuned core-panel background to a warmer brown-neutral.
+  - Tightened card/icon spacing consistency and reduced overall slide width for cleaner one-slide framing.
+  - Added review markup tools: rectangle, oval, and freehand pen with style controls (solid/dashed/dotted, color, width).
+  - Added selection and delete support for review markup so comments can call out areas more clearly.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integration Landscape Architecture - Slide View</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --ocean: #2C5967;
+    --sienna: #AE562C;
+    --air: #FCFBFA;
+    --neutral-1: #F5F4F2;
+    --neutral-2: #DFDCD8;
+    --neutral-3: #9E9892;
+    --neutral-4: #70736E;
+    --bark: #312D2A;
+    --oracle-red: #C74634;
+    --ivy: #759C6C;
+    --card-shadow: 0 1px 4px rgba(49,45,42,0.10), 0 0 0 1px rgba(49,45,42,0.06);
+    --slide-width: 1280px;
+    --slide-height: 768px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--neutral-1);
+    font-family: "Oracle Sans", "Segoe UI", Arial, Calibri, sans-serif;
+    color: var(--bark);
+  }
+
+  .slide-viewport { min-height: 100vh; }
+  .slide-frame { width: 100%; }
+  .diagram-shell {
+    min-height: 100vh;
+    max-width: var(--slide-width);
+    margin: 0 auto;
+  }
+
+  body.slide-layout { overflow: hidden; }
+  body.slide-layout .slide-viewport {
+    min-height: 100vh;
+    height: 100vh;
+    padding: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+  }
+  body.slide-layout.slide-scroll .slide-viewport { overflow: auto; }
+  body.slide-layout .slide-frame {
+    flex: 0 0 auto;
+    position: relative;
+  }
+  body.slide-layout .diagram-shell {
+    width: var(--slide-width);
+    min-height: var(--slide-height);
+    margin: 0;
+    background: var(--neutral-1);
+    box-shadow: 0 0 0 1px rgba(49,45,42,0.12);
+    transform-origin: top left;
+  }
+
+  .oci-nav {
+    height: 44px;
+    background: #142830;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .oci-logo {
+    height: 18px;
+    filter: brightness(0) invert(1);
+  }
+
+  .oci-nav-right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+
+  .nav-btn {
+    border: 1px solid rgba(255,255,255,0.24);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.95);
+    border-radius: 5px;
+    font-size: 11px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .nav-btn:hover { background: rgba(255,255,255,0.16); }
+
+  .nav-btn.active {
+    border-color: rgba(255,255,255,0.52);
+    background: rgba(255,255,255,0.22);
+  }
+
+  .diagram-header {
+    padding: 16px 24px 10px;
+    border-bottom: 1px solid var(--neutral-2);
+  }
+
+  .diagram-title { margin: 0 0 3px; font-size: 22px; line-height: 1.1; }
+  .diagram-sub { margin: 0; font-size: 10px; color: var(--neutral-4); }
+
+  .diagram-canvas {
+    padding: 10px 16px 12px;
+    min-height: calc(100vh - 44px - 100px - 36px);
+    position: relative;
+  }
+
+  body.slide-layout .diagram-canvas {
+    min-height: calc(var(--slide-height) - 44px - 100px - 36px);
+  }
+
+  .group {
+    border: 1px solid var(--neutral-3);
+    border-radius: 4px;
+    padding: 28px 12px 12px;
+    background: #E8E4DF;
+    position: relative;
+  }
+
+  .group-label {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bark);
+    font-weight: 700;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 8px;
+  }
+
+  .service-card {
+    position: relative;
+    background: #FFFFFF;
+    border: 1px solid #C9C3BC;
+    box-shadow: 0 1px 4px rgba(49,45,42,0.12), 0 0 0 1px rgba(44,89,103,0.07);
+    border-radius: 5px;
+    padding: 10px 12px 10px 15px;
+  }
+
+  .service-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 5px 0 0 5px;
+    background: var(--card-accent, var(--ocean));
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 4px;
+  }
+
+  .card-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--card-accent, var(--ocean));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: rgba(44,89,103,0.12);
+    box-shadow: inset 0 0 0 1px rgba(44,89,103,0.2);
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--card-accent, var(--ocean));
+  }
+
+  .card-items { list-style: none; margin: 0; padding: 0; }
+  .card-items li { font-size: 10px; line-height: 1.6; }
+
+  .diagram-footer {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-top: 1px solid var(--neutral-2);
+    background: #FFFFFF;
+    padding: 8px 24px;
+    font-size: 10px;
+    color: var(--neutral-4);
+  }
+
+  .diagram-confidential {
+    margin-left: auto;
+    color: var(--neutral-3);
+    font-style: italic;
+  }
+
+  .edit-toolbar {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 9999;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    background: rgba(20,40,48,0.96);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px;
+    flex-wrap: wrap;
+    max-width: min(90vw, 980px);
+  }
+
+  body.toolbar-hidden .edit-toolbar { display: none; }
+
+  .edit-toolbar button {
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+
+  .edit-toolbar button:hover { background: rgba(255,255,255,0.16); }
+
+  .review-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-left: 8px;
+    margin-left: 2px;
+    border-left: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .review-tools.disabled { opacity: 0.56; }
+
+  .review-control-label {
+    color: #D3E7EF;
+    font-size: 10px;
+    letter-spacing: 0.02em;
+  }
+
+  .edit-toolbar select,
+  .edit-toolbar input[type="color"],
+  .edit-toolbar input[type="range"] {
+    border: 1px solid rgba(255,255,255,0.26);
+    background: rgba(255,255,255,0.10);
+    color: #FFFFFF;
+    border-radius: 6px;
+    font-size: 11px;
+    height: 28px;
+    padding: 0 6px;
+  }
+
+  .edit-toolbar select:disabled,
+  .edit-toolbar input[type="color"]:disabled,
+  .edit-toolbar input[type="range"]:disabled {
+    opacity: 0.52;
+    cursor: default;
+  }
+
+  .edit-toolbar select option {
+    color: #1B1B1B;
+    background: #FFFFFF;
+  }
+
+  .edit-toolbar input[type="color"] {
+    width: 34px;
+    min-width: 34px;
+    padding: 2px;
+    cursor: pointer;
+  }
+
+  .edit-toolbar input[type="range"] {
+    width: 74px;
+    padding: 0;
+  }
+
+  body.edit-mode [contenteditable="true"] {
+    outline: 1px dashed var(--sienna);
+    outline-offset: 2px;
+    background: rgba(174,86,44,0.05);
+  }
+
+  .edit-status {
+    color: #D3E7EF;
+    font-size: 11px;
+    align-self: center;
+    padding: 0 4px;
+  }
+
+  .review-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .review-connectors {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 1;
+  }
+
+  .review-markup {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 1;
+  }
+
+  .review-mark {
+    fill: none;
+    stroke: #C74634;
+    stroke-width: 3;
+    vector-effect: non-scaling-stroke;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    pointer-events: visiblePainted;
+    cursor: grab;
+  }
+
+  .review-mark.dragging { cursor: grabbing; }
+
+  .review-mark.selected {
+    filter: drop-shadow(0 0 0.7px rgba(255,255,255,0.98)) drop-shadow(0 0 4px rgba(49,45,42,0.32));
+  }
+
+  .review-connector {
+    stroke: #6F6861;
+    stroke-width: 1.2;
+    stroke-dasharray: 5 3;
+    fill: none;
+  }
+
+  .review-target {
+    fill: rgba(174,86,44,0.15);
+    stroke: #AE562C;
+    stroke-width: 1;
+    stroke-dasharray: 3 2;
+  }
+
+  .review-note {
+    position: absolute;
+    width: 230px;
+    min-height: 94px;
+    background: rgba(255, 245, 176, 0.88);
+    border: 1px solid rgba(157,123,42,0.58);
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(49,45,42,0.16);
+    backdrop-filter: blur(1.5px);
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+    pointer-events: auto;
+  }
+
+  .review-note.readonly {
+    box-shadow: 0 2px 6px rgba(49,45,42,0.12);
+  }
+
+  .review-note-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px 4px;
+    border-bottom: 1px dashed rgba(90,72,28,0.35);
+    cursor: move;
+    user-select: none;
+  }
+
+  .review-note-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #5A4720;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    flex: 1;
+  }
+
+  .review-note-delete {
+    border: 1px solid rgba(90,72,28,0.4);
+    background: rgba(255,255,255,0.46);
+    color: #5A4720;
+    border-radius: 4px;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 11px;
+    line-height: 1;
+    padding: 0;
+  }
+
+  .review-note-delete:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .review-note-text {
+    border: 0;
+    background: transparent;
+    color: #4A3A1E;
+    font-size: 11px;
+    line-height: 1.45;
+    padding: 8px;
+    min-height: 68px;
+    width: 100%;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+  }
+
+  .review-note-text[readonly] {
+    cursor: default;
+  }
+
+  .review-anchor {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1.5px solid #AE562C;
+    background: rgba(174,86,44,0.20);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.68);
+    cursor: grab;
+    z-index: 3;
+    pointer-events: auto;
+  }
+
+  .review-anchor::before {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border: 1px dashed rgba(174,86,44,0.5);
+    border-radius: 50%;
+  }
+
+  .review-anchor.dragging {
+    cursor: grabbing;
+  }
+
+  body.review-annotate-mode .review-layer {
+    pointer-events: auto;
+    cursor: crosshair;
+  }
+
+  body.review-annotate-mode .review-markup { pointer-events: auto; }
+
+  .section-label {
+    display: inline-block;
+    margin-bottom: 8px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--neutral-4);
+  }
+
+  .layer {
+    border: 1px solid #C3BDB7;
+    border-radius: 4px;
+    background: #E8E4DF;
+  }
+
+  .integration-layer {
+    position: relative;
+    height: 480px;
+    padding: 12px;
+    width: min(100%, 1240px);
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .integration-grid {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    display: grid;
+    grid-template-rows: 76px 1fr 88px;
+    gap: 8px;
+    align-content: start;
+  }
+
+  .top-services {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .service-card {
+    padding: 6px 8px 6px 9px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    background: #FFFFFF;
+    border: 1px solid #C9C3BC;
+    box-shadow: 0 1px 4px rgba(49,45,42,0.12), 0 0 0 1px rgba(44,89,103,0.07);
+  }
+
+  .service-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .service-icon {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    text-align: center;
+    color: #1F5F76;
+    background: rgba(44,89,103,0.13);
+    box-shadow: inset 0 0 0 1px rgba(44,89,103,0.22);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .ai-service-icon {
+    width: 17px;
+    height: 17px;
+    min-width: 17px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    text-align: center;
+    color: #1F5F76;
+    background: rgba(44,89,103,0.13);
+    box-shadow: inset 0 0 0 1px rgba(44,89,103,0.22);
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .doc-icon {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    text-align: center;
+    color: #1F5F76;
+    background: rgba(44,89,103,0.13);
+    box-shadow: inset 0 0 0 1px rgba(44,89,103,0.22);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .service-title {
+    min-width: 0;
+    font-size: 10.8px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--card-accent, #1F4F61);
+  }
+
+  .service-meta {
+    font-size: 8.6px;
+    line-height: 1.3;
+    color: #635C56;
+  }
+
+  .middle-grid {
+    display: grid;
+    grid-template-columns: 206px 1fr 208px;
+    gap: 8px;
+    align-items: start;
+    min-height: 0;
+  }
+
+  .lane {
+    border: 1px solid #C8C2BC;
+    border-radius: 4px;
+    background: #F1EEEA;
+    padding: 6px;
+    position: relative;
+  }
+
+  .lane-title {
+    margin: 0 0 6px;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #857D75;
+  }
+
+  .channel-list,
+  .external-list {
+    display: grid;
+    gap: 6px;
+  }
+
+  .channel-list .service-card,
+  .external-list .service-card {
+    min-height: 34px;
+  }
+
+  .core-lane {
+    background: #E9E2DA;
+    border-color: #C3BBB2;
+    padding: 8px 8px 7px;
+  }
+
+  .core-ribbon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid #C7BFB7;
+    background: #F7F4F1;
+    font-size: 8px;
+    color: #6F6761;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .ribbon-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #AE562C;
+    flex-shrink: 0;
+  }
+
+  .core-main {
+    display: grid;
+    grid-template-columns: 146px 1fr 146px;
+    gap: 7px;
+    margin-bottom: 6px;
+  }
+
+  .filter-card,
+  .bridge-card {
+    min-height: 92px;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+  }
+
+  .filter-card .service-head,
+  .bridge-card .service-head {
+    justify-content: center;
+  }
+
+  .best-others {
+    margin-bottom: 6px;
+    border: 1px solid #97A682;
+    border-radius: 4px;
+    background: #EBF1E6;
+    color: #4D6346;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 4px 6px;
+  }
+
+  .obpm-card {
+    border-radius: 4px;
+    border: 1px solid #C79A82;
+    background: linear-gradient(180deg, #F6E4D9 0%, #F1D6C7 100%);
+    box-shadow: var(--card-shadow);
+    padding: 10px 12px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    min-height: 92px;
+    position: relative;
+  }
+
+  .obpm-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    border-radius: 4px 0 0 4px;
+    background: var(--sienna);
+  }
+
+  .obpm-title {
+    font-size: 20px;
+    line-height: 1;
+    font-weight: 800;
+    color: var(--sienna);
+    letter-spacing: 0.01em;
+    margin-bottom: 4px;
+  }
+
+  .obpm-meta {
+    font-size: 9px;
+    color: #6A4A3A;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .bottom-systems {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    min-height: 0;
+  }
+
+  .bottom-systems .service-card {
+    min-height: 64px;
+  }
+
+  .network-stack {
+    display: grid;
+    gap: 6px;
+    margin-top: 7px;
+  }
+
+  .network-node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid #CBC5BE;
+    border-radius: 4px;
+    background: #FAF8F6;
+    padding: 6px 8px;
+    font-size: 9px;
+    color: #6F6861;
+    font-weight: 700;
+  }
+
+  .network-node i {
+    color: #2C5967;
+    font-size: 12px;
+  }
+
+  .connector-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .flow-line {
+    stroke: #312D2A;
+    stroke-width: 1;
+    fill: none;
+    marker-end: url(#openArrow);
+  }
+
+  .flow-line.dashed {
+    stroke-dasharray: 4 3;
+  }
+
+  .flow-label {
+    font-size: 7px;
+    fill: #6F6861;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 1220px) {
+    .integration-layer {
+      height: auto;
+      overflow: visible;
+    }
+    .integration-grid {
+      grid-template-rows: auto auto auto;
+    }
+    .top-services {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .middle-grid {
+      grid-template-columns: 1fr;
+    }
+    .connector-layer {
+      display: none;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .top-services {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .bottom-systems {
+      grid-template-columns: 1fr;
+    }
+    .oci-nav-right { gap: 6px; }
+  }
+
+/* Visual QA Auto-Fix: begin */
+/* Visual QA Auto-Fix: layout + icon uniformity + contrast */
+.runtime-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  grid-template-areas:
+    "orchestrator capabilities"
+    "orchestrator genai";
+  gap: 10px;
+  align-items: start;
+}
+.orchestrator-box { grid-area: orchestrator; }
+.capability-grid { grid-area: capabilities; }
+.genai-panel { grid-area: genai; }
+.layer {
+  background: #E8E4DF;
+  border: 1px solid #C3BDB7;
+}
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid #CFC9C2;
+  box-shadow: 0 1px 2px rgba(49,45,42,0.09);
+}
+.service-head,
+.ai-service-head,
+.doc-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.service-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+.ai-service-icon {
+  width: 13px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 11px;
+}
+.doc-icon {
+  width: 14px;
+  text-align: center;
+  color: #2C5967;
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .runtime-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "orchestrator"
+      "capabilities"
+      "genai";
+  }
+  .cap-col:not(:last-child)::after,
+  .cap-col:not(:last-child)::before {
+    display: none;
+  }
+}
+/* Visual QA Auto-Fix: end */
+
+/* Legibility override: brighter, larger icon chips (reference-matched default) */
+.service-card {
+  background: #FFFFFF;
+  border: 1px solid #C9C3BC;
+  box-shadow: 0 1px 4px rgba(49,45,42,0.12), 0 0 0 1px rgba(44,89,103,0.07);
+}
+.service-head { gap: 6px; }
+.service-icon,
+.ai-service-icon,
+.doc-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  text-align: center;
+  color: #1F5F76;
+  background: rgba(44,89,103,0.13);
+  box-shadow: inset 0 0 0 1px rgba(44,89,103,0.22);
+  flex-shrink: 0;
+}
+.service-icon,
+.doc-icon {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  font-size: 14px;
+}
+.ai-service-icon {
+  width: 17px;
+  height: 17px;
+  min-width: 17px;
+  font-size: 13px;
+}
+.service-title {
+  font-size: 10.8px;
+  color: var(--card-accent, #1F4F61);
+}
+.service-meta {
+  font-size: 8.6px;
+  line-height: 1.3;
+  color: #635C56;
+}
+</style>
+</head>
+<body>
+<div id="slideViewport" class="slide-viewport">
+<div id="slideFrame" class="slide-frame">
+<div id="diagramShell" class="diagram-shell">
+  <nav class="oci-nav">
+    <img class="oci-logo" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTA5LjM2IDIyLjk2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0ibG9nbyIgb3ZlcmZsb3c9ImhpZGRlbiI+PGc+PHBhdGggZD0iTTQ3LjkxMjIgMTMuNDIzNCA1NC40NTkgMTMuNDIzNCA1MSA3Ljg0MTM1IDQ0LjY1MDUgMTcuOTIzMyA0MS43NSAxNy45MjMzIDQ5LjQ4MDUgNS44MjM3NUM0OS44MTA2IDUuMzMzNTUgNTAuMzc3IDUuMDM2NjUgNTAuOTk2MiA1LjAzNjY1IDUxLjYwMTcgNS4wMzY2NSA1Mi4xNTgyIDUuMzIzNzUgNTIuNDg4MyA1LjgwMjI1TDYwLjI0MjIgMTcuOTIzMyA1Ny4zNDk3IDE3LjkyMzMgNTUuOTg2NSAxNS42Njk0IDQ5LjM1NzQgMTUuNjY5NCA0Ny45MTIyIDEzLjQyMzRNNzcuOTUxMiAxNS42Njk0IDc3Ljk1MTIgNS4xNTk3NSA3NS40OTIyIDUuMTU5NzUgNzUuNDkyMiAxNi43MDI3Qzc1LjQ5MjIgMTcuMDE3MiA3NS42MjUxIDE3LjMyNTggNzUuODU1NiAxNy41NDgzIDc2LjA5IDE3Ljc5MDYgNzYuNDEyMSAxNy45MjMzIDc2Ljc1IDE3LjkyMzNMODcuOTMxNyAxNy45MjMzIDg5LjM4ODcgMTUuNjY5NCA3Ny45NTEyIDE1LjY2OTRNMzcuMzUxMiAxMy43OTA2QzM5Ljc0MDcgMTMuNzkwNiA0MS42NjIyIDExLjg1NjkgNDEuNjYyMiA5LjQ3NDE1IDQxLjY2MjIgNy4wOTEzNSAzOS43NDA3IDUuMTU5NzUgMzcuMzUxMiA1LjE1OTc1TDI2LjYxMjkgNS4xNTk3NSAyNi42MTI5IDE3LjkyMzMgMjkuMDY2OSAxNy45MjMzIDI5LjA2NjkgNy40MTU1NSAzNy4xODggNy40MTU1NUMzOC4zMjc4IDcuNDE1NTUgMzkuMjUxNSA4LjMzNTU1IDM5LjI1MTUgOS40NzQxNSAzOS4yNTE1IDEwLjYxMDkgMzguMzI3OCAxMS41NDY0IDM3LjE4OCAxMS41NDY0TDMwLjI2NzIgMTEuNTQwNiAzNy41OTczIDE3LjkyMzMgNDEuMTU4MiAxNy45MjMzIDM2LjIzNSAxMy43OTA2IDM3LjM1MTIgMTMuNzkwNk0xMS41MTQyIDE3LjkyMzMgMTguOTMzMSAxNy45MjMzQzIyLjQ2MjUgMTcuOTIzMyAyNS4zMDQzIDE1LjA3MTggMjUuMzA0MyAxMS41NDY0IDI1LjMwNDMgOC4wMTcxNSAyMi40NjI1IDUuMTU5NzUgMTguOTMzMSA1LjE1OTc1TDExLjUxNDIgNS4xNTk3NUM3Ljk4ODg2IDUuMTU5NzUgNS4xMjk0NSA4LjAxNzE1IDUuMTI5NDUgMTEuNTQ2NCA1LjEyOTQ1IDE1LjA3MTggNy45ODg4NiAxNy45MjMzIDExLjUxNDIgMTcuOTIzM00xOC43NjMzIDE1LjY3NzIgMTEuNjc3NCAxNS42NzcyQzkuMzk3MDUgMTUuNjc3MiA3LjU0OTM1IDEzLjgyMzcgNy41NDkzNSAxMS41NDY0IDcuNTQ5MzUgOS4yNTkzNSA5LjM5NzA1IDcuNDE1NTUgMTEuNjc3NCA3LjQxNTU1TDE4Ljc2MzMgNy40MTU1NUMyMS4wNTEzIDcuNDE1NTUgMjIuODk3MSA5LjI1OTM1IDIyLjg5NzEgMTEuNTQ2NCAyMi44OTcxIDEzLjgyMzcgMjEuMDUxMyAxNS42NzcyIDE4Ljc2MzMgMTUuNjc3Mk02NS4zNjcyIDE3LjkyMzMgNzIuOTQxNSAxNy45MjMzIDc0LjM3NSAxNS42NzcyIDY1LjUzNTIgMTUuNjc3MkM2My4yNDQyIDE1LjY3NzIgNjEuMzk4NSAxMy44MjM3IDYxLjM5ODUgMTEuNTQ2NCA2MS4zOTg1IDkuMjU5MzUgNjMuMjQ0MiA3LjQxNTU1IDY1LjUzNTIgNy40MTU1NUw3Mi43MzA1IDcuNDE1NTUgNzQuMTgxNyA1LjE1OTc1IDY1LjM2NzIgNS4xNTk3NUM2MS44Mzk5IDUuMTU5NzUgNTguOTc0NiA4LjAxNzE1IDU4Ljk3NDYgMTEuNTQ2NCA1OC45NzQ3IDE1LjA3MTggNjEuODQgMTcuOTIzMyA2NS4zNjcyIDE3LjkyMzNNOTUuMzgxIDE1LjY3NzJDOTMuNDkwMyAxNS42NzcyIDkxLjg5NjUgMTQuNDA3OCA5MS40MDQ0IDEyLjY3MTRMMTAxLjg5MyAxMi42NzE0IDEwMy4zMzggMTAuNDIxNCA5MS40MDQ0IDEwLjQyMTRDOTEuODk0NyA4LjY4MTI1IDkzLjQ5MDMgNy40MTU1NSA5NS4zODEgNy40MTU1NUwxMDIuNTgyIDcuNDE1NTUgMTA0LjAyMiA1LjE1OTc1IDk1LjIxNjkgNS4xNTk3NUM5MS42OTUzIDUuMTU5NzUgODguODM3OSA4LjAxNzE1IDg4LjgzNzkgMTEuNTQ2NCA4OC44Mzc5IDE1LjA3MTggOTEuNjk1MyAxNy45MjMzIDk1LjIxNjkgMTcuOTIzM0wxMDIuNzkxIDE3LjkyMzMgMTA0LjIzMSAxNS42NzcyIDk1LjM4MSAxNS42NzcyIiBmaWxsPSIjQzc0NjM0Ii8+PC9nPjwvc3ZnPg==" alt="Oracle">
+    <div class="oci-nav-right">
+      <button id="toggleSlideLayout" class="nav-btn" type="button">Slide Layout</button>
+      <button id="toggleToolbar" class="nav-btn" type="button">Hide Tools</button>
+    </div>
+  </nav>
+
+  <header class="diagram-header">
+    <h1 class="diagram-title" data-editable="true">Integration Landscape Architecture</h1>
+    <p class="diagram-sub" data-editable="true">Single-slide logical view reconstructed from reference: channels, OBPM orchestration, interface systems, and downstream payment networks.</p>
+  </header>
+
+  <main class="diagram-canvas" id="diagramCanvas">
+    <div id="reviewLayer" class="review-layer" aria-label="Review annotations">
+      <svg id="reviewConnectors" class="review-connectors" aria-hidden="true"></svg>
+      <svg id="reviewMarkup" class="review-markup" aria-label="Review markup layer"></svg>
+    </div>
+    <section class="layer integration-layer">
+      <span class="section-label" data-editable="true">Integration Landscape (Slide Fit)</span>
+
+      <div class="integration-grid">
+        <div class="top-services">
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-database service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Static Reference Data</span>
+            </div>
+            <span class="service-meta" data-editable="true">Azure Data Platform / CIPS</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-bell service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Notifications</span>
+            </div>
+            <span class="service-meta" data-editable="true">CDM</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-file-contract service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">FX Contracts</span>
+            </div>
+            <span class="service-meta" data-editable="true">DFX / IWA</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-chart-line service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Alerts &amp; Monitoring</span>
+            </div>
+            <span class="service-meta" data-editable="true">SolarWinds / ITSM</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-money-check-dollar service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Charges</span>
+            </div>
+            <span class="service-meta" data-editable="true">CDM</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-file-invoice service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Reports / Recon</span>
+            </div>
+            <span class="service-meta" data-editable="true">Azure Data Platform</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-building-columns service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Virtual A/C</span>
+            </div>
+            <span class="service-meta" data-editable="true">ITCP</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-receipt service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Billing</span>
+            </div>
+            <span class="service-meta" data-editable="true">ITCP</span>
+          </article>
+        </div>
+
+        <div class="middle-grid">
+          <aside class="lane">
+            <h2 class="lane-title" data-editable="true">Customer &amp; Channels</h2>
+            <div class="channel-list">
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-users service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">E-Channels</span>
+                </div>
+                <span class="service-meta" data-editable="true">SMARTS</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-shield-halved service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">E-SOC</span>
+                </div>
+                <span class="service-meta" data-editable="true">Fraud / risk gateway</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-right-left service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">BIK H2H / SCF</span>
+                </div>
+                <span class="service-meta" data-editable="true">Corporate integration</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--sienna)">
+                <div class="service-head">
+                  <i class="fa-solid fa-person-booth service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Manual Direct / OTC</span>
+                </div>
+                <span class="service-meta" data-editable="true">Branch assisted input</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--neutral-4)">
+                <div class="service-head">
+                  <i class="fa-solid fa-users-rectangle service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Other Departments</span>
+                </div>
+                <span class="service-meta" data-editable="true">Internal requests</span>
+              </article>
+            </div>
+          </aside>
+
+          <section class="lane core-lane">
+            <h2 class="lane-title" data-editable="true">Payment HUB</h2>
+            <div class="core-ribbon">
+              <span data-editable="true">ESB</span>
+              <span class="ribbon-dot" aria-hidden="true"></span>
+              <span data-editable="true">Maker</span>
+              <span class="ribbon-dot" aria-hidden="true"></span>
+              <span data-editable="true">Checker</span>
+              <span class="ribbon-dot" aria-hidden="true"></span>
+              <span data-editable="true">Approver</span>
+            </div>
+            <div class="best-others" data-editable="true">BEST Others</div>
+            <div class="core-main">
+              <article class="service-card filter-card" style="--card-accent: #4D6346;">
+                <div class="service-head">
+                  <i class="fa-solid fa-filter service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">BEST Filtering &amp; Routing (CGI)</span>
+                </div>
+                <span class="service-meta" data-editable="true">Validation and rule-based dispatch</span>
+              </article>
+              <article class="obpm-card">
+                <div>
+                  <div class="obpm-title" data-editable="true">OBPM</div>
+                  <div class="obpm-meta" data-editable="true">TT, DD, BA/NTNET, PromptPay, SCF, IT, SMART Credit</div>
+                </div>
+              </article>
+              <article class="service-card bridge-card" style="--card-accent: var(--ocean);">
+                <div class="service-head">
+                  <i class="fa-solid fa-arrow-right-arrow-left service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Interface Bus</span>
+                </div>
+                <span class="service-meta" data-editable="true">Service mediation to external rails</span>
+              </article>
+            </div>
+          </section>
+
+          <aside class="lane">
+            <h2 class="lane-title" data-editable="true">External Payment Connectivity</h2>
+            <div class="external-list">
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-code-branch service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Branch I/F</span>
+                </div>
+                <span class="service-meta" data-editable="true">ODA / G/W</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--ocean)">
+                <div class="service-head">
+                  <i class="fa-solid fa-network-wired service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">APAC SWIFT</span>
+                </div>
+                <span class="service-meta" data-editable="true">SAA</span>
+              </article>
+              <article class="service-card" style="--card-accent: var(--neutral-4)">
+                <div class="service-head">
+                  <i class="fa-solid fa-landmark service-icon" aria-hidden="true"></i>
+                  <span class="service-title" data-editable="true">Domestic Payment Systems</span>
+                </div>
+                <span class="service-meta" data-editable="true">ITMX and local switches</span>
+              </article>
+            </div>
+            <div class="network-stack">
+              <div class="network-node">
+                <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                <span data-editable="true">SWIFT Network</span>
+              </div>
+              <div class="network-node">
+                <i class="fa-solid fa-building-columns" aria-hidden="true"></i>
+                <span data-editable="true">BAHTNET</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="bottom-systems">
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-building service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">APAC SWIFT</span>
+            </div>
+            <span class="service-meta" data-editable="true">SAA</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-sitemap service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">EPX</span>
+            </div>
+            <span class="service-meta" data-editable="true">By JPX Appnames</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--sienna)">
+            <div class="service-head">
+              <i class="fa-solid fa-database service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Core Banking</span>
+            </div>
+            <span class="service-meta" data-editable="true">T24</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--ocean)">
+            <div class="service-head">
+              <i class="fa-solid fa-desktop service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">HO Systems</span>
+            </div>
+            <span class="service-meta" data-editable="true">Screening / Firecross</span>
+          </article>
+          <article class="service-card" style="--card-accent: var(--neutral-4)">
+            <div class="service-head">
+              <i class="fa-solid fa-cubes service-icon" aria-hidden="true"></i>
+              <span class="service-title" data-editable="true">Other Internal Systems</span>
+            </div>
+            <span class="service-meta" data-editable="true">ISN</span>
+          </article>
+        </div>
+      </div>
+
+      <svg class="connector-layer" viewBox="0 0 1000 564" aria-hidden="true">
+        <defs>
+          <marker id="openArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+            <path d="M1,1 L7,4 L1,7" fill="none" stroke="#312D2A" stroke-width="1"></path>
+          </marker>
+        </defs>
+
+        <line class="flow-line" x1="188" y1="258" x2="292" y2="258"></line>
+        <line class="flow-line" x1="446" y1="258" x2="510" y2="258"></line>
+        <line class="flow-line" x1="616" y1="258" x2="690" y2="258"></line>
+        <line class="flow-line" x1="812" y1="211" x2="915" y2="211"></line>
+        <line class="flow-line dashed" x1="328" y1="86" x2="328" y2="184"></line>
+        <line class="flow-line dashed" x1="500" y1="86" x2="500" y2="184"></line>
+        <line class="flow-line dashed" x1="672" y1="86" x2="672" y2="184"></line>
+        <line class="flow-line" x1="558" y1="318" x2="558" y2="451"></line>
+        <line class="flow-line" x1="760" y1="300" x2="760" y2="451"></line>
+        <text class="flow-label" x="490" y="247">ESB</text>
+      </svg>
+    </section>
+  </main>
+
+  <footer class="diagram-footer">
+    <span data-editable="true">Legend:</span>
+    <span data-editable="true">Solid arrow = transaction flow</span>
+    <span data-editable="true">Dashed arrow = event/reference feed</span>
+    <span class="diagram-confidential" data-editable="true">Oracle Confidential</span>
+  </footer>
+</div>
+</div>
+</div>
+
+<div class="edit-toolbar" role="toolbar" aria-label="Diagram quick edit tools">
+  <button id="toggleEdit" type="button">Enable Edit</button>
+  <button id="toggleAnnotate" type="button">Review Annotate</button>
+  <div id="reviewTools" class="review-tools disabled" aria-label="Review drawing controls">
+    <label class="review-control-label" for="reviewTool">Tool</label>
+    <select id="reviewTool" aria-label="Review tool">
+      <option value="note">Sticky</option>
+      <option value="rect">Rectangle</option>
+      <option value="ellipse">Oval</option>
+      <option value="pen">Pen</option>
+    </select>
+    <label class="review-control-label" for="reviewLineStyle">Style</label>
+    <select id="reviewLineStyle" aria-label="Line style">
+      <option value="solid">Solid</option>
+      <option value="dashed">Dashed</option>
+      <option value="dotted">Dotted</option>
+    </select>
+    <label class="review-control-label" for="reviewColor">Color</label>
+    <input id="reviewColor" type="color" value="#C74634" aria-label="Review color">
+    <label class="review-control-label" for="reviewWidth">Width</label>
+    <input id="reviewWidth" type="range" min="1" max="8" step="1" value="3" aria-label="Review line width">
+    <button id="deleteMark" type="button" disabled>Delete Mark</button>
+  </div>
+  <button id="exportPng" type="button">Export PNG</button>
+  <button id="saveHtml" type="button">Save HTML</button>
+  <button id="copyHtml" type="button">Copy HTML</button>
+  <button id="reloadPage" type="button">Reset</button>
+  <span class="edit-status" id="editStatus">View mode</span>
+</div>
+
+<script>
+(function () {
+  const slideLayoutBtn = document.getElementById("toggleSlideLayout");
+  const toolbarToggleBtn = document.getElementById("toggleToolbar");
+  const toggleBtn = document.getElementById("toggleEdit");
+  const annotateBtn = document.getElementById("toggleAnnotate");
+  const reviewTools = document.getElementById("reviewTools");
+  const reviewToolSelect = document.getElementById("reviewTool");
+  const reviewLineStyleSelect = document.getElementById("reviewLineStyle");
+  const reviewColorInput = document.getElementById("reviewColor");
+  const reviewWidthInput = document.getElementById("reviewWidth");
+  const deleteMarkBtn = document.getElementById("deleteMark");
+  const exportPngBtn = document.getElementById("exportPng");
+  const saveBtn = document.getElementById("saveHtml");
+  const copyBtn = document.getElementById("copyHtml");
+  const reloadBtn = document.getElementById("reloadPage");
+  const status = document.getElementById("editStatus");
+  const slideViewport = document.getElementById("slideViewport");
+  const slideFrame = document.getElementById("slideFrame");
+  const diagramShell = document.getElementById("diagramShell");
+  const diagramCanvas = document.getElementById("diagramCanvas");
+  const reviewLayer = document.getElementById("reviewLayer");
+  const reviewConnectors = document.getElementById("reviewConnectors");
+  const reviewMarkup = document.getElementById("reviewMarkup");
+  const SLIDE_WIDTH = 1280;
+  const SLIDE_HEIGHT = 768;
+  const MIN_SLIDE_FIT_SCALE = 0.68;
+  const REVIEW_NOTE_WIDTH = 230;
+  const REVIEW_NOTE_HEIGHT = 94;
+  const REVIEW_NOTE_OFFSET_X = 30;
+  const REVIEW_NOTE_OFFSET_Y = 22;
+  const REVIEW_MIN_SHAPE_SIZE = 12;
+  const REVIEW_DEFAULT_STYLE = {
+    tool: "note",
+    lineStyle: "solid",
+    color: "#C74634",
+    width: 3
+  };
+  const SVG_NS = "http://www.w3.org/2000/svg";
+
+  const editableSelector = "[data-editable='true'], .diagram-title, .diagram-sub, .group-label, .card-title, .card-items li, .review-note-title";
+
+  let editMode = false;
+  let slideLayout = false;
+  let toolbarVisible = true;
+  let annotateMode = false;
+  let reviewCounter = 0;
+  let reviewMarkCounter = 0;
+  let dragState = null;
+  let drawState = null;
+  let selectedMark = null;
+  const reviewNotes = new Map();
+  const reviewStyle = {
+    tool: REVIEW_DEFAULT_STYLE.tool,
+    lineStyle: REVIEW_DEFAULT_STYLE.lineStyle,
+    color: REVIEW_DEFAULT_STYLE.color,
+    width: REVIEW_DEFAULT_STYLE.width
+  };
+
+  function normalizeReviewTool(value) {
+    const tool = String(value || "").toLowerCase();
+    return ["note", "rect", "ellipse", "pen"].includes(tool) ? tool : "note";
+  }
+
+  function reviewToolLabel(value) {
+    const tool = normalizeReviewTool(value);
+    if (tool === "rect") {
+      return "Rectangle";
+    }
+    if (tool === "ellipse") {
+      return "Oval";
+    }
+    if (tool === "pen") {
+      return "Pen";
+    }
+    return "Sticky";
+  }
+
+  function setEditable(enabled) {
+    document.querySelectorAll(editableSelector).forEach((el) => {
+      el.setAttribute("contenteditable", enabled ? "true" : "false");
+      el.setAttribute("spellcheck", "false");
+    });
+  }
+
+  function serializeHtml() {
+    return "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  }
+
+  function fileNameFromPath() {
+    const path = (window.location.pathname || "diagram.html").split("/").pop();
+    return path && path.includes(".") ? path : "diagram-edited.html";
+  }
+
+  function pngNameFromPath() {
+    return fileNameFromPath().replace(/\.html?$/i, "") + ".png";
+  }
+
+  function parsePx(value) {
+    const n = Number.parseFloat(String(value || "").replace("px", ""));
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function parseNumber(value, fallback) {
+    const n = Number.parseFloat(String(value));
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+  }
+
+  function dashArrayForStyle(style, width) {
+    const normalized = style === "dashed" || style === "dotted" ? style : "solid";
+    const lineWidth = clamp(parseNumber(width, REVIEW_DEFAULT_STYLE.width), 1, 8);
+    if (normalized === "dashed") {
+      return (lineWidth * 2.8).toFixed(1) + " " + (lineWidth * 1.8).toFixed(1);
+    }
+    if (normalized === "dotted") {
+      return "1 " + (lineWidth * 2.1).toFixed(1);
+    }
+    return "";
+  }
+
+  function lineStyleFromDashArray(value) {
+    if (!value) {
+      return "solid";
+    }
+    const firstToken = String(value).trim().split(/[ ,]+/)[0];
+    const firstNumber = parseNumber(firstToken, 0);
+    return firstNumber <= 1.1 ? "dotted" : "dashed";
+  }
+
+  function getCanvasScale() {
+    if (!diagramCanvas) {
+      return { x: 1, y: 1 };
+    }
+    const rect = diagramCanvas.getBoundingClientRect();
+    const scaleX = rect.width > 0 && diagramCanvas.offsetWidth > 0 ? rect.width / diagramCanvas.offsetWidth : 1;
+    const scaleY = rect.height > 0 && diagramCanvas.offsetHeight > 0 ? rect.height / diagramCanvas.offsetHeight : 1;
+    return { x: scaleX || 1, y: scaleY || 1 };
+  }
+
+  function canvasSize() {
+    if (!diagramCanvas) {
+      return { width: SLIDE_WIDTH, height: SLIDE_HEIGHT };
+    }
+    const width = Math.max(1, diagramCanvas.clientWidth || diagramCanvas.offsetWidth || SLIDE_WIDTH);
+    const height = Math.max(1, diagramCanvas.clientHeight || diagramCanvas.offsetHeight || SLIDE_HEIGHT);
+    return { width, height };
+  }
+
+  function eventToCanvasPoint(event) {
+    if (!diagramCanvas) {
+      return { x: 0, y: 0 };
+    }
+    const rect = diagramCanvas.getBoundingClientRect();
+    const scale = getCanvasScale();
+    return {
+      x: (event.clientX - rect.left) / scale.x,
+      y: (event.clientY - rect.top) / scale.y
+    };
+  }
+
+  function refreshReviewMarkupViewport() {
+    if (!reviewMarkup || !diagramCanvas) {
+      return;
+    }
+    const size = canvasSize();
+    reviewMarkup.setAttribute("viewBox", "0 0 " + size.width + " " + size.height);
+    reviewMarkup.setAttribute("width", String(size.width));
+    reviewMarkup.setAttribute("height", String(size.height));
+  }
+
+  function syncStyleControlsFromState() {
+    if (reviewToolSelect) {
+      reviewToolSelect.value = normalizeReviewTool(reviewStyle.tool);
+    }
+    if (reviewLineStyleSelect) {
+      reviewLineStyleSelect.value = reviewStyle.lineStyle;
+    }
+    if (reviewColorInput) {
+      reviewColorInput.value = reviewStyle.color;
+    }
+    if (reviewWidthInput) {
+      reviewWidthInput.value = String(clamp(parseNumber(reviewStyle.width, 3), 1, 8));
+    }
+  }
+
+  function syncStyleStateFromControls() {
+    reviewStyle.tool = normalizeReviewTool(reviewToolSelect ? reviewToolSelect.value : reviewStyle.tool);
+    reviewStyle.lineStyle = reviewLineStyleSelect ? reviewLineStyleSelect.value : reviewStyle.lineStyle;
+    reviewStyle.color = reviewColorInput ? reviewColorInput.value : reviewStyle.color;
+    reviewStyle.width = clamp(parseNumber(reviewWidthInput ? reviewWidthInput.value : reviewStyle.width, 3), 1, 8);
+  }
+
+  function applyMarkStyle(markEl, style) {
+    if (!markEl) {
+      return;
+    }
+    const current = style || reviewStyle;
+    const color = current.color || REVIEW_DEFAULT_STYLE.color;
+    const width = clamp(parseNumber(current.width, REVIEW_DEFAULT_STYLE.width), 1, 8);
+    const lineStyle = current.lineStyle || REVIEW_DEFAULT_STYLE.lineStyle;
+    const dashArray = dashArrayForStyle(lineStyle, width);
+
+    markEl.setAttribute("fill", "none");
+    markEl.setAttribute("stroke", color);
+    markEl.setAttribute("stroke-width", String(width));
+    markEl.setAttribute("stroke-linecap", "round");
+    markEl.setAttribute("stroke-linejoin", "round");
+    markEl.setAttribute("vector-effect", "non-scaling-stroke");
+    if (dashArray) {
+      markEl.setAttribute("stroke-dasharray", dashArray);
+    } else {
+      markEl.removeAttribute("stroke-dasharray");
+    }
+
+    markEl.dataset.color = color;
+    markEl.dataset.width = String(width);
+    markEl.dataset.lineStyle = lineStyle;
+  }
+
+  function getMarkTranslate(markEl) {
+    return {
+      tx: parseNumber(markEl ? markEl.dataset.tx : 0, 0),
+      ty: parseNumber(markEl ? markEl.dataset.ty : 0, 0)
+    };
+  }
+
+  function setMarkTranslate(markEl, tx, ty) {
+    if (!markEl) {
+      return;
+    }
+    const nextTx = parseNumber(tx, 0);
+    const nextTy = parseNumber(ty, 0);
+    markEl.dataset.tx = String(nextTx);
+    markEl.dataset.ty = String(nextTy);
+    if (Math.abs(nextTx) < 0.01 && Math.abs(nextTy) < 0.01) {
+      markEl.removeAttribute("transform");
+      return;
+    }
+    markEl.setAttribute("transform", "translate(" + nextTx + " " + nextTy + ")");
+  }
+
+  function setSelectedMark(markEl, options = {}) {
+    const quiet = !!options.quiet;
+    if (selectedMark && selectedMark !== markEl) {
+      selectedMark.classList.remove("selected");
+    }
+    selectedMark = markEl || null;
+    if (selectedMark) {
+      selectedMark.classList.add("selected");
+      reviewStyle.color = selectedMark.dataset.color || selectedMark.getAttribute("stroke") || reviewStyle.color;
+      reviewStyle.width = clamp(parseNumber(selectedMark.dataset.width || selectedMark.getAttribute("stroke-width"), reviewStyle.width), 1, 8);
+      reviewStyle.lineStyle = selectedMark.dataset.lineStyle || lineStyleFromDashArray(selectedMark.getAttribute("stroke-dasharray"));
+      syncStyleControlsFromState();
+      if (!quiet) {
+        status.textContent = "Selected annotation";
+      }
+    } else if (!quiet && annotateMode) {
+      status.textContent = "Annotation deselected";
+    }
+    if (deleteMarkBtn) {
+      deleteMarkBtn.disabled = !annotateMode || !selectedMark;
+    }
+  }
+
+  function setReviewTool(tool, options = {}) {
+    const quiet = !!options.quiet;
+    reviewStyle.tool = normalizeReviewTool(tool);
+    if (reviewToolSelect) {
+      reviewToolSelect.value = reviewStyle.tool;
+    }
+    if (quiet || !annotateMode) {
+      return;
+    }
+    if (reviewStyle.tool === "note") {
+      status.textContent = "Sticky mode: click diagram to add note";
+      return;
+    }
+    if (reviewStyle.tool === "pen") {
+      status.textContent = "Pen mode: drag to draw freehand";
+      return;
+    }
+    status.textContent = reviewToolLabel(reviewStyle.tool) + " mode: drag to draw";
+  }
+
+  function setReviewControlsEnabled(enabled) {
+    reviewNotes.forEach(({ noteEl, anchorEl }) => {
+      const textEl = noteEl.querySelector(".review-note-text");
+      const deleteBtn = noteEl.querySelector(".review-note-delete");
+      if (textEl) {
+        textEl.readOnly = !enabled;
+      }
+      if (deleteBtn) {
+        deleteBtn.disabled = !enabled;
+      }
+      noteEl.classList.toggle("readonly", !enabled);
+      anchorEl.classList.toggle("dragging", false);
+    });
+
+    [reviewToolSelect, reviewLineStyleSelect, reviewColorInput, reviewWidthInput].forEach((control) => {
+      if (control) {
+        control.disabled = !enabled;
+      }
+    });
+    if (reviewTools) {
+      reviewTools.classList.toggle("disabled", !enabled);
+    }
+    if (deleteMarkBtn) {
+      deleteMarkBtn.disabled = !enabled || !selectedMark;
+    }
+  }
+
+  function beginMarkDrag(event, markEl) {
+    if (!annotateMode || !markEl || drawState) {
+      return;
+    }
+    if (event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    const point = eventToCanvasPoint(event);
+    const translate = getMarkTranslate(markEl);
+    markEl.classList.add("dragging");
+    dragState = {
+      kind: "mark",
+      markEl,
+      startX: point.x,
+      startY: point.y,
+      startTx: translate.tx,
+      startTy: translate.ty
+    };
+    setSelectedMark(markEl, { quiet: true });
+  }
+
+  function wireReviewMark(markEl) {
+    if (!markEl || markEl.dataset.wiredMark === "true") {
+      return;
+    }
+    markEl.dataset.wiredMark = "true";
+    markEl.classList.add("review-mark");
+
+    const type = markEl.tagName.toLowerCase();
+    if (!markEl.dataset.reviewMarkType) {
+      markEl.dataset.reviewMarkType = type;
+    }
+
+    if (!markEl.dataset.reviewMarkId) {
+      reviewMarkCounter += 1;
+      markEl.dataset.reviewMarkId = "review-mark-" + reviewMarkCounter;
+    }
+    const idNum = Number.parseInt(markEl.dataset.reviewMarkId.replace(/[^0-9]/g, ""), 10);
+    if (Number.isFinite(idNum)) {
+      reviewMarkCounter = Math.max(reviewMarkCounter, idNum);
+    }
+
+    if (!markEl.dataset.tx) {
+      markEl.dataset.tx = "0";
+    }
+    if (!markEl.dataset.ty) {
+      markEl.dataset.ty = "0";
+    }
+    setMarkTranslate(markEl, parseNumber(markEl.dataset.tx, 0), parseNumber(markEl.dataset.ty, 0));
+
+    if (!markEl.dataset.lineStyle) {
+      markEl.dataset.lineStyle = lineStyleFromDashArray(markEl.getAttribute("stroke-dasharray"));
+    }
+    if (!markEl.dataset.color && markEl.getAttribute("stroke")) {
+      markEl.dataset.color = markEl.getAttribute("stroke");
+    }
+    if (!markEl.dataset.width && markEl.getAttribute("stroke-width")) {
+      markEl.dataset.width = markEl.getAttribute("stroke-width");
+    }
+    applyMarkStyle(markEl, {
+      color: markEl.dataset.color || reviewStyle.color,
+      width: clamp(parseNumber(markEl.dataset.width, reviewStyle.width), 1, 8),
+      lineStyle: markEl.dataset.lineStyle || reviewStyle.lineStyle
+    });
+
+    markEl.addEventListener("pointerdown", (event) => beginMarkDrag(event, markEl));
+    markEl.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedMark(markEl);
+    });
+  }
+
+  function createReviewMark(type) {
+    if (!reviewMarkup) {
+      return null;
+    }
+    const tagName = type === "rect" ? "rect" : type === "ellipse" ? "ellipse" : "polyline";
+    reviewMarkCounter += 1;
+    const markEl = document.createElementNS(SVG_NS, tagName);
+    markEl.dataset.reviewMarkId = "review-mark-" + reviewMarkCounter;
+    markEl.dataset.reviewMarkType = tagName;
+    markEl.dataset.tx = "0";
+    markEl.dataset.ty = "0";
+    reviewMarkup.appendChild(markEl);
+    wireReviewMark(markEl);
+    applyMarkStyle(markEl, reviewStyle);
+    return markEl;
+  }
+
+  function deleteSelectedMark(options = {}) {
+    const quiet = !!options.quiet;
+    if (!selectedMark) {
+      return;
+    }
+    const markToDelete = selectedMark;
+    setSelectedMark(null, { quiet: true });
+    markToDelete.remove();
+    if (!quiet) {
+      status.textContent = "Deleted annotation";
+    }
+  }
+
+  function beginReviewDraw(event) {
+    if (!annotateMode || !reviewMarkup || drawState) {
+      return;
+    }
+    const tool = normalizeReviewTool(reviewStyle.tool);
+    if (tool === "note" || event.button !== 0) {
+      return;
+    }
+
+    const point = eventToCanvasPoint(event);
+    event.preventDefault();
+    event.stopPropagation();
+
+    const markEl = createReviewMark(tool);
+    if (!markEl) {
+      return;
+    }
+
+    if (tool === "rect") {
+      markEl.setAttribute("x", String(point.x));
+      markEl.setAttribute("y", String(point.y));
+      markEl.setAttribute("width", "1");
+      markEl.setAttribute("height", "1");
+    } else if (tool === "ellipse") {
+      markEl.setAttribute("cx", String(point.x));
+      markEl.setAttribute("cy", String(point.y));
+      markEl.setAttribute("rx", "1");
+      markEl.setAttribute("ry", "1");
+    } else {
+      markEl.setAttribute("points", point.x + "," + point.y);
+    }
+
+    drawState = {
+      kind: "draw",
+      tool,
+      markEl,
+      startX: point.x,
+      startY: point.y,
+      points: [{ x: point.x, y: point.y }]
+    };
+    setSelectedMark(markEl, { quiet: true });
+    status.textContent = tool === "pen" ? "Drawing pen annotation..." : "Drawing " + reviewToolLabel(tool).toLowerCase() + "...";
+  }
+
+  function updateReviewDraw(event) {
+    if (!drawState) {
+      return;
+    }
+    const point = eventToCanvasPoint(event);
+    const markEl = drawState.markEl;
+    if (!markEl) {
+      drawState = null;
+      return;
+    }
+
+    if (drawState.tool === "rect") {
+      const x = Math.min(drawState.startX, point.x);
+      const y = Math.min(drawState.startY, point.y);
+      const width = Math.abs(point.x - drawState.startX);
+      const height = Math.abs(point.y - drawState.startY);
+      markEl.setAttribute("x", String(x));
+      markEl.setAttribute("y", String(y));
+      markEl.setAttribute("width", String(width));
+      markEl.setAttribute("height", String(height));
+      return;
+    }
+
+    if (drawState.tool === "ellipse") {
+      const cx = (drawState.startX + point.x) / 2;
+      const cy = (drawState.startY + point.y) / 2;
+      const rx = Math.abs(point.x - drawState.startX) / 2;
+      const ry = Math.abs(point.y - drawState.startY) / 2;
+      markEl.setAttribute("cx", String(cx));
+      markEl.setAttribute("cy", String(cy));
+      markEl.setAttribute("rx", String(rx));
+      markEl.setAttribute("ry", String(ry));
+      return;
+    }
+
+    const lastPoint = drawState.points[drawState.points.length - 1];
+    if (!lastPoint) {
+      drawState.points.push({ x: point.x, y: point.y });
+    } else {
+      const dx = point.x - lastPoint.x;
+      const dy = point.y - lastPoint.y;
+      if (Math.hypot(dx, dy) < 1.4) {
+        return;
+      }
+      drawState.points.push({ x: point.x, y: point.y });
+    }
+    markEl.setAttribute("points", drawState.points.map((p) => p.x + "," + p.y).join(" "));
+  }
+
+  function finishReviewDraw() {
+    if (!drawState) {
+      return;
+    }
+    const markEl = drawState.markEl;
+    let keep = true;
+
+    if (!markEl) {
+      drawState = null;
+      return;
+    }
+
+    if (drawState.tool === "rect") {
+      const width = parseNumber(markEl.getAttribute("width"), 0);
+      const height = parseNumber(markEl.getAttribute("height"), 0);
+      keep = width >= REVIEW_MIN_SHAPE_SIZE && height >= REVIEW_MIN_SHAPE_SIZE;
+    } else if (drawState.tool === "ellipse") {
+      const rx = parseNumber(markEl.getAttribute("rx"), 0);
+      const ry = parseNumber(markEl.getAttribute("ry"), 0);
+      keep = rx * 2 >= REVIEW_MIN_SHAPE_SIZE && ry * 2 >= REVIEW_MIN_SHAPE_SIZE;
+    } else {
+      keep = drawState.points.length > 1;
+    }
+
+    if (!keep) {
+      if (selectedMark === markEl) {
+        setSelectedMark(null, { quiet: true });
+      }
+      markEl.remove();
+      status.textContent = "Annotation canceled";
+    } else {
+      setSelectedMark(markEl, { quiet: true });
+      status.textContent = drawState.tool === "pen"
+        ? "Added pen annotation"
+        : "Added " + reviewToolLabel(drawState.tool).toLowerCase() + " annotation";
+    }
+    drawState = null;
+  }
+
+  function getConnectorStart(noteX, noteY, noteW, noteH, targetX, targetY) {
+    const centerX = noteX + noteW / 2;
+    const centerY = noteY + noteH / 2;
+    const dx = targetX - centerX;
+    const dy = targetY - centerY;
+
+    if (Math.abs(dx) * noteH > Math.abs(dy) * noteW) {
+      const y = clamp(targetY, noteY + 6, noteY + noteH - 6);
+      return { x: dx >= 0 ? noteX + noteW : noteX, y };
+    }
+
+    const x = clamp(targetX, noteX + 8, noteX + noteW - 8);
+    return { x, y: dy >= 0 ? noteY + noteH : noteY };
+  }
+
+  function setNotePosition(noteEl, x, y) {
+    const size = canvasSize();
+    const noteWidth = noteEl.offsetWidth || REVIEW_NOTE_WIDTH;
+    const noteHeight = noteEl.offsetHeight || REVIEW_NOTE_HEIGHT;
+    noteEl.style.left = clamp(x, 0, Math.max(0, size.width - noteWidth)) + "px";
+    noteEl.style.top = clamp(y, 0, Math.max(0, size.height - noteHeight)) + "px";
+  }
+
+  function setAnchorPosition(anchorEl, x, y) {
+    const size = canvasSize();
+    anchorEl.style.left = clamp(x, 8, Math.max(8, size.width - 8)) + "px";
+    anchorEl.style.top = clamp(y, 8, Math.max(8, size.height - 8)) + "px";
+  }
+
+  function refreshReviewConnectors() {
+    if (!reviewConnectors || !diagramCanvas) {
+      return;
+    }
+    refreshReviewMarkupViewport();
+    const size = canvasSize();
+    reviewConnectors.setAttribute("viewBox", "0 0 " + size.width + " " + size.height);
+    reviewConnectors.setAttribute("width", String(size.width));
+    reviewConnectors.setAttribute("height", String(size.height));
+
+    while (reviewConnectors.firstChild) {
+      reviewConnectors.removeChild(reviewConnectors.firstChild);
+    }
+
+    reviewNotes.forEach(({ noteEl, anchorEl }) => {
+      const noteX = parsePx(noteEl.style.left);
+      const noteY = parsePx(noteEl.style.top);
+      const noteW = noteEl.offsetWidth || REVIEW_NOTE_WIDTH;
+      const noteH = noteEl.offsetHeight || REVIEW_NOTE_HEIGHT;
+      const anchorX = parsePx(anchorEl.style.left);
+      const anchorY = parsePx(anchorEl.style.top);
+      const start = getConnectorStart(noteX, noteY, noteW, noteH, anchorX, anchorY);
+
+      const line = document.createElementNS(SVG_NS, "line");
+      line.setAttribute("class", "review-connector");
+      line.setAttribute("x1", String(start.x));
+      line.setAttribute("y1", String(start.y));
+      line.setAttribute("x2", String(anchorX));
+      line.setAttribute("y2", String(anchorY));
+      reviewConnectors.appendChild(line);
+
+      const dot = document.createElementNS(SVG_NS, "circle");
+      dot.setAttribute("class", "review-target");
+      dot.setAttribute("cx", String(anchorX));
+      dot.setAttribute("cy", String(anchorY));
+      dot.setAttribute("r", "5");
+      reviewConnectors.appendChild(dot);
+    });
+  }
+
+  function removeReviewNote(noteId) {
+    const entry = reviewNotes.get(noteId);
+    if (!entry) {
+      return;
+    }
+    entry.noteEl.remove();
+    entry.anchorEl.remove();
+    reviewNotes.delete(noteId);
+    refreshReviewConnectors();
+    status.textContent = "Deleted review note";
+  }
+
+  function beginDrag(event, noteId, kind) {
+    if (!annotateMode) {
+      return;
+    }
+    const entry = reviewNotes.get(noteId);
+    if (!entry) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    const point = eventToCanvasPoint(event);
+    if (kind === "note") {
+      dragState = {
+        noteId,
+        kind,
+        offsetX: point.x - parsePx(entry.noteEl.style.left),
+        offsetY: point.y - parsePx(entry.noteEl.style.top)
+      };
+      return;
+    }
+
+    entry.anchorEl.classList.add("dragging");
+    dragState = {
+      noteId,
+      kind,
+      offsetX: point.x - parsePx(entry.anchorEl.style.left),
+      offsetY: point.y - parsePx(entry.anchorEl.style.top)
+    };
+  }
+
+  function handleDrag(event) {
+    if (drawState) {
+      updateReviewDraw(event);
+      return;
+    }
+    if (!dragState) {
+      return;
+    }
+    if (dragState.kind === "mark") {
+      const point = eventToCanvasPoint(event);
+      const nextTx = dragState.startTx + (point.x - dragState.startX);
+      const nextTy = dragState.startTy + (point.y - dragState.startY);
+      setMarkTranslate(dragState.markEl, nextTx, nextTy);
+      return;
+    }
+    const entry = reviewNotes.get(dragState.noteId);
+    if (!entry) {
+      dragState = null;
+      return;
+    }
+
+    const point = eventToCanvasPoint(event);
+    const nextX = point.x - dragState.offsetX;
+    const nextY = point.y - dragState.offsetY;
+    if (dragState.kind === "note") {
+      setNotePosition(entry.noteEl, nextX, nextY);
+    } else {
+      setAnchorPosition(entry.anchorEl, nextX, nextY);
+    }
+    refreshReviewConnectors();
+  }
+
+  function stopDrag() {
+    if (drawState) {
+      finishReviewDraw();
+      return;
+    }
+    if (!dragState) {
+      return;
+    }
+    if (dragState.kind === "mark") {
+      if (dragState.markEl) {
+        dragState.markEl.classList.remove("dragging");
+      }
+      dragState = null;
+      status.textContent = "Moved annotation";
+      return;
+    }
+    const entry = reviewNotes.get(dragState.noteId);
+    if (entry) {
+      entry.anchorEl.classList.remove("dragging");
+    }
+    dragState = null;
+  }
+
+  function noteMarkup(index) {
+    return (
+      '<div class="review-note-head">' +
+        '<span class="review-note-title" data-editable="true">Review Note ' + index + "</span>" +
+        '<button class="review-note-delete" type="button" aria-label="Delete review note" title="Delete review note">' +
+          '<i class="fa-solid fa-trash-can" aria-hidden="true"></i>' +
+        "</button>" +
+      "</div>" +
+      '<textarea class="review-note-text" spellcheck="false" placeholder="Type review comment..."></textarea>'
+    );
+  }
+
+  function wireReviewNote(noteId) {
+    const entry = reviewNotes.get(noteId);
+    if (!entry) {
+      return;
+    }
+    const noteEl = entry.noteEl;
+    const anchorEl = entry.anchorEl;
+    const headEl = noteEl.querySelector(".review-note-head");
+    const deleteBtn = noteEl.querySelector(".review-note-delete");
+    const textEl = noteEl.querySelector(".review-note-text");
+
+    if (headEl && !headEl.dataset.wired) {
+      headEl.dataset.wired = "true";
+      headEl.addEventListener("pointerdown", (event) => beginDrag(event, noteId, "note"));
+    }
+    if (anchorEl && !anchorEl.dataset.wired) {
+      anchorEl.dataset.wired = "true";
+      anchorEl.addEventListener("pointerdown", (event) => beginDrag(event, noteId, "anchor"));
+    }
+    if (deleteBtn && !deleteBtn.dataset.wired) {
+      deleteBtn.dataset.wired = "true";
+      deleteBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        removeReviewNote(noteId);
+      });
+    }
+    if (textEl && !textEl.dataset.wired) {
+      textEl.dataset.wired = "true";
+      textEl.addEventListener("pointerdown", (event) => event.stopPropagation());
+      textEl.addEventListener("input", refreshReviewConnectors);
+      textEl.addEventListener("mouseup", refreshReviewConnectors);
+    }
+    if (!noteEl.dataset.wired) {
+      noteEl.dataset.wired = "true";
+      noteEl.addEventListener("pointerdown", (event) => event.stopPropagation());
+    }
+  }
+
+  function createReviewNote(point) {
+    if (!reviewLayer) {
+      return;
+    }
+    reviewCounter += 1;
+    const noteId = "review-note-" + reviewCounter;
+
+    const noteEl = document.createElement("article");
+    noteEl.className = "review-note";
+    noteEl.dataset.noteId = noteId;
+    noteEl.innerHTML = noteMarkup(reviewCounter);
+
+    const anchorEl = document.createElement("div");
+    anchorEl.className = "review-anchor";
+    anchorEl.dataset.noteId = noteId;
+
+    reviewLayer.appendChild(noteEl);
+    reviewLayer.appendChild(anchorEl);
+    reviewNotes.set(noteId, { noteId, noteEl, anchorEl });
+
+    setNotePosition(noteEl, point.x + REVIEW_NOTE_OFFSET_X, point.y + REVIEW_NOTE_OFFSET_Y);
+    setAnchorPosition(anchorEl, point.x, point.y);
+    wireReviewNote(noteId);
+    setReviewControlsEnabled(annotateMode);
+    refreshReviewConnectors();
+    status.textContent = "Added review note";
+  }
+
+  function createAnchorNearNote(noteEl, noteId) {
+    if (!reviewLayer) {
+      return null;
+    }
+    const anchorEl = document.createElement("div");
+    anchorEl.className = "review-anchor";
+    anchorEl.dataset.noteId = noteId;
+    reviewLayer.appendChild(anchorEl);
+    const noteX = parsePx(noteEl.style.left);
+    const noteY = parsePx(noteEl.style.top);
+    setAnchorPosition(anchorEl, noteX - 22, noteY + 24);
+    return anchorEl;
+  }
+
+  function hydrateReviewNotes() {
+    if (!reviewLayer) {
+      return;
+    }
+
+    const noteEls = Array.from(reviewLayer.querySelectorAll(".review-note"));
+    const anchorEls = Array.from(reviewLayer.querySelectorAll(".review-anchor"));
+    noteEls.forEach((noteEl, index) => {
+      let noteId = noteEl.dataset.noteId;
+      if (!noteId) {
+        noteId = "review-note-" + (index + 1);
+        noteEl.dataset.noteId = noteId;
+      }
+
+      const idNum = Number.parseInt(noteId.replace(/[^0-9]/g, ""), 10);
+      if (Number.isFinite(idNum)) {
+        reviewCounter = Math.max(reviewCounter, idNum);
+      }
+
+      let anchorEl = anchorEls.find((candidate) => candidate.dataset.noteId === noteId);
+      if (!anchorEl) {
+        anchorEl = createAnchorNearNote(noteEl, noteId);
+      }
+      if (!anchorEl) {
+        return;
+      }
+
+      if (!noteEl.style.left) {
+        setNotePosition(noteEl, 100, 80 + index * 12);
+      }
+      if (!noteEl.style.top) {
+        setNotePosition(noteEl, parsePx(noteEl.style.left), 80 + index * 12);
+      }
+      if (!anchorEl.style.left || !anchorEl.style.top) {
+        const noteX = parsePx(noteEl.style.left);
+        const noteY = parsePx(noteEl.style.top);
+        setAnchorPosition(anchorEl, noteX - 22, noteY + 24);
+      }
+
+      reviewNotes.set(noteId, { noteId, noteEl, anchorEl });
+      wireReviewNote(noteId);
+    });
+
+    setReviewControlsEnabled(annotateMode);
+    refreshReviewConnectors();
+  }
+
+  function hydrateReviewMarks() {
+    if (!reviewMarkup) {
+      return;
+    }
+    const markEls = Array.from(reviewMarkup.querySelectorAll("rect, ellipse, polyline, path"));
+    markEls.forEach((markEl) => {
+      wireReviewMark(markEl);
+    });
+    refreshReviewMarkupViewport();
+  }
+
+  function onReviewStyleChange() {
+    syncStyleStateFromControls();
+    if (selectedMark) {
+      applyMarkStyle(selectedMark, reviewStyle);
+      status.textContent = "Updated selected annotation style";
+      return;
+    }
+    if (annotateMode) {
+      status.textContent = "Updated default annotation style";
+    }
+  }
+
+  function setAnnotateMode(enabled, options = {}) {
+    annotateMode = enabled;
+    const quiet = !!options.quiet;
+    document.body.classList.toggle("review-annotate-mode", enabled);
+    if (annotateBtn) {
+      annotateBtn.classList.toggle("active", enabled);
+      annotateBtn.textContent = enabled ? "Exit Review" : "Review Annotate";
+    }
+    setReviewControlsEnabled(enabled);
+    if (!enabled) {
+      stopDrag();
+      setSelectedMark(null, { quiet: true });
+    }
+    if (!quiet) {
+      if (!enabled) {
+        status.textContent = "Review annotate off";
+      } else {
+        setReviewTool(reviewStyle.tool, { quiet: false });
+      }
+    }
+  }
+
+  function onCanvasPointerDown(event) {
+    if (!annotateMode || !diagramCanvas) {
+      return;
+    }
+    if (event.target.closest(".review-note") || event.target.closest(".review-anchor")) {
+      return;
+    }
+    if (event.target.closest(".review-mark")) {
+      return;
+    }
+    if (normalizeReviewTool(reviewStyle.tool) === "note") {
+      setSelectedMark(null, { quiet: true });
+      return;
+    }
+    beginReviewDraw(event);
+  }
+
+  function onCanvasClick(event) {
+    if (!annotateMode || !diagramCanvas) {
+      return;
+    }
+    if (
+      event.target.closest(".review-note") ||
+      event.target.closest(".review-anchor") ||
+      event.target.closest(".review-mark")
+    ) {
+      return;
+    }
+    if (normalizeReviewTool(reviewStyle.tool) !== "note") {
+      return;
+    }
+    createReviewNote(eventToCanvasPoint(event));
+  }
+
+  function clearSlideFrameStyles() {
+    document.body.classList.remove("slide-fit", "slide-scroll");
+    if (slideFrame) {
+      slideFrame.style.width = "";
+      slideFrame.style.height = "";
+    }
+    if (diagramShell) {
+      diagramShell.style.width = "";
+      diagramShell.style.minHeight = "";
+      diagramShell.style.transform = "";
+    }
+  }
+
+  function fitToSlideViewport() {
+    if (!slideViewport || !slideFrame || !diagramShell) {
+      return "Slide layout on";
+    }
+
+    diagramShell.style.width = SLIDE_WIDTH + "px";
+    diagramShell.style.minHeight = SLIDE_HEIGHT + "px";
+
+    const previousTransform = diagramShell.style.transform;
+    diagramShell.style.transform = "none";
+    const naturalHeight = Math.max(SLIDE_HEIGHT, Math.ceil(diagramShell.scrollHeight));
+    diagramShell.style.transform = previousTransform;
+
+    const availableWidth = Math.max(320, slideViewport.clientWidth - 16);
+    const availableHeight = Math.max(320, slideViewport.clientHeight - 16);
+    const fitScale = Math.min(1, availableWidth / SLIDE_WIDTH, availableHeight / naturalHeight);
+
+    if (fitScale >= MIN_SLIDE_FIT_SCALE) {
+      slideFrame.style.width = Math.round(SLIDE_WIDTH * fitScale) + "px";
+      slideFrame.style.height = Math.round(naturalHeight * fitScale) + "px";
+      diagramShell.style.transform = "scale(" + fitScale + ")";
+      document.body.classList.add("slide-fit");
+      document.body.classList.remove("slide-scroll");
+      return "Slide layout fit (" + Math.round(fitScale * 100) + "%)";
+    }
+
+    slideFrame.style.width = SLIDE_WIDTH + "px";
+    slideFrame.style.height = naturalHeight + "px";
+    diagramShell.style.transform = "none";
+    document.body.classList.add("slide-scroll");
+    document.body.classList.remove("slide-fit");
+    return "Slide layout (scroll fallback)";
+  }
+
+  function setSlideLayout(enabled) {
+    slideLayout = enabled;
+    document.body.classList.toggle("slide-layout", enabled);
+    slideLayoutBtn.classList.toggle("active", enabled);
+    slideLayoutBtn.textContent = enabled ? "Full Layout" : "Slide Layout";
+    if (enabled) {
+      status.textContent = fitToSlideViewport();
+      requestAnimationFrame(refreshReviewConnectors);
+      return;
+    }
+    clearSlideFrameStyles();
+    status.textContent = "Full layout on";
+    requestAnimationFrame(refreshReviewConnectors);
+  }
+
+  function setToolbarVisible(enabled) {
+    toolbarVisible = enabled;
+    document.body.classList.toggle("toolbar-hidden", !enabled);
+    toolbarToggleBtn.classList.toggle("active", !enabled);
+    toolbarToggleBtn.textContent = enabled ? "Hide Tools" : "Show Tools";
+  }
+
+  async function saveHtmlToFile() {
+    const html = serializeHtml();
+
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: fileNameFromPath(),
+          types: [{ description: "HTML file", accept: { "text/html": [".html"] } }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(html);
+        await writable.close();
+        status.textContent = "Saved HTML to file";
+        return;
+      } catch (err) {
+        if (err && err.name === "AbortError") {
+          status.textContent = "Save canceled";
+          return;
+        }
+      }
+    }
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileNameFromPath();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+    status.textContent = "Downloaded edited HTML";
+  }
+
+  async function exportPng() {
+    if (!diagramShell) {
+      status.textContent = "Unable to export: diagram shell missing";
+      return;
+    }
+
+    if (!window.html2canvas) {
+      status.textContent = "PNG export unavailable. Use screenshot.";
+      return;
+    }
+
+    const wasVisible = toolbarVisible;
+    setToolbarVisible(false);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      const canvas = await window.html2canvas(diagramShell, {
+        backgroundColor: "#F5F4F2",
+        scale: 2,
+        useCORS: true
+      });
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          status.textContent = "PNG export failed";
+          return;
+        }
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = pngNameFromPath();
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(link.href);
+        status.textContent = "Downloaded PNG";
+      }, "image/png");
+    } catch (err) {
+      status.textContent = "PNG export failed";
+    } finally {
+      setToolbarVisible(wasVisible);
+    }
+  }
+
+  function setMode(enabled) {
+    editMode = enabled;
+    document.body.classList.toggle("edit-mode", enabled);
+    setEditable(enabled);
+    toggleBtn.textContent = enabled ? "Disable Edit" : "Enable Edit";
+    status.textContent = enabled ? "Edit mode on" : "View mode";
+  }
+
+  slideLayoutBtn.addEventListener("click", () => setSlideLayout(!slideLayout));
+  toolbarToggleBtn.addEventListener("click", () => setToolbarVisible(!toolbarVisible));
+  toggleBtn.addEventListener("click", () => setMode(!editMode));
+  if (annotateBtn) {
+    annotateBtn.addEventListener("click", () => setAnnotateMode(!annotateMode));
+  }
+  if (reviewToolSelect) {
+    reviewToolSelect.addEventListener("change", (event) => {
+      setReviewTool(event.target.value);
+    });
+  }
+  if (reviewLineStyleSelect) {
+    reviewLineStyleSelect.addEventListener("change", onReviewStyleChange);
+  }
+  if (reviewColorInput) {
+    reviewColorInput.addEventListener("input", onReviewStyleChange);
+  }
+  if (reviewWidthInput) {
+    reviewWidthInput.addEventListener("input", onReviewStyleChange);
+  }
+  if (deleteMarkBtn) {
+    deleteMarkBtn.addEventListener("click", (event) => {
+      event.preventDefault();
+      deleteSelectedMark();
+    });
+  }
+  if (diagramCanvas) {
+    diagramCanvas.addEventListener("pointerdown", onCanvasPointerDown);
+    diagramCanvas.addEventListener("click", onCanvasClick);
+  }
+  document.addEventListener("pointermove", handleDrag);
+  document.addEventListener("pointerup", stopDrag);
+  document.addEventListener("pointercancel", stopDrag);
+  exportPngBtn.addEventListener("click", exportPng);
+  saveBtn.addEventListener("click", saveHtmlToFile);
+  window.addEventListener("resize", () => {
+    if (slideLayout) {
+      status.textContent = fitToSlideViewport();
+    }
+    refreshReviewConnectors();
+  });
+
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(serializeHtml());
+      status.textContent = "Copied HTML to clipboard";
+    } catch (err) {
+      status.textContent = "Clipboard blocked by browser";
+    }
+  });
+
+  reloadBtn.addEventListener("click", () => window.location.reload());
+
+  document.addEventListener("keydown", (event) => {
+    const target = event.target;
+    const tag = target && target.tagName ? target.tagName.toLowerCase() : "";
+    const isTypingTarget = !!(
+      (tag === "textarea") ||
+      (tag === "input" && target.type !== "range" && target.type !== "color") ||
+      (target && target.isContentEditable)
+    );
+
+    if (event.key === "Escape" && editMode) {
+      setMode(false);
+    }
+    if (event.key === "Escape" && annotateMode) {
+      if (drawState) {
+        finishReviewDraw();
+        return;
+      }
+      if (selectedMark) {
+        setSelectedMark(null);
+        return;
+      }
+      setAnnotateMode(false);
+    }
+    if (!isTypingTarget && annotateMode && (event.key === "Delete" || event.key === "Backspace")) {
+      if (selectedMark) {
+        event.preventDefault();
+        deleteSelectedMark();
+      }
+    }
+  });
+
+  syncStyleControlsFromState();
+  setReviewTool(reviewStyle.tool, { quiet: true });
+  hydrateReviewNotes();
+  hydrateReviewMarks();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("layout") === "slide") {
+    setSlideLayout(true);
+  } else {
+    setSlideLayout(false);
+  }
+  setToolbarVisible(true);
+  setMode(false);
+  setAnnotateMode(params.get("annotate") === "on", { quiet: true });
+  refreshReviewConnectors();
+})();
+</script>
+</body>
+</html>

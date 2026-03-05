@@ -1,0 +1,280 @@
+/* VAM Component Architecture v4 — diagram-specific styles */
+:root {
+  /* Vivid cycling palette for card accents */
+  --c1: #0F8799;   /* teal */
+  --c2: #2E8C46;   /* forest */
+  --c3: #1E5DAB;   /* cobalt */
+  --c4: #E06520;   /* orange */
+  --c5: #C74634;   /* red */
+  --c6: #7B4FA0;   /* grape */
+  /* Category dot colors */
+  --dot-plato: #FFB703;
+  --dot-domain: #06D6A0;
+  --dot-cmc: #FB8500;
+}
+
+/* ── Legend ── */
+.vam-legend {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 0 14px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9.5px;
+  color: #9E9892;
+  font-weight: 500;
+}
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Main 3-column layout ── */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 115px 205px;
+  gap: 0;
+  align-items: start;
+}
+
+/* ── Deployment Boundary ── */
+.deployment-boundary {
+  border: 2px dashed var(--c1);
+  border-radius: 10px;
+  padding: 14px;
+  background: rgba(15,135,153,.03);
+  min-height: 400px;
+}
+.boundary-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--c1);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.boundary-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(15,135,153,.25);
+}
+
+/* ── OBRH Column ── */
+.obrh-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  min-height: 400px;
+}
+.obrh-card {
+  background: #fff;
+  border: 1.5px solid var(--c1);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(15,135,153,.15);
+  width: 100%;
+}
+.obrh-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--c1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 6px;
+  color: #fff;
+  font-size: 14px;
+}
+.obrh-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--c1);
+  line-height: 1.3;
+}
+.obrh-arrows {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #9E9892;
+}
+
+/* ── External column ── */
+.external-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 10px;
+  min-height: 400px;
+  justify-content: center;
+}
+.ext-section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #9E9892;
+  margin-bottom: 4px;
+}
+.ext-box {
+  background: #fff;
+  border: 1.5px solid #DFDCD8;
+  border-radius: 8px;
+  padding: 10px;
+}
+.ext-box-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #1A1918;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ext-item {
+  font-size: 8.5px;
+  color: #52504D;
+  padding: 2px 0;
+  border-bottom: 1px solid #DFDCD8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ext-item:last-child { border-bottom: none; }
+.ext-item i { width: 12px; color: #9E9892; font-size: 8px; }
+
+/* ── Layer ── */
+.vam-layer { margin-bottom: 12px; }
+.vam-layer:last-child { margin-bottom: 0; }
+.layer-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #52504D;
+  padding: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 2px solid #DFDCD8;
+  margin-bottom: 8px;
+}
+
+/* ── Card grid ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 7px;
+}
+.card-grid-wide {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 7px;
+}
+
+/* ── Service card ── */
+.vam-card {
+  background: #FFFFFF;
+  border: 1px solid #E8E5E1;
+  border-left: 5px solid var(--card-accent, var(--c1));
+  border-radius: 6px;
+  padding: 7px 8px 7px 9px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-height: 46px;
+}
+.vam-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+
+/* Category dot */
+.cat-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+.cat-dot-plato  { background: var(--dot-plato); }
+.cat-dot-domain { background: var(--dot-domain); }
+.cat-dot-cmc    { background: var(--dot-cmc); }
+
+/* Icon chip */
+.vam-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #fff;
+  background: var(--card-accent, var(--c1));
+  margin-top: 1px;
+}
+.vam-chip img {
+  width: 13px;
+  height: 13px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+/* Card text */
+.vam-card-body { flex: 1; min-width: 0; }
+.vam-card-title {
+  font-size: 7.5px;
+  font-weight: 400;
+  color: #52504D;
+  line-height: 1.35;
+  word-break: break-word;
+  padding-right: 8px;
+}
+
+/* ── Infra pills ── */
+.infra-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.infra-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid #DFDCD8;
+  border-radius: 20px;
+  padding: 4px 10px 4px 7px;
+  font-size: 9px;
+  font-weight: 600;
+  color: #52504D;
+}
+.infra-pill img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.infra-pill.kafka-pill  { color: #231F20; border-color: rgba(35,31,32,.35); }
+.infra-pill.k8s-pill    { color: #326CE5; border-color: rgba(50,108,229,.35); }
+.infra-pill.docker-pill { color: #2496ED; border-color: rgba(36,150,237,.35); }
+.infra-pill.spring-pill { color: #6DB33F; border-color: rgba(109,179,63,.35); }
+.infra-pill.oracle-pill { color: #C74634; border-color: rgba(199,70,52,.35); }

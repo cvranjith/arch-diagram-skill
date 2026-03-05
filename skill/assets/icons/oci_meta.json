@@ -1,0 +1,146 @@
+{
+  "oracle-logo": {
+    "category": "brand",
+    "color": "#C74634",
+    "file": "icons/oci/oracle-logo.svg",
+    "source": "image4.svg"
+  },
+  "user": {
+    "category": "identity",
+    "color": "#2C5967",
+    "file": "icons/oci/user.svg",
+    "source": "image26.svg"
+  },
+  "people-group": {
+    "category": "identity",
+    "color": "#C74634",
+    "file": "icons/oci/people-group.svg",
+    "source": "image65.svg"
+  },
+  "api-gateway": {
+    "category": "networking",
+    "color": "#2C5967",
+    "file": "icons/oci/api-gateway.svg",
+    "source": "image29.svg"
+  },
+  "load-balancer": {
+    "category": "networking",
+    "color": "#2C5967",
+    "file": "icons/oci/load-balancer.svg",
+    "source": "image45.svg"
+  },
+  "enterprise-building": {
+    "category": "integration",
+    "color": "#2C5967",
+    "file": "icons/oci/enterprise-building.svg",
+    "source": "image31.svg"
+  },
+  "banner-wide": {
+    "category": "other",
+    "color": "#312D2A",
+    "file": "icons/oci/banner-wide.svg",
+    "source": "image78.svg"
+  },
+  "compute": {
+    "category": "compute",
+    "color": "#759C6C",
+    "file": "icons/oci/compute.svg",
+    "source": "image41.svg"
+  },
+  "container": {
+    "category": "compute",
+    "color": "#759C6C",
+    "file": "icons/oci/container.svg",
+    "source": "image43.svg"
+  },
+  "kubernetes": {
+    "category": "compute",
+    "color": "#759C6C",
+    "file": "icons/oci/kubernetes.svg",
+    "source": "image47.svg"
+  },
+  "functions": {
+    "category": "compute",
+    "color": "#759C6C",
+    "file": "icons/oci/functions.svg",
+    "source": "image49.svg"
+  },
+  "database": {
+    "category": "data",
+    "color": "#AE562C",
+    "file": "icons/oci/database.svg",
+    "source": "image33.svg"
+  },
+  "object-storage": {
+    "category": "data",
+    "color": "#AE562C",
+    "file": "icons/oci/object-storage.svg",
+    "source": "image35.svg"
+  },
+  "integration": {
+    "category": "integration",
+    "color": "#2C5967",
+    "file": "icons/oci/integration.svg",
+    "source": "image51.svg"
+  },
+  "devops": {
+    "category": "developer",
+    "color": "#2C5967",
+    "file": "icons/oci/devops.svg",
+    "source": "image53.svg"
+  },
+  "logging": {
+    "category": "observability",
+    "color": "#312D2A",
+    "file": "icons/oci/logging.svg",
+    "source": "image58.svg"
+  },
+  "analytics": {
+    "category": "analytics",
+    "color": "#2C5967",
+    "file": "icons/oci/analytics.svg",
+    "source": "image60.svg"
+  },
+  "generative-ai": {
+    "category": "ai",
+    "color": "#2C5967",
+    "file": "icons/oci/generative-ai.svg",
+    "source": "image62.svg"
+  },
+  "streaming": {
+    "category": "integration",
+    "color": "#2C5967",
+    "file": "icons/oci/streaming.svg",
+    "source": "image68.svg"
+  },
+  "security-shield": {
+    "category": "security",
+    "color": "#2C5967",
+    "file": "icons/oci/security-shield.svg",
+    "source": "image70.svg"
+  },
+  "cloud-service": {
+    "category": "other",
+    "color": "#2C5967",
+    "file": "icons/oci/cloud-service.svg",
+    "source": "image72.svg"
+  },
+  "monitoring": {
+    "category": "observability",
+    "color": "#312D2A",
+    "file": "icons/oci/monitoring.svg",
+    "source": "image56.svg"
+  },
+  "vault-key": {
+    "category": "security",
+    "color": "#C74634",
+    "file": "icons/oci/vault-key.svg",
+    "source": "image76.svg"
+  },
+  "database-system": {
+    "category": "data",
+    "color": "#2C5967",
+    "file": "icons/oci/database-system.svg",
+    "source": "drawio:Database - Database System"
+  }
+}
