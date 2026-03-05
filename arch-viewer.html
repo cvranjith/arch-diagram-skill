@@ -459,6 +459,7 @@
   </div>
   <button id="exportPng" type="button">Export PNG</button>
   <button id="exportDrawio" type="button">Export draw.io</button>
+  <button id="exportMermaid" type="button">Export Mermaid</button>
   <button id="saveHtml" type="button">Save HTML</button>
   <span class="edit-status" id="editStatus">View mode</span>
 </div>
@@ -511,8 +512,9 @@
   var reviewWidthIn   = document.getElementById("reviewWidth");
   var deleteMarkBtn   = document.getElementById("deleteMark");
   var exportPngBtn    = document.getElementById("exportPng");
-  var exportDrawioBtn = document.getElementById("exportDrawio");
-  var saveHtmlBtn     = document.getElementById("saveHtml");
+  var exportDrawioBtn  = document.getElementById("exportDrawio");
+  var exportMermaidBtn = document.getElementById("exportMermaid");
+  var saveHtmlBtn      = document.getElementById("saveHtml");
   var slideBtn           = document.getElementById("toggleSlideLayout");
   var toolbarToggleNav   = document.getElementById("toggleToolbarNav");
   var editStatusEl       = document.getElementById("editStatus");
@@ -1265,6 +1267,170 @@
       '    </mxGraphModel>\n' +
       '  </diagram>\n' +
       '</mxfile>';
+  }
+
+  /* ── Export Mermaid ─────────────────────────────────────────────────────────
+     Deterministic: reads DOM class hierarchy → Mermaid flowchart with subgraphs.
+     Positions are auto-laid out by Mermaid (structural, not spatial export).
+     Colors come from getComputedStyle() resolving CSS variables to real RGB.
+  ── */
+  exportMermaidBtn.addEventListener("click", function () {
+    var mmd = buildMermaidText();
+    if (!mmd) { showToast("No diagram loaded."); return; }
+    var blob = new Blob([mmd], { type: "text/plain" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = loadedFileName.replace(/\.html?$/i, "") + ".mmd";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+  });
+
+  function buildMermaidText() {
+    var canvas = document.getElementById("diagramCanvas");
+    if (!canvas) return null;
+
+    var idN = 0;
+    function nxt() { return "n" + (++idN); }
+
+    /* Strip icon elements before reading text */
+    function labelText(el) {
+      if (!el) return "";
+      var c = el.cloneNode(true);
+      c.querySelectorAll("i, img").forEach(function (x) { x.remove(); });
+      return c.textContent.replace(/\s+/g, " ").trim();
+    }
+
+    function rgbHex(rgb) {
+      var m = (rgb || "").match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      if (!m) return null;
+      return "#" + [m[1], m[2], m[3]].map(function (n) {
+        return ("0" + parseInt(n, 10).toString(16)).slice(-2);
+      }).join("");
+    }
+
+    /* Mermaid-safe quoted label */
+    function mq(s) {
+      return '"' + (s || "").replace(/"/g, "#quot;").replace(/[\r\n]+/g, " / ") + '"';
+    }
+
+    var classDefs = {};   /* hex → className */
+    var structLines = []; /* diagram body lines */
+
+    function getClass(color) {
+      var k = (color || "#888888").toLowerCase();
+      if (!classDefs[k]) { classDefs[k] = "cls" + Object.keys(classDefs).length; }
+      return classDefs[k];
+    }
+
+    /* Emit a node line with optional color class */
+    function node(indent, id, shape, label, color) {
+      var s, e;
+      if      (shape === "round") { s = "(";  e = ")";  }
+      else if (shape === "db")    { s = "[("; e = ")]"; }
+      else if (shape === "hex")   { s = "{{"; e = "}}"; }
+      else                        { s = "[";  e = "]";  }
+      var cl = color ? ":::" + getClass(color) : "";
+      structLines.push(indent + id + s + mq(label) + e + cl);
+    }
+
+    var processedCards = new Set();
+
+    /* ── 1. Deployment boundaries / groups → outer subgraphs ── */
+    canvas.querySelectorAll(".deployment-boundary, .group").forEach(function (boundary) {
+      var bId  = nxt();
+      var bLbl = labelText(boundary.querySelector(".boundary-label, .group-label"));
+      structLines.push("  subgraph " + bId + "[" + mq(bLbl) + "]");
+
+      /* Nested layers → inner subgraphs */
+      boundary.querySelectorAll(".vam-layer").forEach(function (layer) {
+        var lId  = nxt();
+        var lLbl = labelText(layer.querySelector(".layer-label"));
+        structLines.push("    subgraph " + lId + "[" + mq(lLbl) + "]");
+        layer.querySelectorAll(".vam-card, .service-card").forEach(function (card) {
+          processedCards.add(card);
+          var cId   = nxt();
+          var ttl   = (card.querySelector(".vam-card-title, .card-title") || { textContent: "" }).textContent.trim();
+          var color = rgbHex(getComputedStyle(card).borderLeftColor);
+          node("      ", cId, "round", ttl, color);
+        });
+        structLines.push("    end");
+      });
+
+      /* Persistence layer → subgraph with cylinders */
+      boundary.querySelectorAll(".persistence-layer").forEach(function (pl) {
+        var plId = nxt();
+        structLines.push('    subgraph ' + plId + '["Persistence"]');
+        pl.querySelectorAll(".db-node").forEach(function (db) {
+          var dId   = nxt();
+          var name  = (db.querySelector(".db-node-name") || { textContent: "" }).textContent.trim();
+          var type  = (db.querySelector(".db-node-type") || { textContent: "" }).textContent.trim();
+          var iEl   = db.querySelector(".db-node-icon");
+          var color = iEl ? rgbHex(getComputedStyle(iEl).backgroundColor) : "#C74634";
+          node("      ", dId, "db", name + (type ? " / " + type : ""), color);
+        });
+        structLines.push("    end");
+      });
+
+      /* Direct service-cards not inside a layer (generic diagrams) */
+      boundary.querySelectorAll(".service-card").forEach(function (card) {
+        if (processedCards.has(card)) return;
+        processedCards.add(card);
+        var cId   = nxt();
+        var ttl   = (card.querySelector(".card-title") || { textContent: "" }).textContent.trim();
+        var color = rgbHex(getComputedStyle(card).borderLeftColor);
+        node("    ", cId, "round", ttl, color);
+      });
+
+      structLines.push("  end");
+      structLines.push("");
+    });
+
+    /* ── 2. Hub / OBRH card → hexagon ── */
+    canvas.querySelectorAll(".obrh-card").forEach(function (el) {
+      var id  = nxt();
+      var ttl = (el.querySelector(".obrh-title") || { textContent: "" }).textContent.trim();
+      node("  ", id, "hex", ttl, "#0F8799");
+      structLines.push("");
+    });
+
+    /* ── 3. External column → subgraph of boxes ── */
+    var extBoxes = canvas.querySelectorAll(".ext-box");
+    if (extBoxes.length) {
+      var extId  = nxt();
+      var secLbl = labelText(canvas.querySelector(".ext-section-label")) || "External Systems";
+      structLines.push("  subgraph " + extId + "[" + mq(secLbl) + "]");
+      extBoxes.forEach(function (box) {
+        var bId   = nxt();
+        var ttl   = labelText(box.querySelector(".ext-box-title"));
+        var items = Array.from(box.querySelectorAll(".ext-item"))
+          .map(function (i) { return labelText(i); })
+          .slice(0, 3).join(" · ");
+        node("    ", bId, "rect", ttl + (items ? "\n" + items : ""), "#9E9892");
+      });
+      structLines.push("  end");
+      structLines.push("");
+    }
+
+    /* ── 4. Any top-level cards not caught above ── */
+    canvas.querySelectorAll(".vam-card, .service-card").forEach(function (card) {
+      if (processedCards.has(card)) return;
+      processedCards.add(card);
+      var cId   = nxt();
+      var ttl   = (card.querySelector(".vam-card-title, .card-title") || { textContent: "" }).textContent.trim();
+      var color = rgbHex(getComputedStyle(card).borderLeftColor);
+      node("  ", cId, "round", ttl, color);
+    });
+
+    /* ── Assemble: header + classDefs, then structure ── */
+    var header = ["flowchart TD", ""];
+    var colorKeys = Object.keys(classDefs);
+    colorKeys.forEach(function (k) {
+      header.push("  classDef " + classDefs[k] +
+        " fill:#FFFFFF,stroke:" + k + ",color:" + k + ",stroke-width:2px");
+    });
+    if (colorKeys.length) header.push("");
+
+    return header.concat(structLines).join("\n");
   }
 
   /* ── Save / Copy HTML (reconstructs lean-compatible HTML) ── */
