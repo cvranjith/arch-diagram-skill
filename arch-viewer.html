@@ -261,6 +261,15 @@
     background: rgba(174,86,44,0.05);
     border-radius: 2px;
   }
+  /* Nav title becomes editable — styled for dark nav background */
+  body.edit-mode #diagTitle[contenteditable="true"] {
+    outline: 1px dashed rgba(199,70,52,0.7);
+    background: rgba(199,70,52,0.12);
+    border-radius: 3px;
+    padding: 1px 5px;
+    cursor: text;
+    max-width: 400px;
+  }
 
   /* ── Review layer ── */
   .review-layer {
@@ -404,7 +413,8 @@
   </div>
 
   <div class="viewer-nav-right">
-    <button class="nav-btn" id="toggleToolbarNav" type="button" title="Show/hide edit toolbar" style="display:none">Tools</button>
+    <button class="nav-btn" id="toggleSlideLayout" type="button" style="display:none" title="Toggle slide fit / full view">Slide Layout</button>
+    <button class="nav-btn" id="toggleToolbarNav" type="button" style="display:none">Tools</button>
     <button class="nav-btn" id="openFileBtn" type="button">Open Diagram</button>
   </div>
 </nav>
@@ -426,7 +436,7 @@
 <!-- Edit toolbar (hidden until diagram loaded) -->
 <div class="edit-toolbar" id="editToolbar" style="display:none">
   <button id="toggleEdit" type="button">Enable Edit</button>
-  <button id="toggleAnnotate" type="button">Review Annotate</button>
+  <button id="toggleAnnotate" type="button">Annotate</button>
   <div id="reviewTools" class="review-tools">
     <div class="tool-palette">
       <button class="tool-btn active" data-review-tool="note" title="Sticky note"><i class="fa-solid fa-note-sticky"></i></button>
@@ -444,9 +454,6 @@
   </div>
   <button id="exportPng" type="button">Export PNG</button>
   <button id="saveHtml" type="button">Save HTML</button>
-  <button id="copyHtml" type="button">Copy HTML</button>
-  <button id="toggleSlideLayout" type="button">Slide Layout</button>
-  <button id="toggleToolbar" type="button">Hide Tools</button>
   <span class="edit-status" id="editStatus">View mode</span>
 </div>
 
@@ -499,9 +506,7 @@
   var deleteMarkBtn   = document.getElementById("deleteMark");
   var exportPngBtn    = document.getElementById("exportPng");
   var saveHtmlBtn     = document.getElementById("saveHtml");
-  var copyHtmlBtn     = document.getElementById("copyHtml");
   var slideBtn           = document.getElementById("toggleSlideLayout");
-  var toolbarToggle      = document.getElementById("toggleToolbar");
   var toolbarToggleNav   = document.getElementById("toggleToolbarNav");
   var editStatusEl       = document.getElementById("editStatus");
 
@@ -586,17 +591,13 @@
     loadedSub      = subMatch   ? subMatch[1].replace(/<[^>]+>/g, "").trim() : "";
     loadedFooterHtml = footerMatch ? footerMatch[1] : "";
 
-    /* Build injected HTML — include diagram-header so title is editable in-canvas */
+    /* Build injected HTML — canvas only, no inner nav/header */
     var styleTag = diagramCss ? '<style id="diagramInjectedCss">' + diagramCss + "</style>" : "";
     diagramMount.innerHTML =
       styleTag +
       '<div id="slideViewport" class="slide-viewport">' +
         '<div id="slideFrame" class="slide-frame">' +
           '<div id="diagramShell" class="diagram-shell">' +
-            '<header class="diagram-header">' +
-              '<h1 class="diagram-title">' + escHtml(loadedTitle) + '</h1>' +
-              '<p class="diagram-sub">' + escHtml(loadedSub) + '</p>' +
-            '</header>' +
             '<main class="diagram-canvas" id="diagramCanvas">' +
               '<div id="reviewLayer" class="review-layer">' +
                 '<svg id="reviewConnectors" class="review-connectors" aria-hidden="true"></svg>' +
@@ -619,8 +620,8 @@
     dropZone.style.display = "none";
     diagramMount.style.display = "block";
     editToolbar.style.display = "flex";
+    slideBtn.style.display = "inline-flex";
     toolbarToggleNav.style.display = "inline-flex";
-    toolbarToggle.textContent = "Hide Tools";
     toolbarToggleNav.textContent = "Tools";
     toolbarToggleNav.classList.remove("active");
 
@@ -635,7 +636,7 @@
     annotateMode = false;
     document.body.classList.remove("edit-mode", "review-annotate-mode");
     toggleEditBtn.textContent = "Enable Edit";
-    annotateBtn.textContent = "Review Annotate";
+    annotateBtn.textContent = "Annotate";
     editStatusEl.textContent = "View mode";
     reviewNotes.clear();
     reviewCounter = reviewMarkCounter = 0;
@@ -765,15 +766,13 @@
     setTimeout(function () { el.remove(); }, duration || 3000);
   }
 
-  /* ── Toolbar toggle (shared by in-toolbar button + nav button) ── */
+  /* ── Toolbar toggle (nav bar button) ── */
   function toggleToolbarVisibility() {
     var willHide = editToolbar.style.display !== "none";
     editToolbar.style.display = willHide ? "none" : "flex";
-    toolbarToggle.textContent = willHide ? "Show Tools" : "Hide Tools";
     toolbarToggleNav.textContent = willHide ? "Show Tools" : "Tools";
-    toolbarToggleNav.classList.toggle("active", willHide); /* highlight when it's the only way back */
+    toolbarToggleNav.classList.toggle("active", willHide); /* highlight when toolbar is hidden */
   }
-  toolbarToggle.addEventListener("click", toggleToolbarVisibility);
   toolbarToggleNav.addEventListener("click", toggleToolbarVisibility);
 
   /* ── Edit mode ── */
@@ -804,13 +803,18 @@
       el.setAttribute("contenteditable", on ? "true" : "false");
       el.setAttribute("spellcheck", "false");
     });
+    /* Nav bar title is also editable in edit mode */
+    if (diagTitleEl) {
+      diagTitleEl.setAttribute("contenteditable", on ? "true" : "false");
+      diagTitleEl.setAttribute("spellcheck", "false");
+    }
   }
 
   /* ── Review / Annotate ── */
   annotateBtn.addEventListener("click", function () {
     annotateMode = !annotateMode;
     document.body.classList.toggle("review-annotate-mode", annotateMode);
-    annotateBtn.textContent = annotateMode ? "Stop Annotate" : "Review Annotate";
+    annotateBtn.textContent = annotateMode ? "Stop Annotate" : "Annotate";
     annotateBtn.classList.toggle("active", annotateMode);
     editStatusEl.textContent = annotateMode ? "Annotate mode" : (editMode ? "Edit mode" : (slideLayout ? "Slide mode" : "View mode"));
   });
@@ -1004,11 +1008,9 @@
     if (rl) rl.remove();
     var canvasInner = canvasClone.innerHTML;
 
-    /* Read title/sub from live DOM so edits are captured */
-    var titleEl = document.querySelector("#diagramShell .diagram-title");
-    var subEl   = document.querySelector("#diagramShell .diagram-sub");
-    var currentTitle = titleEl ? titleEl.textContent.trim() : loadedTitle;
-    var currentSub   = subEl   ? subEl.textContent.trim()   : loadedSub;
+    /* Read title from nav bar (editable in edit mode); sub stays as loaded */
+    var currentTitle = diagTitleEl ? diagTitleEl.textContent.trim() : loadedTitle;
+    var currentSub   = loadedSub;
 
     return "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
       "<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
@@ -1030,14 +1032,6 @@
     a.download = loadedFileName || "diagram-edited.html";
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
-  });
-
-  copyHtmlBtn.addEventListener("click", function () {
-    navigator.clipboard.writeText(buildLeanHtml()).then(function () {
-      var o = copyHtmlBtn.textContent;
-      copyHtmlBtn.textContent = "Copied!";
-      setTimeout(function () { copyHtmlBtn.textContent = o; }, 1500);
-    });
   });
 
   /* ── Helpers ── */
