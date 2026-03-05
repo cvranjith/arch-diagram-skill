@@ -53,7 +53,7 @@
   }
   .viewer-nav .oci-logo { height: 18px; filter: brightness(0) invert(1); flex-shrink: 0; }
 
-  /* Diagram title + file chip (shown after load) */
+  /* Diagram title (shown after load) */
   #diagInfo {
     display: none;
     align-items: center;
@@ -69,18 +69,21 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 320px;
+    max-width: 380px;
   }
+  /* File chip — lives in nav-right, shown after load */
   #fileChip {
+    display: none;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 4px;
     font-size: 10px;
-    color: rgba(255,255,255,0.55);
+    color: rgba(255,255,255,0.45);
     padding: 2px 7px;
     white-space: nowrap;
     font-family: ui-monospace, "SF Mono", monospace;
     flex-shrink: 0;
+    align-items: center;
   }
 
   /* Version nav in top bar */
@@ -173,11 +176,12 @@
 
   body.slide-layout .slide-viewport {
     height: calc(100vh - 44px);
-    padding: 8px;
+    padding: 16px;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     overflow: hidden;
+    background: #1C2B32; /* dark presentation bg so slide pops */
   }
   body.slide-layout.slide-scroll .slide-viewport { overflow: auto; }
   body.slide-layout .slide-frame { flex: 0 0 auto; position: relative; }
@@ -185,7 +189,7 @@
     width: var(--slide-width);
     min-height: var(--slide-height);
     margin: 0;
-    box-shadow: 0 0 0 1px rgba(49,45,42,0.12);
+    box-shadow: 0 8px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.22);
     transform-origin: top left;
   }
 
@@ -297,12 +301,13 @@
   .review-connector { stroke: #6F6861; stroke-width: 1.2; stroke-dasharray: 5 3; fill: none; }
   .review-target { fill: rgba(174,86,44,0.15); stroke: #AE562C; stroke-width: 1; stroke-dasharray: 3 2; }
   .review-note {
-    position: absolute; width: 230px; min-height: 94px;
+    position: absolute; width: 230px; min-width: 160px; min-height: 94px;
     background: rgba(255,245,176,0.88);
     border: 1px solid rgba(157,123,42,0.58);
     border-radius: 8px; box-shadow: 0 3px 10px rgba(49,45,42,0.16);
     backdrop-filter: blur(1.5px);
     display: flex; flex-direction: column; z-index: 2; pointer-events: auto;
+    resize: both; overflow: hidden;
   }
   .review-note-head {
     display: flex; align-items: center; gap: 8px;
@@ -322,7 +327,7 @@
   .review-note-text {
     border: 0; background: transparent; color: #4A3A1E;
     font-size: 11px; line-height: 1.45; padding: 8px;
-    min-height: 68px; width: 100%; resize: vertical;
+    min-height: 50px; width: 100%; resize: none; flex: 1;
     outline: none; font-family: inherit;
   }
   .review-anchor {
@@ -397,10 +402,9 @@
 <nav class="viewer-nav">
   <img class="oci-logo" src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTA5LjM2IDIyLjk2IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiBpZD0ibG9nbyIgb3ZlcmZsb3c9ImhpZGRlbiI+PGc+PHBhdGggZD0iTTQ3LjkxMjIgMTMuNDIzNCA1NC40NTkgMTMuNDIzNCA1MSA3Ljg0MTM1IDQ0LjY1MDUgMTcuOTIzMyA0MS43NSAxNy45MjMzIDQ5LjQ4MDUgNS44MjM3NUM0OS44MTA2IDUuMzMzNTUgNTAuMzc3IDUuMDM2NjUgNTAuOTk2MiA1LjAzNjY1IDUxLjYwMTcgNS4wMzY2NSA1Mi4xNTgyIDUuMzIzNzUgNTIuNDg4MyA1LjgwMjI1TDYwLjI0MjIgMTcuOTIzMyA1Ny4zNDk3IDE3LjkyMzMgNTUuOTg2NSAxNS42Njk0IDQ5LjM1NzQgMTUuNjY5NCA0Ny45MTIyIDEzLjQyMzRNNzcuOTUxMiAxNS42Njk0IDc3Ljk1MTIgNS4xNTk3NSA3NS40OTIyIDUuMTU5NzUgNzUuNDkyMiAxNi43MDI3Qzc1LjQ5MjIgMTcuMDE3MiA3NS42MjUxIDE3LjMyNTggNzUuODU1NiAxNy41NDgzIDc2LjA5IDE3Ljc5MDYgNzYuNDEyMSAxNy45MjMzIDc2Ljc1IDE3LjkyMzNMODcuOTMxNyAxNy45MjMzIDg5LjM4ODcgMTUuNjY5NCA3Ny45NTEyIDE1LjY2OTRNMzcuMzUxMiAxMy43OTA2QzM5Ljc0MDcgMTMuNzkwNiA0MS42NjIyIDExLjg1NjkgNDEuNjYyMiA5LjQ3NDE1IDQxLjY2MjIgNy4wOTEzNSAzOS43NDA3IDUuMTU5NzUgMzcuMzUxMiA1LjE1OTc1TDI2LjYxMjkgNS4xNTk3NSAyNi42MTI5IDE3LjkyMzMgMjkuMDY2OSAxNy45MjMzIDI5LjA2NjkgNy40MTU1NSAzNy4xODggNy40MTU1NUMzOC4zMjc4IDcuNDE1NTUgMzkuMjUxNSA4LjMzNTU1IDM5LjI1MTUgOS40NzQxNSAzOS4yNTE1IDEwLjYxMDkgMzguMzI3OCAxMS41NDY0IDM3LjE4OCAxMS41NDY0TDMwLjI2NzIgMTEuNTQwNiAzNy41OTczIDE3LjkyMzMgNDEuMTU4MiAxNy45MjMzIDM2LjIzNSAxMy43OTA2IDM3LjM1MTIgMTMuNzkwNk0xMS41MTQyIDE3LjkyMzMgMTguOTMzMSAxNy45MjMzQzIyLjQ2MjUgMTcuOTIzMyAyNS4zMDQzIDE1LjA3MTggMjUuMzA0MyAxMS41NDY0IDI1LjMwNDMgOC4wMTcxNSAyMi40NjI1IDUuMTU5NzUgMTguOTMzMSA1LjE1OTc1TDExLjUxNDIgNS4xNTk3NUM3Ljk4ODg2IDUuMTU5NzUgNS4xMjk0NSA4LjAxNzE1IDUuMTI5NDUgMTEuNTQ2NCA1LjEyOTQ1IDE1LjA3MTggNy45ODg4NiAxNy45MjMzIDExLjUxNDIgMTcuOTIzM00xOC43NjMzIDE1LjY3NzIgMTEuNjc3NCAxNS42NzcyQzkuMzk3MDUgMTUuNjc3MiA3LjU0OTM1IDEzLjgyMzcgNy41NDkzNSAxMS41NDY0IDcuNTQ5MzUgOS4yNTkzNSA5LjM5NzA1IDcuNDE1NTUgMTEuNjc3NCA3LjQxNTU1TDE4Ljc2MzMgNy40MTU1NUMyMS4wNTEzIDcuNDE1NTUgMjIuODk3MSA5LjI1OTM1IDIyLjg5NzEgMTEuNTQ2NCAyMi44OTcxIDEzLjgyMzcgMjEuMDUxMyAxNS42NzcyIDE4Ljc2MzMgMTUuNjc3Mk02NS4zNjcyIDE3LjkyMzMgNzIuOTQxNSAxNy45MjMzIDc0LjM3NSAxNS42NzcyIDY1LjUzNTIgMTUuNjc3MkM2My4yNDQyIDE1LjY3NzIgNjEuMzk4NSAxMy44MjM3IDYxLjM5ODUgMTEuNTQ2NCA2MS4zOTg1IDkuMjU5MzUgNjMuMjQ0MiA3LjQxNTU1IDY1LjUzNTIgNy40MTU1NUw3Mi43MzA1IDcuNDE1NTUgNzQuMTgxNyA1LjE1OTc1IDY1LjM2NzIgNS4xNTk3NUM2MS44Mzk5IDUuMTU5NzUgNTguOTc0NiA4LjAxNzE1IDU4Ljk3NDYgMTEuNTQ2NCA1OC45NzQ3IDE1LjA3MTggNjEuODQgMTcuOTIzMyA2NS4zNjcyIDE3LjkyMzNNOTUuMzgxIDE1LjY3NzJDOTMuNDkwMyAxNS42NzcyIDkxLjg5NjUgMTQuNDA3OCA5MS40MDQ0IDEyLjY3MTRMMTAxLjg5MyAxMi42NzE0IDEwMy4zMzggMTAuNDIxNCA5MS40MDQ0IDEwLjQyMTRDOTEuODk0NyA4LjY4MTI1IDkzLjQ5MDMgNy40MTU1NSA5NS4zODEgNy40MTU1NUwxMDIuNTgyIDcuNDE1NTUgMTA0LjAyMiA1LjE1OTc1IDk1LjIxNjkgNS4xNTk3NUM5MS42OTUzIDUuMTU5NzUgODguODM3OSA4LjAxNzE1IDg4LjgzNzkgMTEuNTQ2NCA4OC44Mzc5IDE1LjA3MTggOTEuNjk1MyAxNy45MjMzIDk1LjIxNjkgMTcuOTIzM0wxMDIuNzkxIDE3LjkyMzMgMTA0LjIzMSAxNS42NzcyIDk1LjM4MSAxNS42NzcyIiBmaWxsPSIjQzc0NjM0Ii8+PC9nPjwvc3ZnPg==" alt="Oracle">
 
-  <!-- Diagram title + filename (shown after load) -->
+  <!-- Diagram title (shown after load) -->
   <div id="diagInfo">
     <span id="diagTitle"></span>
-    <span id="fileChip"></span>
   </div>
 
   <!-- Version navigation (shown after load, if version pattern matches) -->
@@ -413,6 +417,7 @@
   </div>
 
   <div class="viewer-nav-right">
+    <span id="fileChip"></span>
     <button class="nav-btn" id="toggleSlideLayout" type="button" style="display:none" title="Toggle slide fit / full view">Slide Layout</button>
     <button class="nav-btn" id="toggleToolbarNav" type="button" style="display:none">Tools</button>
     <button class="nav-btn" id="openFileBtn" type="button">Open Diagram</button>
@@ -629,6 +634,7 @@
     diagTitleEl.textContent = loadedTitle;
     fileChipEl.textContent  = loadedFileName;
     diagInfo.style.display  = "flex";
+    fileChipEl.style.display = "inline-flex";
     document.title = loadedTitle + " — OCI Viewer";
 
     /* Reset toolbar state */
@@ -847,10 +853,19 @@
     reviewMarkupEl.addEventListener("mousedown", onMarkupMousedown);
   }
 
+  /* Return CSS scale of the diagram shell (1 when not in slide mode) */
+  function getDrawScale() {
+    var ds = document.getElementById("diagramShell");
+    if (!ds || !slideLayout) return 1;
+    var m = ds.style.transform && ds.style.transform.match(/scale\(([\d.]+)\)/);
+    return m ? parseFloat(m[1]) : 1;
+  }
+
   function onMarkupMousedown(e) {
     if (!annotateMode || !reviewMarkupEl) return;
     var rect = reviewMarkupEl.getBoundingClientRect();
-    var x = e.clientX - rect.left, y = e.clientY - rect.top;
+    var sc = getDrawScale();
+    var x = (e.clientX - rect.left) / sc, y = (e.clientY - rect.top) / sc;
     var tool = reviewStyle.tool;
     if (tool === "note") { addNote(x, y); return; }
     var id = "m" + (++reviewMarkCounter);
@@ -877,7 +892,8 @@
   document.addEventListener("mousemove", function (e) {
     if (drawState && reviewMarkupEl) {
       var rect = reviewMarkupEl.getBoundingClientRect();
-      var x = e.clientX - rect.left, y = e.clientY - rect.top;
+      var sc = getDrawScale();
+      var x = (e.clientX - rect.left) / sc, y = (e.clientY - rect.top) / sc;
       var ds = drawState;
       if (ds.tool === "pen") {
         ds.el.setAttribute("points", (ds.el.getAttribute("points") || "") + " " + x + "," + y);
@@ -892,7 +908,9 @@
       }
     }
     if (dragState) {
-      var dx = e.clientX - dragState.sx, dy = e.clientY - dragState.sy;
+      /* Note/anchor drag: divide screen delta by scale to get diagram coords */
+      var sc2 = getDrawScale();
+      var dx = (e.clientX - dragState.sx) / sc2, dy = (e.clientY - dragState.sy) / sc2;
       var nx = dragState.ol + dx, ny = dragState.ot + dy;
       dragState.el.style.left = nx + "px";
       dragState.el.style.top  = ny + "px";
@@ -902,11 +920,51 @@
 
   document.addEventListener("mouseup", function () {
     if (drawState) {
-      (function (el) { el.addEventListener("click", function () { selectMark(el); }); })(drawState.el);
+      makeSvgMarkDraggable(drawState.el); /* also handles selection on click */
       drawState = null;
     }
     dragState = null;
   });
+
+  /* Make a completed SVG mark selectable and draggable */
+  function makeSvgMarkDraggable(el) {
+    el.addEventListener("mousedown", function (e) {
+      if (e.button !== 0) return;
+      e.stopPropagation(); /* don't trigger canvas draw handler */
+      selectMark(el);
+      var startX = e.clientX, startY = e.clientY;
+      function onMove(e2) {
+        var sc = getDrawScale();
+        var dx = (e2.clientX - startX) / sc, dy = (e2.clientY - startY) / sc;
+        startX = e2.clientX; startY = e2.clientY;
+        moveSvgMark(el, dx, dy);
+      }
+      function onUp() {
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", onUp);
+      }
+      document.addEventListener("mousemove", onMove);
+      document.addEventListener("mouseup", onUp);
+    });
+  }
+
+  function moveSvgMark(el, dx, dy) {
+    var tag = el.tagName.toLowerCase();
+    if (tag === "rect") {
+      el.setAttribute("x", (parseFloat(el.getAttribute("x")) || 0) + dx);
+      el.setAttribute("y", (parseFloat(el.getAttribute("y")) || 0) + dy);
+    } else if (tag === "ellipse") {
+      el.setAttribute("cx", (parseFloat(el.getAttribute("cx")) || 0) + dx);
+      el.setAttribute("cy", (parseFloat(el.getAttribute("cy")) || 0) + dy);
+    } else if (tag === "polyline") {
+      var pts = (el.getAttribute("points") || "").trim().split(/\s+/);
+      var moved = pts.map(function (p) {
+        var c = p.split(",");
+        return ((parseFloat(c[0]) || 0) + dx) + "," + ((parseFloat(c[1]) || 0) + dy);
+      });
+      el.setAttribute("points", moved.join(" "));
+    }
+  }
 
   function selectMark(el) {
     if (selectedMark) selectedMark.classList.remove("selected");
