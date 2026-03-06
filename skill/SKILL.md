@@ -186,23 +186,45 @@ This is the primary performance optimization: the model only generates canvas co
 
 **arch-viewer.html** (project root `arch-viewer.html`): Full-featured standalone viewer. Drop a lean diagram HTML file → viewer parses and injects diagram + CSS. Contains all toolbar features: Edit, Annotate, Export PNG, Save HTML, Copy HTML, Slide Layout, Prev/Next version (File System Access API).
 
+### Output Folder Structure
+All project-specific files — assembled HTML, canvas fragments, CSS — live under `output/<project>/`.
+`skill/` contains only reusable shared assets (templates, scripts, references, icon assets).
+
+```
+output/
+  <project>/
+    canvas/                        ← source fragments (never opened directly)
+      <name>-vN-canvas.html
+      <name>-vN.css
+    <name>-vN.html                 ← assembled output (the file you open/share)
+    <name>-vN.html.visual-qa.json  ← QA report
+
+skill/
+  scripts/    ← shared scripts (assemble, QA, next-version)
+  templates/  ← shared HTML templates
+  references/ ← shared style/pattern guides
+  assets/     ← shared icon assets
+```
+
 ### Workflow
-1. Write diagram-specific CSS to `skill/canvas/<project>/<name>-vN.css`
-2. Write canvas HTML fragment to `skill/canvas/<project>/<name>-vN-canvas.html`
+1. Run `next_version_path.py` to get the correct output path
+2. Write diagram-specific CSS to `output/<project>/canvas/<name>-vN.css`
+3. Write canvas HTML fragment to `output/<project>/canvas/<name>-vN-canvas.html`
    - Canvas contains only the content between `CANVAS-REPLACE-START` and `CANVAS-REPLACE-END`
    - Do NOT include `<html>`, `<head>`, `<style>`, `<body>`, nav bar, toolbar, or `<script>`
-3. Run assemble with `--template lean` (the default):
+   - Icon `src` paths must be relative to the **assembled output** location, i.e. `../../skill/assets/icons/tech/<icon>` (two levels up from `output/<project>/` reaches the project root)
+4. Run assemble with `--template lean` (the default):
    ```
    python3 skill/scripts/assemble-diagram.py \
      --template lean \
-     --canvas skill/canvas/<project>/<name>-vN-canvas.html \
-     --css skill/canvas/<project>/<name>-vN.css \
+     --canvas output/<project>/canvas/<name>-vN-canvas.html \
+     --css output/<project>/canvas/<name>-vN.css \
      --output output/<project>/<name>-vN.html \
      --title "Diagram Title" \
      --subtitle "Architecture summary" \
      --footer "Legend text"
    ```
-4. Run visual QA on the assembled output
+5. Run visual QA on the assembled output
 
 ### What the lean template provides (do NOT re-implement these)
 - Oracle top nav bar with Oracle wordmark logo
@@ -255,9 +277,9 @@ Use `skill/templates/oci-diagram-base.html` as the starter shell and keep its ed
 ## Revision Workflow
 When user asks for changes (or when fixing any issue in a delivered diagram):
 1. Run `next_version_path.py` to get the correct `v(N+1)` output path. **Do not skip this step.**
-2. Read the latest canvas source (`vN-canvas.html`) and CSS (`vN.css`).
+2. Read the latest canvas source at `output/<project>/canvas/<name>-vN-canvas.html` and `<name>-vN.css`.
 3. Apply requested changes only.
-4. Write canvas changes to NEW `v(N+1)-canvas.html` and `v(N+1).css` files. **Never edit existing canvas source files.**
+4. Write canvas changes to NEW files in `output/<project>/canvas/`: `<name>-v(N+1)-canvas.html` and `<name>-v(N+1).css`. **Never edit existing canvas source files.**
 5. Assemble to the new `v(N+1)` output path. **Never overwrite an existing output HTML.**
 6. Add a short HTML comment at the top of the canvas listing what changed vs. the previous version.
 
