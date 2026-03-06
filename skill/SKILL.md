@@ -105,6 +105,10 @@ After requirements are confirmed, generate a rough ASCII art wireframe so the us
 ## Output Naming Rules
 - Project slug: `output/<project>/` using kebab-case.
 - Diagram filename: `<diagram-name>-vN.html` using kebab-case.
+- **Canvas source files use the SAME base name as the output HTML:**
+  - `output/<project>/canvas/<diagram-name>-vN-canvas.html`
+  - `output/<project>/canvas/<diagram-name>-vN.css`
+  - Example: output `vam-component-architecture-v6.html` → canvas `vam-component-architecture-v6-canvas.html` + `vam-component-architecture-v6.css`
 - Version sequence must increment (`v1`, `v2`, `v3`, ...). **Never reuse an existing version number.**
 - **Always run `python3 skill/scripts/next_version_path.py --project <project> --name <diagram-name>` to compute the next path before writing.** Do not guess or hardcode a version number.
 - The next-version script is the single source of truth for what version to write next.
@@ -193,11 +197,11 @@ All project-specific files — assembled HTML, canvas fragments, CSS — live un
 ```
 output/
   <project>/
-    canvas/                        ← source fragments (never opened directly)
-      <name>-vN-canvas.html
-      <name>-vN.css
-    <name>-vN.html                 ← assembled output (the file you open/share)
-    <name>-vN.html.visual-qa.json  ← QA report
+    canvas/                             ← source fragments (never opened directly)
+      <name>-vN-canvas.html            ← SAME base name as output HTML
+      <name>-vN.css                    ← SAME base name as output HTML
+    <name>-vN.html                     ← assembled output (the file you open/share)
+    <name>-vN.html.visual-qa.json      ← QA report
 
 skill/
   scripts/    ← shared scripts (assemble, QA, next-version)
