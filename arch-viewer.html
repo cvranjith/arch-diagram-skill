@@ -592,6 +592,12 @@
     /* Strip reviewLayer from canvas if present (we inject our own) */
     canvasHtml = canvasHtml.replace(/<div[^>]*id="reviewLayer"[\s\S]*?<\/div>\s*/i, "");
 
+    /* Rewrite relative paths: output files are at depth 2 (output/<project>/),
+       so ../../X resolves to project root/X from the file but breaks when injected
+       into arch-viewer.html (which lives at project root). Strip the ../../ prefix. */
+    canvasHtml = canvasHtml.replace(/\bsrc="\.\.\/\.\.\//g, 'src="');
+    canvasHtml = canvasHtml.replace(/\bhref="\.\.\/\.\.\//g, 'href="');
+
     /* Extract metadata */
     var titleMatch = text.match(/<h1[^>]*class="diagram-title"[^>]*>([\s\S]*?)<\/h1>/i);
     var subMatch   = text.match(/<p[^>]*class="diagram-sub"[^>]*>([\s\S]*?)<\/p>/i);

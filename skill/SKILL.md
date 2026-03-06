@@ -15,6 +15,7 @@ description: Create and iterate professional Oracle OCI architecture diagrams as
 - Generate polished OCI-styled architecture diagrams as standalone HTML.
 - Always save files as versioned outputs under `output/<project>/`.
 - **NEVER edit or overwrite an existing `vN.html` file after it has been written.** Every change — including bug fixes, layout corrections, and visual tweaks — MUST produce a new `v(N+1).html` file. Editing an existing version in place is always wrong.
+- **Canvas source files are also immutable once written.** `skill/canvas/<project>/<name>-vN-canvas.html` and `skill/canvas/<project>/<name>-vN.css` must NOT be edited after first use. Any change must go into new `vam-v(N+1)-canvas.html` / `vam-v(N+1).css` files alongside the new output version.
 - **Default layout: slide-fit ON.** Generated HTML must initialize with slide layout active (call `setSlideLayout(true)` on page load, not `false`). The full-layout toggle is the user override. Change the JS init from `params.get("layout") === "slide"` check to default ON: `if (params.get("layout") !== "full") { setSlideLayout(true); }`
 - Include quick-edit mode in every generated HTML.
 - Keep a common shell across all diagrams: Oracle top bar + reusable edit/export controls.
@@ -254,12 +255,13 @@ Use `skill/templates/oci-diagram-base.html` as the starter shell and keep its ed
 ## Revision Workflow
 When user asks for changes (or when fixing any issue in a delivered diagram):
 1. Run `next_version_path.py` to get the correct `v(N+1)` output path. **Do not skip this step.**
-2. Read the latest output version (`vN`).
+2. Read the latest canvas source (`vN-canvas.html`) and CSS (`vN.css`).
 3. Apply requested changes only.
-4. Write the result to the new `v(N+1)` path. **Never edit `vN` in place.**
-5. Add a short HTML comment at the top listing what changed vs. the previous version.
+4. Write canvas changes to NEW `v(N+1)-canvas.html` and `v(N+1).css` files. **Never edit existing canvas source files.**
+5. Assemble to the new `v(N+1)` output path. **Never overwrite an existing output HTML.**
+6. Add a short HTML comment at the top of the canvas listing what changed vs. the previous version.
 
-> Rule: if a diagram file already exists on disk, it is immutable. Every change — no matter how small — creates a new version.
+> Rule: if a diagram file already exists on disk — whether it is the assembled output HTML, the canvas fragment, or the CSS — it is immutable. Every change creates new `v(N+1)` files across all three. No exceptions, not even for single-line fixes.
 
 ## Automatic Visual QA Gate (Mandatory Before Delivery)
 After generating or revising any diagram HTML, run visual QA before sharing output:
