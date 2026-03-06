@@ -281,9 +281,16 @@ Use `skill/templates/oci-diagram-base.html` as the starter shell and keep its ed
 ## Revision Workflow
 When user asks for changes (or when fixing any issue in a delivered diagram):
 1. Run `next_version_path.py` to get the correct `v(N+1)` output path. **Do not skip this step.**
-2. Read the latest canvas source at `output/<project>/canvas/<name>-vN-canvas.html` and `<name>-vN.css`.
+2. **Read the latest ASSEMBLED OUTPUT HTML** (`output/<project>/<name>-vN.html`) — NOT the canvas fragment.
+   - The assembled output is the single source of truth. Users may have manually edited it via arch-viewer
+     and saved it back. The canvas fragment in `output/<project>/canvas/` may be stale.
+   - Extract the canvas content from `<main id="diagramCanvas">...</main>` (skip the reviewLayer div).
+   - Extract the diagram CSS from between `/* DIAGRAM-CSS-START */` and `/* DIAGRAM-CSS-END */`.
+   - When writing to the new canvas file: strip `contenteditable` and `spellcheck` attributes (these are
+     arch-viewer edit-mode artifacts). Restore icon `src` paths prefixed with `skill/` back to `../../skill/`
+     (arch-viewer rewrites `../../` on injection; canvas fragments must use the output-relative path).
 3. Apply requested changes only.
-4. Write canvas changes to NEW files in `output/<project>/canvas/`: `<name>-v(N+1)-canvas.html` and `<name>-v(N+1).css`. **Never edit existing canvas source files.**
+4. Write the extracted+modified content to NEW files: `<name>-v(N+1)-canvas.html` and `<name>-v(N+1).css`. **Never edit existing canvas source files.**
 5. Assemble to the new `v(N+1)` output path. **Never overwrite an existing output HTML.**
 6. Add a short HTML comment at the top of the canvas listing what changed vs. the previous version.
 
