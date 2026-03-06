@@ -2,30 +2,47 @@
 """
 assemble-diagram.py — Combine base template with diagram-specific content.
 
-Usage:
+── NEW DIAGRAM ────────────────────────────────────────────────────────────────
   python3 skill/scripts/assemble-diagram.py \
-    --canvas canvas.html \
-    --css diagram.css \
-    --output output/my-project/my-diagram-v1.html \
+    --canvas output/<project>/canvas/<name>-vN-canvas.html \
+    --css    output/<project>/canvas/<name>-vN.css \
+    --output output/<project>/<name>-vN.html \
     [--template lean|base]   # default: lean
     [--title "Diagram Title"] \
     [--subtitle "Architecture summary"] \
     [--footer "Legend text"]
 
-The canvas file contains only the content that goes between
-CANVAS-REPLACE-START and CANVAS-REPLACE-END in the base template.
+── REVISION (SSOT: always base on the previous assembled HTML) ────────────────
+Step 1 — extract the section Claude needs to read/edit (token-efficient):
+  python3 skill/scripts/assemble-diagram.py \
+    --extract canvas \
+    --html   output/<project>/<name>-vN.html \
+    --output output/<project>/canvas/<name>-vN-canvas.html
 
-The css file (optional) contains diagram-specific styles injected
-between DIAGRAM-CSS-START and DIAGRAM-CSS-END.
+  python3 skill/scripts/assemble-diagram.py \
+    --extract css \
+    --html   output/<project>/<name>-vN.html \
+    --output output/<project>/canvas/<name>-vN.css
 
+  python3 skill/scripts/assemble-diagram.py \
+    --extract title \
+    --html   output/<project>/<name>-vN.html   # prints to stdout
+
+Step 2 — after editing the extracted file(s), assemble the new version:
+  python3 skill/scripts/assemble-diagram.py \
+    --base   output/<project>/<name>-vN.html \
+    --canvas output/<project>/canvas/<name>-v(N+1)-canvas.html \
+    [--css   output/<project>/canvas/<name>-v(N+1).css] \
+    --output output/<project>/<name>-v(N+1).html
+
+  --base mode copies the base HTML and substitutes only the sections provided.
+  Everything else (title, subtitle, nav bar, footer) is preserved from the base.
+
+── TEMPLATES ──────────────────────────────────────────────────────────────────
 --template lean  (default) uses skill/templates/oci-diagram-lean.html
-                 No toolbar JS, no h2canvas. Lean ~60% smaller files.
-                 Includes version nav pill + "Open in Viewer" button.
+                 No toolbar JS. Includes version nav pill + "Open in Viewer".
 --template base  uses skill/templates/oci-diagram-base.html
-                 Full toolbar JS and annotation overlay embedded.
-                 Use for backward compatibility or standalone review docs.
-
-Token savings with lean: ~80% reduction in generation output.
+                 Full toolbar JS embedded (backward compat only).
 """
 import argparse
 import pathlib
@@ -38,10 +55,9 @@ TEMPLATES = {
 }
 
 CANVAS_START = "CANVAS-REPLACE-START"
-CANVAS_END = "<!-- CANVAS-REPLACE-END -->"
-
-CSS_START = "DIAGRAM-CSS-START"
-CSS_END = "DIAGRAM-CSS-END"
+CANVAS_END   = "<!-- CANVAS-REPLACE-END -->"
+CSS_START    = "DIAGRAM-CSS-START"
+CSS_END      = "DIAGRAM-CSS-END"
 
 
 def load(path: str) -> str:
@@ -51,17 +67,14 @@ def load(path: str) -> str:
     return p.read_text(encoding="utf-8")
 
 
+# ── Template-based injection (new diagrams) ────────────────────────────────
+
 def inject_canvas(template: str, canvas_html: str) -> str:
-    # Find the CANVAS-REPLACE-START marker; walk back to start of that comment block
     marker_idx = template.find(CANVAS_START)
     if marker_idx == -1:
         sys.exit("ERROR: CANVAS-REPLACE-START marker not found in base template.")
-    # Walk back to the start of the <!-- line
     line_start = template.rfind("\n", 0, marker_idx)
-    if line_start == -1:
-        line_start = 0
-    else:
-        line_start += 1  # skip the \n
+    line_start = 0 if line_start == -1 else line_start + 1
     end_idx = template.find(CANVAS_END, marker_idx)
     if end_idx == -1:
         sys.exit("ERROR: CANVAS-REPLACE-END marker not found in base template.")
@@ -75,18 +88,13 @@ def inject_css(template: str, css: str) -> str:
     start_idx = template.find(CSS_START)
     if start_idx == -1:
         return template.replace("</style>", css.strip() + "\n</style>", 1)
-    # Walk back to start of the /* line
     line_start = template.rfind("\n", 0, start_idx)
     line_start = 0 if line_start == -1 else line_start + 1
     end_idx = template.find(CSS_END, start_idx)
     if end_idx == -1:
         return template.replace("</style>", css.strip() + "\n</style>", 1)
-    end_idx = template.find("\n", end_idx) + 1  # include the end marker line
-    replacement = (
-        "/* DIAGRAM-CSS-START */\n"
-        + css.strip()
-        + "\n/* DIAGRAM-CSS-END */\n"
-    )
+    end_idx = template.find("\n", end_idx) + 1
+    replacement = "/* DIAGRAM-CSS-START */\n" + css.strip() + "\n/* DIAGRAM-CSS-END */\n"
     return template[:line_start] + replacement + template[end_idx:]
 
 
@@ -107,12 +115,7 @@ def set_subtitle(template: str, subtitle: str) -> str:
 
 
 def set_page_title(template: str, title: str) -> str:
-    return re.sub(
-        r"<title>[^<]*</title>",
-        f"<title>{title}</title>",
-        template,
-        count=1,
-    )
+    return re.sub(r"<title>[^<]*</title>", f"<title>{title}</title>", template, count=1)
 
 
 def set_footer(template: str, footer: str) -> str:
@@ -123,35 +126,188 @@ def set_footer(template: str, footer: str) -> str:
     )
 
 
+# ── Extract sections from an assembled HTML (for revisions) ───────────────
+
+def extract_canvas(html: str) -> str:
+    """Extract canvas content from an assembled HTML.
+    Strips reviewLayer div, edit-mode attributes, and restores ../../ icon paths."""
+    match = re.search(r'<main[^>]*id="diagramCanvas"[^>]*>([\s\S]*?)</main>', html)
+    if not match:
+        sys.exit('ERROR: <main id="diagramCanvas"> not found in HTML')
+    content = match.group(1)
+    # Remove the reviewLayer div (injected at runtime; not part of diagram source)
+    content = re.sub(
+        r'\s*<div[^>]*id="reviewLayer"[^>]*>[\s\S]*?</div>\s*', '\n', content, count=1
+    )
+    # Strip edit-mode artifacts added by arch-viewer's Save HTML
+    content = re.sub(r'\s+contenteditable="false"', '', content)
+    content = re.sub(r'\s+spellcheck="false"', '', content)
+    # Restore ../../ icon paths (arch-viewer strips them on injection)
+    content = content.replace(' src="skill/', ' src="../../skill/')
+    content = content.replace(' href="skill/', ' href="../../skill/')
+    return content.strip()
+
+
+def extract_css(html: str) -> str:
+    """Extract diagram-specific CSS block from an assembled HTML."""
+    match = re.search(
+        r'/\*\s*DIAGRAM-CSS-START\s*\*/([\s\S]*?)/\*\s*DIAGRAM-CSS-END\s*\*/', html
+    )
+    if not match:
+        sys.exit("ERROR: DIAGRAM-CSS-START/END markers not found in HTML")
+    return match.group(1).strip()
+
+
+def extract_title(html: str) -> str:
+    """Extract the diagram title from an assembled HTML."""
+    match = re.search(r'class="diagram-title"[^>]*>([^<]+)</h1>', html)
+    return match.group(1).strip() if match else ""
+
+
+def extract_subtitle(html: str) -> str:
+    """Extract the diagram subtitle from an assembled HTML."""
+    match = re.search(r'class="diagram-sub"[^>]*>([^<]+)</p>', html)
+    return match.group(1).strip() if match else ""
+
+
+# ── Base-HTML-based assembly (revisions) ──────────────────────────────────
+
+def replace_canvas_in_html(html: str, new_canvas: str) -> str:
+    """Replace canvas content in an assembled HTML, preserving the reviewLayer div."""
+    main_match = re.search(r'(<main[^>]*id="diagramCanvas"[^>]*>)', html)
+    if not main_match:
+        sys.exit('ERROR: <main id="diagramCanvas"> not found in base HTML')
+    main_inner_start = main_match.end()
+    main_end = html.find('</main>', main_inner_start)
+    if main_end == -1:
+        sys.exit("ERROR: </main> not found in base HTML")
+
+    inner = html[main_inner_start:main_end]
+    review_match = re.search(r'(<div[^>]*id="reviewLayer"[^>]*>[\s\S]*?</div>)', inner)
+    if review_match:
+        review_block = '\n              ' + review_match.group(1)
+    else:
+        review_block = ''
+
+    return (
+        html[:main_inner_start]
+        + review_block
+        + '\n              '
+        + new_canvas.strip()
+        + '\n            '
+        + html[main_end:]
+    )
+
+
+def replace_css_in_html(html: str, new_css: str) -> str:
+    """Replace the diagram CSS block in an assembled HTML."""
+    start_idx = html.find(CSS_START)
+    if start_idx == -1:
+        sys.exit("ERROR: DIAGRAM-CSS-START not found in base HTML")
+    line_start = html.rfind("\n", 0, start_idx)
+    line_start = 0 if line_start == -1 else line_start + 1
+    end_idx = html.find(CSS_END, start_idx)
+    if end_idx == -1:
+        sys.exit("ERROR: DIAGRAM-CSS-END not found in base HTML")
+    end_idx = html.find("\n", end_idx) + 1
+    replacement = "/* DIAGRAM-CSS-START */\n" + new_css.strip() + "\n/* DIAGRAM-CSS-END */\n"
+    return html[:line_start] + replacement + html[end_idx:]
+
+
+# ── Main ──────────────────────────────────────────────────────────────────
+
 def main():
-    ap = argparse.ArgumentParser(description="Assemble OCI diagram from base template + canvas content")
-    ap.add_argument("--canvas", required=True, help="Path to canvas HTML fragment file")
-    ap.add_argument("--css", default="", help="Path to diagram-specific CSS file (optional)")
-    ap.add_argument("--output", required=True, help="Output HTML path")
+    ap = argparse.ArgumentParser(description="Assemble OCI diagram HTML")
+    ap.add_argument("--canvas", default="", help="Canvas HTML fragment file")
+    ap.add_argument("--css",    default="", help="Diagram-specific CSS file (optional)")
+    ap.add_argument("--output", default="", help="Output HTML path")
+
+    # New diagram: use a template
     ap.add_argument("--template", default="lean", choices=["lean", "base"],
-                    help="Template to use: 'lean' (default, no toolbar JS) or 'base' (full toolbar embedded)")
-    ap.add_argument("--title", default="", help="Diagram title (replaces 'Diagram Title')")
+                    help="Template for new diagrams (default: lean)")
+    ap.add_argument("--title",    default="", help="Diagram title")
     ap.add_argument("--subtitle", default="", help="Diagram subtitle")
-    ap.add_argument("--footer", default="", help="Footer legend text")
+    ap.add_argument("--footer",   default="", help="Footer legend text")
+
+    # Revision: use an existing assembled HTML as base
+    ap.add_argument("--base", default="",
+                    help="Base assembled HTML for revision (preserves title/nav/footer)")
+
+    # Extract a section from an assembled HTML
+    ap.add_argument("--extract", choices=["canvas", "css", "title", "subtitle"],
+                    help="Extract a section from --html and write to --output (or stdout)")
+    ap.add_argument("--html", default="", help="Source HTML for --extract")
+
     args = ap.parse_args()
 
-    tpl_path = TEMPLATES.get(args.template)
-    if not tpl_path or not tpl_path.exists():
-        sys.exit(f"ERROR: template '{args.template}' not found at {tpl_path}")
-    template = load(str(tpl_path))
-    canvas = load(args.canvas)
-    css = load(args.css) if args.css else ""
+    # ── EXTRACT mode ──────────────────────────────────────────────────────
+    if args.extract:
+        if not args.html:
+            sys.exit("ERROR: --extract requires --html")
+        html = load(args.html)
+        if args.extract == "canvas":
+            content = extract_canvas(html)
+        elif args.extract == "css":
+            content = extract_css(html)
+        elif args.extract == "title":
+            content = extract_title(html)
+        elif args.extract == "subtitle":
+            content = extract_subtitle(html)
+        else:
+            sys.exit(f"ERROR: unknown extract target: {args.extract}")
 
-    result = inject_canvas(template, canvas)
-    result = inject_css(result, css)
+        if args.output:
+            out = pathlib.Path(args.output)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(content, encoding="utf-8")
+            print(f"[assemble-diagram] extracted {args.extract} → {out}")
+        else:
+            print(content)
+        return
 
-    if args.title:
-        result = set_title(result, args.title)
-        result = set_page_title(result, args.title)
-    if args.subtitle:
-        result = set_subtitle(result, args.subtitle)
-    if args.footer:
-        result = set_footer(result, args.footer)
+    # ── ASSEMBLE mode: requires --output ──────────────────────────────────
+    if not args.output:
+        sys.exit("ERROR: --output is required for assembly")
+
+    if args.base:
+        # ── REVISION: base on existing assembled HTML ──────────────────
+        result = load(args.base)
+        if args.canvas:
+            result = replace_canvas_in_html(result, load(args.canvas))
+        if args.css:
+            result = replace_css_in_html(result, load(args.css))
+        # Title/subtitle overrides (optional — usually preserved from base)
+        if args.title:
+            result = re.sub(
+                r'(class="diagram-title"[^>]*>)[^<]*(</h1>)',
+                lambda m: m.group(1) + args.title + m.group(2),
+                result, count=1
+            )
+            result = set_page_title(result, args.title)
+        if args.subtitle:
+            result = re.sub(
+                r'(class="diagram-sub"[^>]*>)[^<]*(</p>)',
+                lambda m: m.group(1) + args.subtitle + m.group(2),
+                result, count=1
+            )
+    else:
+        # ── NEW DIAGRAM: use template ──────────────────────────────────
+        if not args.canvas:
+            sys.exit("ERROR: --canvas is required when not using --base")
+        tpl_path = TEMPLATES.get(args.template)
+        if not tpl_path or not tpl_path.exists():
+            sys.exit(f"ERROR: template '{args.template}' not found at {tpl_path}")
+        result = load(str(tpl_path))
+        result = inject_canvas(result, load(args.canvas))
+        if args.css:
+            result = inject_css(result, load(args.css))
+        if args.title:
+            result = set_title(result, args.title)
+            result = set_page_title(result, args.title)
+        if args.subtitle:
+            result = set_subtitle(result, args.subtitle)
+        if args.footer:
+            result = set_footer(result, args.footer)
 
     out = pathlib.Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)

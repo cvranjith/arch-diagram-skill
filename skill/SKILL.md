@@ -278,23 +278,50 @@ Every generated HTML must include:
 
 Use `skill/templates/oci-diagram-base.html` as the starter shell and keep its edit-mode controls.
 
-## Revision Workflow
-When user asks for changes (or when fixing any issue in a delivered diagram):
-1. Run `next_version_path.py` to get the correct `v(N+1)` output path. **Do not skip this step.**
-2. **Read the latest ASSEMBLED OUTPUT HTML** (`output/<project>/<name>-vN.html`) — NOT the canvas fragment.
-   - The assembled output is the single source of truth. Users may have manually edited it via arch-viewer
-     and saved it back. The canvas fragment in `output/<project>/canvas/` may be stale.
-   - Extract the canvas content from `<main id="diagramCanvas">...</main>` (skip the reviewLayer div).
-   - Extract the diagram CSS from between `/* DIAGRAM-CSS-START */` and `/* DIAGRAM-CSS-END */`.
-   - When writing to the new canvas file: strip `contenteditable` and `spellcheck` attributes (these are
-     arch-viewer edit-mode artifacts). Restore icon `src` paths prefixed with `skill/` back to `../../skill/`
-     (arch-viewer rewrites `../../` on injection; canvas fragments must use the output-relative path).
-3. Apply requested changes only.
-4. Write the extracted+modified content to NEW files: `<name>-v(N+1)-canvas.html` and `<name>-v(N+1).css`. **Never edit existing canvas source files.**
-5. Assemble to the new `v(N+1)` output path. **Never overwrite an existing output HTML.**
-6. Add a short HTML comment at the top of the canvas listing what changed vs. the previous version.
+## Revision Workflow (SSOT — assembled HTML is always the source of truth)
 
-> Rule: if a diagram file already exists on disk — whether it is the assembled output HTML, the canvas fragment, or the CSS — it is immutable. Every change creates new `v(N+1)` files across all three. No exceptions, not even for single-line fixes.
+The assembled output HTML (`vN.html`) is the single source of truth. Users may have manually
+edited it via arch-viewer and saved it back. The canvas fragment in `canvas/` may be stale —
+**never use it as the base for a revision.**
+
+### Step-by-step
+
+1. Run `next_version_path.py` to get the correct `v(N+1)` path. **Do not skip.**
+
+2. **Extract only the sections Claude needs** (token-efficient — Claude never reads the full HTML):
+   ```
+   # Get canvas content (cleaned of edit artifacts, ../../ paths restored)
+   python3 skill/scripts/assemble-diagram.py \
+     --extract canvas \
+     --html   output/<project>/<name>-vN.html \
+     --output output/<project>/canvas/<name>-vN-canvas.html
+
+   # Get diagram CSS (if CSS changes are needed)
+   python3 skill/scripts/assemble-diagram.py \
+     --extract css \
+     --html   output/<project>/<name>-vN.html \
+     --output output/<project>/canvas/<name>-vN.css
+
+   # Get title (if needed for reference, prints to stdout)
+   python3 skill/scripts/assemble-diagram.py --extract title --html output/<project>/<name>-vN.html
+   ```
+
+3. **Apply changes** to the extracted file(s). Write to NEW `v(N+1)` files:
+   - `output/<project>/canvas/<name>-v(N+1)-canvas.html`
+   - `output/<project>/canvas/<name>-v(N+1).css` (copy unchanged from vN if no CSS change)
+
+4. **Assemble using `--base`** (preserves title, subtitle, nav, footer from vN automatically):
+   ```
+   python3 skill/scripts/assemble-diagram.py \
+     --base   output/<project>/<name>-vN.html \
+     --canvas output/<project>/canvas/<name>-v(N+1)-canvas.html \
+     --css    output/<project>/canvas/<name>-v(N+1).css \
+     --output output/<project>/<name>-v(N+1).html
+   ```
+
+5. Add a short HTML comment at top of the canvas listing what changed.
+
+> Rule: vN.html, canvas fragment, and CSS are all immutable once written. Every change — no matter how small — produces new v(N+1) files. Use `--base` not `--template` for revisions.
 
 ## Automatic Visual QA Gate (Mandatory Before Delivery)
 After generating or revising any diagram HTML, run visual QA before sharing output:
