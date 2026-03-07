@@ -164,6 +164,18 @@ The lean template defines these classes with specific positioning/behavior. Rede
 - Use a different class name (e.g., `.genai-group-label` instead of `.group-label`)
 - Or explicitly override `position: relative` or `position: static` in your CSS definition
 
+### Drag-to-Reorder — `data-reorder` attribute (March 2026)
+`arch-viewer.html` supports a **Reorder mode** that lets users drag cards and chips to reorder them within their container. It targets `[data-reorder]` elements only — it has **no hardcoded class names**.
+
+**Rule: add `data-reorder` to every card and chip element** that makes sense to reorder:
+- Cards: `<article class="service-card" data-reorder ...>`
+- DB nodes: `<div class="db-node" data-reorder ...>`
+- Chips/pills in flex rows: `<span class="model-chip" data-reorder ...>`, `<span class="ingest-pill" data-reorder ...>`
+- Custom diagram cards: any `<div class="my-custom-card" data-reorder ...>`
+- Column groups (when whole columns should move): `<div class="cap-col" data-reorder ...>`
+
+Do NOT add `data-reorder` to containers/wrappers (layers, sections, grids) — only to the individual child items inside them.
+
 ## Icon Rules
 Priority:
 1. OCI icon from `skill/assets/icons/oci_icons.json` (primary source)

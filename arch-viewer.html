@@ -882,10 +882,9 @@
    * Drag is restricted to same-parent siblings only — no cross-container moves.
    * On drop the DOM order updates in-place; Save HTML persists it.
    */
-  var REORDER_SELECTORS = [
-    ".app-card", ".service-card", ".doc-card", ".ai-service-card",
-    ".db-node", ".cap-col", ".model-chip", ".ingest-pill", ".ctrl-chip"
-  ].join(", ");
+  /* Diagrams declare their own draggable elements via data-reorder="true".
+     arch-viewer is intentionally class-name-agnostic — no hardcoded list. */
+  var REORDER_SELECTORS = "[data-reorder]";
 
   toggleReorderBtn.addEventListener("click", function () {
     reorderMode ? exitReorderMode() : enterReorderMode();

@@ -163,6 +163,22 @@ body.review-annotate-mode .review-markup { pointer-events: auto; }
 .chip-bark   { background: rgba(49,45,42,0.10);    box-shadow: inset 0 0 0 1px rgba(49,45,42,0.18);    color: #312D2A; }
 /* Usage: <div class="card-icon chip-sienna"><i class="fa-solid fa-database"></i></div> */
 
+/* === DRAG-TO-REORDER (March 2026) ===
+   Add data-reorder to every card/chip/node that the user should be able to
+   drag-reorder in arch-viewer's Reorder mode. arch-viewer targets [data-reorder]
+   only — it has NO hardcoded class names, so this attribute is MANDATORY.
+
+   Add to: cards, db-nodes, chip/pill spans, column groups.
+   Do NOT add to: layer wrappers, grids, section containers.
+
+   Examples:
+     <article class="service-card" data-reorder style="--card-accent: var(--ocean)">
+     <div class="db-node" data-reorder style="--db-color: var(--oracle-red)">
+     <span class="model-chip" data-reorder>Cohere Command A</span>
+     <span class="ingest-pill" data-reorder>Normalization</span>
+     <div class="cap-col" data-reorder> ← whole column moves as one unit
+*/
+
 /* === GROUPING BOXES === */
 .group-box {
   border-radius: 4px; padding: 28px 14px 14px; position: relative;
