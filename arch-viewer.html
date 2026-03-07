@@ -393,6 +393,29 @@
   .edit-toolbar select option { color: #1B1B1B; background: #fff; }
   .edit-status { color: #D3E7EF; font-size: 10px; padding: 0 3px; align-self: center; }
 
+  /* ── Reorder mode ── */
+  body.reorder-mode .reorder-item {
+    cursor: grab;
+    user-select: none;
+    transition: opacity 0.12s, outline 0.08s;
+  }
+  body.reorder-mode .reorder-item:hover {
+    outline: 1.5px dashed rgba(44,89,103,0.65);
+    outline-offset: 2px;
+  }
+  body.reorder-mode .reorder-item.dragging {
+    opacity: 0.32;
+    cursor: grabbing;
+    outline: none;
+  }
+  /* Drop indicators via box-shadow (avoids conflicts with ::before accent bars) */
+  /* Row layout: left / right edge indicator */
+  body.reorder-mode .reorder-item.drop-before { box-shadow: -4px 0 0 0 var(--ocean); }
+  body.reorder-mode .reorder-item.drop-after  { box-shadow:  4px 0 0 0 var(--ocean); }
+  /* Column layout: top / bottom edge indicator */
+  body.reorder-mode .reorder-item.drop-before.drop-v { box-shadow: 0 -4px 0 0 var(--ocean); }
+  body.reorder-mode .reorder-item.drop-after.drop-v  { box-shadow: 0  4px 0 0 var(--ocean); }
+
   @media (max-width: 960px) { .cards { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -442,6 +465,7 @@
 <div class="edit-toolbar" id="editToolbar" style="display:none">
   <button id="toggleEdit" type="button">Enable Edit</button>
   <button id="toggleAnnotate" type="button">Annotate</button>
+  <button id="toggleReorder" type="button" title="Drag cards and chips to reorder within their container. Save HTML to persist.">Reorder</button>
   <div id="reviewTools" class="review-tools">
     <div class="tool-palette">
       <button class="tool-btn active" data-review-tool="note" title="Sticky note"><i class="fa-solid fa-note-sticky"></i></button>
@@ -479,6 +503,9 @@
   var editMode = false;
   var slideLayout = false;  // DEFAULT OFF — user clicks Slide Layout to enable
   var annotateMode = false;
+  var reorderMode = false;
+  var reorderDragEl = null;
+  var reorderItems = [];
   var reviewCounter = 0;
   var reviewMarkCounter = 0;
   var dragState = null;
@@ -506,6 +533,7 @@
   var verLabelEl      = document.getElementById("verLabel");
   var toggleEditBtn   = document.getElementById("toggleEdit");
   var annotateBtn     = document.getElementById("toggleAnnotate");
+  var toggleReorderBtn = document.getElementById("toggleReorder");
   var reviewToolBtns  = Array.from(document.querySelectorAll("[data-review-tool]"));
   var reviewLineStyle = document.getElementById("reviewLineStyle");
   var reviewColorIn   = document.getElementById("reviewColor");
@@ -847,6 +875,119 @@
   });
   reviewLineStyle.addEventListener("change", function () { reviewStyle.lineStyle = reviewLineStyle.value; });
   reviewColorIn.addEventListener("input",  function () { reviewStyle.color = reviewColorIn.value; });
+
+  /* ── Reorder mode ── */
+  /*
+   * Draggable selectors: cards and chips that live inside flex/grid containers.
+   * Drag is restricted to same-parent siblings only — no cross-container moves.
+   * On drop the DOM order updates in-place; Save HTML persists it.
+   */
+  var REORDER_SELECTORS = [
+    ".app-card", ".service-card", ".doc-card", ".ai-service-card",
+    ".db-node", ".cap-col", ".model-chip", ".ingest-pill", ".ctrl-chip"
+  ].join(", ");
+
+  toggleReorderBtn.addEventListener("click", function () {
+    reorderMode ? exitReorderMode() : enterReorderMode();
+  });
+
+  function enterReorderMode() {
+    reorderMode = true;
+    document.body.classList.add("reorder-mode");
+    toggleReorderBtn.classList.add("active");
+    toggleReorderBtn.textContent = "Stop Reorder";
+    editStatusEl.textContent = "Reorder — drag cards/chips within their container";
+
+    reorderItems = Array.from(document.querySelectorAll(REORDER_SELECTORS));
+    reorderItems.forEach(function (el) {
+      el.classList.add("reorder-item");
+      el.setAttribute("draggable", "true");
+      el.addEventListener("dragstart",  _rdragstart);
+      el.addEventListener("dragend",    _rdragend);
+      el.addEventListener("dragover",   _rdragover);
+      el.addEventListener("dragleave",  _rdragleave);
+      el.addEventListener("drop",       _rdrop);
+    });
+  }
+
+  function exitReorderMode() {
+    reorderMode = false;
+    document.body.classList.remove("reorder-mode");
+    toggleReorderBtn.classList.remove("active");
+    toggleReorderBtn.textContent = "Reorder";
+    editStatusEl.textContent = slideLayout ? "Slide mode" : (editMode ? "Edit mode" : "View mode");
+
+    reorderItems.forEach(function (el) {
+      el.classList.remove("reorder-item", "dragging", "drop-before", "drop-after", "drop-v");
+      el.removeAttribute("draggable");
+      el.removeEventListener("dragstart",  _rdragstart);
+      el.removeEventListener("dragend",    _rdragend);
+      el.removeEventListener("dragover",   _rdragover);
+      el.removeEventListener("dragleave",  _rdragleave);
+      el.removeEventListener("drop",       _rdrop);
+    });
+    reorderItems = [];
+    reorderDragEl = null;
+  }
+
+  function _rdragstart(e) {
+    reorderDragEl = this;
+    this.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", ""); /* required for Firefox */
+  }
+
+  function _rdragend() {
+    if (reorderDragEl) reorderDragEl.classList.remove("dragging");
+    reorderItems.forEach(function (el) {
+      el.classList.remove("drop-before", "drop-after", "drop-v");
+    });
+    reorderDragEl = null;
+  }
+
+  function _reorderDropPos(e, target) {
+    /* Returns { pos: "before"|"after", vertical: bool } */
+    var rect = target.getBoundingClientRect();
+    var parent = target.parentElement;
+    var fd = parent ? getComputedStyle(parent).flexDirection : "row";
+    var isVertical = (fd === "column");
+    var pos = isVertical
+      ? ((e.clientY - rect.top) < rect.height / 2 ? "before" : "after")
+      : ((e.clientX - rect.left) < rect.width / 2 ? "before" : "after");
+    return { pos: pos, vertical: isVertical };
+  }
+
+  function _rdragover(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (!reorderDragEl || this === reorderDragEl) return;
+    if (this.parentElement !== reorderDragEl.parentElement) return;
+
+    var r = _reorderDropPos(e, this);
+    this.classList.toggle("drop-before", r.pos === "before");
+    this.classList.toggle("drop-after",  r.pos === "after");
+    this.classList.toggle("drop-v",      r.vertical);
+  }
+
+  function _rdragleave() {
+    this.classList.remove("drop-before", "drop-after", "drop-v");
+  }
+
+  function _rdrop(e) {
+    e.preventDefault();
+    if (!reorderDragEl || this === reorderDragEl) return;
+    if (this.parentElement !== reorderDragEl.parentElement) return;
+
+    var r = _reorderDropPos(e, this);
+    var parent = this.parentElement;
+    if (r.pos === "before") {
+      parent.insertBefore(reorderDragEl, this);
+    } else {
+      parent.insertBefore(reorderDragEl, this.nextSibling);
+    }
+    this.classList.remove("drop-before", "drop-after", "drop-v");
+    showToast("Reordered \u2014 Save HTML to persist changes");
+  }
   reviewWidthIn.addEventListener("input",  function () { reviewStyle.width = parseInt(reviewWidthIn.value, 10); });
 
   deleteMarkBtn.addEventListener("click", function () {
