@@ -325,6 +325,73 @@ def _validate(css: str, html: str) -> List[Finding]:
                     )
                 )
 
+    # 7) Reserved class name collision check (scoped to diagram CSS only)
+    #    .group-label is defined in the lean template as `position: absolute; top: 8px; left: 12px`.
+    #    If diagram CSS also defines .group-label without overriding `position`, labels will float
+    #    to the top-left of the canvas — causing the classic "overlapping text" defect.
+    _diag_match = re.search(r"/\*\s*DIAGRAM-CSS-START\s*\*/(.+?)/\*\s*DIAGRAM-CSS-END\s*\*/", css, re.S)
+    _diagram_css = _diag_match.group(1) if _diag_match else ""
+    _RESERVED_ABSOLUTE_CLASSES = [".group-label"]
+    _block_scan2 = re.compile(r"([^{}]+)\{([^{}]*)\}", re.S)
+    for _m2 in _block_scan2.finditer(_diagram_css):
+        _sel_raw = _m2.group(1).strip()
+        _body2 = _m2.group(2)
+        for _reserved in _RESERVED_ABSOLUTE_CLASSES:
+            if _reserved in [s.strip() for s in _sel_raw.split(",")]:
+                # Only flag if diagram CSS doesn't reset position to static/relative
+                _pos = re.search(r"\bposition\s*:\s*(static|relative|sticky)\b", _body2)
+                if not _pos:
+                    findings.append(
+                        Finding(
+                            code="reserved-class-collision",
+                            severity="error",
+                            message=(
+                                f"Diagram CSS redefines '{_reserved}' which is reserved by the lean "
+                                "template as `position: absolute; top: 8px; left: 12px`. "
+                                "Elements will float to canvas top-left, causing overlapping text. "
+                                f"Rename this class (e.g. use a diagram-specific prefix) or add `position: static`."
+                            ),
+                        )
+                    )
+
+    # 8) Minimum font-size quality check
+    #    Body text below 9px is unreadable at slide scale; titles should be ≥10px.
+    # Use diagram-specific CSS section only (avoid flagging lean template's own small fonts)
+    _tiny_font_re = re.compile(r"font-size\s*:\s*([0-8])px\b")
+    _tiny_hits = _tiny_font_re.findall(_diagram_css)
+    if _tiny_hits:
+        _tiny_sizes = ", ".join(sorted(set(v + "px" for v in _tiny_hits[:6])))
+        findings.append(
+            Finding(
+                code="font-size-too-small",
+                severity="warn",
+                message=(
+                    f"Diagram CSS contains {len(_tiny_hits)} font-size value(s) below 9px "
+                    f"({_tiny_sizes}). "
+                    "Text this small is unreadable at slide-layout scale. "
+                    "Use ≥9px for body text and ≥10px for card titles."
+                ),
+            )
+        )
+
+    # 9) Pervasive micro-text density check
+    #    When the majority of body-text classes are at exactly 9px, the diagram will
+    #    look vacant and hard to read at slide scale. Warn and recommend bumping to 10px.
+    _nine_px_re = re.compile(r"font-size\s*:\s*9px\b")
+    _nine_hits = _nine_px_re.findall(_diagram_css)
+    if len(_nine_hits) >= 4:
+        findings.append(
+            Finding(
+                code="pervasive-micro-text",
+                severity="warn",
+                message=(
+                    f"Diagram CSS has {len(_nine_hits)} font-size declarations at exactly 9px. "
+                    "When most body text is at the minimum size the diagram looks vacant at slide scale. "
+                    "Boost body text to 10px and sub-labels to 9.5px for better visual density."
+                ),
+            )
+        )
+
     return findings
 
 

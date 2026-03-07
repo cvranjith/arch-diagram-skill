@@ -145,6 +145,25 @@ These rules are mandatory on every diagram. They are what separate a polished pr
 7. **Include the chip CSS block.** Every diagram's `<style>` must include `.chip-ocean`, `.chip-sienna`, `.chip-red`, `.chip-ivy`, `.chip-bark` classes. If using vivid palette, also include `.chip-vivid-teal`, `.chip-vivid-orange`, `.chip-vivid-cobalt`, `.chip-vivid-forest`, `.chip-vivid-grape`.
 8. **Vary accent bar colours across card groups — use the full OCI palette, including vivid variants.** By default every swimlane/group must receive a semantically assigned accent colour. A diagram with 6+ cards that uses only one accent colour is a quality failure. When the diagram looks "too grey" or "too muted", switch to the **vivid palette** (`--vivid-teal`, `--vivid-orange`, `--vivid-cobalt`, `--vivid-forest`, `--vivid-grape`) defined in STYLE.md Extended Vivid Palette section. Only use uniform colouring when the user explicitly requests it. Include `--vivid-*` CSS variable definitions in the `<style>` block when using vivid palette colours.
 
+9. **Minimum font and icon sizes** — Proactive visual quality standards (March 2026):
+   - Body text: 9px minimum (never smaller unless user explicitly requests)
+   - Card titles: 10px minimum (prefer 11-12px for readability)
+   - Layer/section labels: 10px minimum (prefer 11px)
+   - Icon chips: 26px minimum (prefer 28px for visibility)
+   - Chip text (white on colored): 13px minimum
+   - **AI should default to larger sizes** — professional diagrams use generous sizing. Only reduce when user explicitly requests compactness.
+
+### Reserved CSS Class Names — DO NOT Redefine (March 2026)
+The lean template defines these classes with specific positioning/behavior. Redefining them in diagram CSS without overriding all properties causes layout bugs (overlapping text, misaligned elements).
+
+| Class | Template Definition | Risk if Redefined |
+|-------|--------------------|-------------------|
+| `.group-label` | `position: absolute; top: 8px; left: 12px` | **HIGH** — Without `position: static/relative` override, elements render `absolute` at canvas top-left, causing overlapping text |
+
+**Rule**: If diagram needs similar semantics:
+- Use a different class name (e.g., `.genai-group-label` instead of `.group-label`)
+- Or explicitly override `position: relative` or `position: static` in your CSS definition
+
 ## Icon Rules
 Priority:
 1. OCI icon from `skill/assets/icons/oci_icons.json` (primary source)
@@ -336,6 +355,16 @@ Rules:
 - If auto-fix changed the file, re-run QA once and confirm pass.
 - Keep the QA JSON report next to the output file for traceability.
 
+### QA Checks Include (March 2026)
+1. **Panel contrast** — containers distinct from page background
+2. **Icon sizing** — chips meet minimum 22px (26px+ preferred)
+3. **Head alignment** — title/subtitle/footer present
+4. **Overflow-clip detection** — errors if `height:Npx + overflow:hidden` on layout containers
+5. **Reserved class collision** — warns if `.group-label` redefined without `position:static/relative`
+6. **Minimum font size** — warns if any diagram CSS has `font-size < 9px`
+
+Auto-fix: replaces `height+overflow:hidden` → `min-height+overflow:visible`
+
 ## Quality Checklist
 - **Requirement clarification questions were asked** before any diagram work.
 - **ASCII wireframe was presented and approved** (or user explicitly skipped) before HTML generation.
@@ -349,7 +378,10 @@ Rules:
 - **Icon chips use category-matched chip class** (chip-ocean / chip-sienna / chip-red / chip-ivy / chip-bark, or vivid variant) — not uniform ocean for all cards.
 - **At least 3 distinct accent colours are visible** across diagrams with 6+ cards — each swimlane/group has a different colour identity using the OCI palette or vivid palette.
 - **Card titles are 13px, font-weight 700** — not 12px/600.
+- **Minimum font sizes enforced**: body text ≥9px, titles ≥10px, layer labels ≥10px.
+- **Icon chips are 26px minimum** — prefer 28px for better visibility.
 - **Left accent bars are 5px wide** — not 3-4px.
+- **No reserved CSS class collisions** — `.group-label` and other template-defined classes are not redefined without proper overrides.
 - **Chip CSS classes defined in the `<style>` block** — standard 5 (chip-ocean/sienna/red/ivy/bark) always included; vivid chip classes (chip-vivid-teal/orange/cobalt/forest/grape) included when using vivid palette.
 - **When vivid palette is used:** `--vivid-teal/orange/cobalt/forest/grape` CSS variables defined in `:root` of the HTML output.
 - Database layer visuals follow Oracle-style DB nodes (OCI DB icon above, DB name below) unless the user requests a different pattern.

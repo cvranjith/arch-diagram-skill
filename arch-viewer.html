@@ -690,11 +690,14 @@
     var r = sv.getBoundingClientRect();
     var availW = r.width  - 24;
     var availH = r.height - 24 - TOOLBAR_RESERVE;
-    var scale = Math.max(0.35, Math.min(1, Math.min(availW / SLIDE_W, availH / SLIDE_H)));
+    /* Use actual content height (scrollHeight is unaffected by CSS transform) so
+       diagrams taller than SLIDE_H are scaled down enough to show fully. */
+    var actualH = Math.max(SLIDE_H, ds.scrollHeight);
+    var scale = Math.max(0.35, Math.min(1, Math.min(availW / SLIDE_W, availH / actualH)));
     ds.style.transform = "scale(" + scale + ")";
     if (sf) {
       sf.style.width  = (SLIDE_W * scale) + "px";
-      sf.style.height = (SLIDE_H * scale) + "px";
+      sf.style.height = (actualH * scale) + "px";
     }
   }
 

@@ -1,0 +1,82 @@
+flowchart TD
+
+  classDef cls0 fill:#FFFFFF,stroke:#0f8799,color:#0f8799,stroke-width:2px
+  classDef cls1 fill:#FFFFFF,stroke:#1e5dab,color:#1e5dab,stroke-width:2px
+  classDef cls2 fill:#FFFFFF,stroke:#7b4fa0,color:#7b4fa0,stroke-width:2px
+  classDef cls3 fill:#FFFFFF,stroke:#e06520,color:#e06520,stroke-width:2px
+  classDef cls4 fill:#FFFFFF,stroke:#2e8c46,color:#2e8c46,stroke-width:2px
+  classDef cls5 fill:#FFFFFF,stroke:#c74634,color:#c74634,stroke-width:2px
+  classDef cls6 fill:#FFFFFF,stroke:#231f20,color:#231f20,stroke-width:2px
+  classDef cls7 fill:#FFFFFF,stroke:#9e9892,color:#9e9892,stroke-width:2px
+
+  subgraph n1["OBMA Deployment"]
+    subgraph n2["Plato Infrastructure"]
+      n3("PLATO-CONFIG-SERVICE"):::cls0
+      n4("PLATO-DISCOVERY-SERVICE"):::cls1
+      n5("PLATO-API-GATEWAY"):::cls2
+      n6("PLATO-SECURITY-SERVICE"):::cls3
+      n7("PLATO-BATCH-SERVER"):::cls4
+      n8("PLATO-ALERTS-MANAGEMENT-SERVICE"):::cls5
+      n9("PLATO-REPORTING-SERVICE"):::cls0
+      n10("PLATO-ELASTIC-SEARCH-SERVICE"):::cls1
+      n11("PLATO-EMAIL-SERVICE"):::cls2
+      n12("PLATO-SCHEDULER"):::cls3
+      n13("PLATO-SMS-NOTIFICATION-SERVICE"):::cls4
+      n14("PLATO-FEED-ACCOUNTING"):::cls5
+      n15("PLATO-UI-CONFIG-SERVICE"):::cls0
+    end
+    subgraph n16["OBVAM Domain Services"]
+      n17("Account Server"):::cls4
+      n18("Transaction Service"):::cls3
+      n19("Sweep Service"):::cls2
+      n20("Interest & Charges"):::cls0
+      n21("Accounting Service"):::cls5
+      n22("Hierarchy Service"):::cls1
+      n23("Rules Engine"):::cls3
+      n24("Liquidity Service"):::cls4
+      n25("Customer Service"):::cls0
+      n26("Event Service"):::cls2
+      n27("Statement Service"):::cls5
+      n28("Integration Service"):::cls1
+      n29("Configuration Service"):::cls3
+      n30("Report Service"):::cls4
+      n31("Auth & Access"):::cls0
+    end
+    subgraph n32["COMMON CORE Services"]
+      n33("CMC-BANK-CORE-SERVICE"):::cls3
+      n34("CMC-CUSTOMER-SERVICE"):::cls5
+      n35("CMC-CURRENCY-SERVICE"):::cls2
+      n36("CMC-HOLIDAY-SERVICE"):::cls0
+      n37("CMC-ACCOUNT-CORE-SERVICE"):::cls4
+      n38("CMC-CHARGES-SERVICE"):::cls1
+      n39("CMC-INTEREST-SERVICE"):::cls3
+      n40("CMC-TXN-CODE-SERVICE"):::cls5
+      n41("CMC-APPROVAL-SERVICE"):::cls2
+      n42("CMC-CHECKLIST-SERVICE"):::cls0
+      n43("CMC-DOC-MANAGEMENT-SERVICE"):::cls4
+      n44("CMC-CAMT-PROCESS-SERVICE"):::cls1
+      n45("CMC-OBRH-REST-CLIENT"):::cls3
+      n46("CMC-OBRH-AMQP-CLIENT"):::cls5
+      n47("CMC-OBRH-KAFKA-CLIENT"):::cls2
+      n48("CMC-PARTY-SERVICE"):::cls0
+      n49("CMC-COUNTRY-SERVICE"):::cls4
+      n50("CMC-RATE-SERVICE"):::cls1
+      n51("CMC-ACCESS-MANAGEMENT"):::cls3
+      n52("CMC-AUDIT-SERVICE"):::cls5
+      n53("CMC-LOCALE-SERVICE"):::cls2
+      n54("CMC-EXTERNAL-SYSTEM-SERVICE"):::cls0
+    end
+    subgraph n55["Persistence"]
+      n56[("VAM Schemas / Oracle DB 19c")]:::cls5
+      n57[("VAM Event Hub / Apache Kafka")]:::cls6
+    end
+  end
+
+  n58{{"OB Routing Hub"}}:::cls0
+
+  subgraph n59["External Banking Apps"]
+    n60["Core Banking / OBDX Digital Banking · OFSLL Lending · OBLM Liquidity Mgmt"]:::cls7
+    n61["Host System / Flexcube Universal · FCUBS Interface · SWIFT / ISO20022"]:::cls7
+    n62["Reporting & BI / OBIEE / Analytics · Oracle Essbase"]:::cls7
+    n63["OCI Infra / OCI Vault / KMS · OCI Object Storage · OCI Load Balancer"]:::cls7
+  end

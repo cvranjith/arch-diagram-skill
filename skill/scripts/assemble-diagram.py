@@ -99,18 +99,20 @@ def inject_css(template: str, css: str) -> str:
 
 
 def set_title(template: str, title: str) -> str:
-    return template.replace(
-        'class="diagram-title" data-editable="true">Diagram Title</h1>',
-        f'class="diagram-title" data-editable="true">{title}</h1>',
-        1,
+    # Works for both lean template (no data-editable) and base template (with data-editable)
+    return re.sub(
+        r'class="diagram-title"[^>]*>Diagram Title</h1>',
+        f'class="diagram-title">{title}</h1>',
+        template, count=1,
     )
 
 
 def set_subtitle(template: str, subtitle: str) -> str:
-    return template.replace(
-        'class="diagram-sub" data-editable="true">Short architecture summary</p>',
-        f'class="diagram-sub" data-editable="true">{subtitle}</p>',
-        1,
+    # Works for both lean template (no data-editable) and base template (with data-editable)
+    return re.sub(
+        r'class="diagram-sub"[^>]*>Short architecture summary</p>',
+        f'class="diagram-sub">{subtitle}</p>',
+        template, count=1,
     )
 
 
@@ -119,10 +121,11 @@ def set_page_title(template: str, title: str) -> str:
 
 
 def set_footer(template: str, footer: str) -> str:
-    return template.replace(
-        'data-editable="true">Legend</span>',
-        f'data-editable="true">{footer}</span>',
-        1,
+    # Works for both lean template (<span>Legend</span>) and base template (data-editable)
+    return re.sub(
+        r'(class="diagram-footer"[^>]*>.*?<span[^>]*>)Legend(</span>)',
+        lambda m: m.group(1) + footer + m.group(2),
+        template, count=1, flags=re.S,
     )
 
 
