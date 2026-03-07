@@ -13,5 +13,8 @@ source/extracted/
 # Input scratch files
 input/
 
+# Generated diagram outputs — local only, not committed
+output/
+
 # Claude session state (local only)
 context/SESSION_STATE.md
