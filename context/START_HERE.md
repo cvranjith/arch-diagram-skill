@@ -7,14 +7,15 @@
 4. Compute next output path:
    - `python3 skill/scripts/next_version_path.py --project <project> --name <diagram-name> --mkdir`
 5. Build HTML using:
-   - `skill/templates/oci-diagram-base.html`
+   - `skill/templates/oci-diagram-lean.html` (**default**) or `skill/templates/oci-diagram-base.html` (standalone)
    - `skill/references/STYLE.md`
    - `skill/references/PATTERNS.md`
    - For OCI slide-like visuals, keep neutral-gray dominant surfaces and use sienna/ocean only as restrained accents.
    - Keep panel/card contrast clear, apply semantically appropriate icons, and add dotted flow connectors only where they improve readability.
    - Use the default legibility treatment for service cards: slightly larger/brighter icon chips with clear contrast.
-   - Keep the shared shell intact (Oracle top bar, edit toolbar, slide/full toggle, toolbar show/hide, Save/Copy/Export PNG controls, and `Review Annotate` controls for sticky notes + shape/freehand markup).
-   - In `Slide Layout`, prefer fit-to-16:9 behavior for single-screen capture; use scroll fallback only when content cannot fit legibly.
+   - Prefer using `arch-viewer.html` (project root) to view/edit/annotate/export; it parses output HTML by extracting:
+     - diagram CSS between `/* DIAGRAM-CSS-START */ ... /* DIAGRAM-CSS-END */`
+     - canvas HTML inside `<main id="diagramCanvas"> ... </main>`
    - Keep manual drawing scoped to review mode only (sticky/rectangle/oval/pen); structural/layout changes should still be done via LLM-driven regeneration.
 6. Save to the returned `output/<project>/<diagram-name>-vN.html` path.
 7. Run visual QA gate (mandatory before delivery):

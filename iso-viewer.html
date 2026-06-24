@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Isometric Architecture Viewer</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ocean:      #2C5967;
+  --sienna:     #AE562C;
+  --bark:       #312D2A;
+  --oracle-red: #C74634;
+  --ivy:        #759C6C;
+  --vivid-teal: #1A7A8A;
+  --vivid-orange: #D4622B;
+  --vivid-cobalt: #2E6EBF;
+  --vivid-forest: #3A7A4A;
+  --vivid-grape:  #6B3FA0;
+  --bg: #1A1C20;
+  --panel: #22252B;
+  --border: #35393F;
+  --text: #E8E6E3;
+  --text-dim: #9E9892;
+  --accent: #C74634;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Top bar ── */
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  height: 48px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#topbar h1 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  margin-right: 4px;
+}
+#topbar .badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--oracle-red);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+#topbar .sep { flex: 1; }
+#topbar .chip-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.tb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+button.tb:hover { background: rgba(255,255,255,0.07); }
+button.tb.primary { background: var(--oracle-red); border-color: var(--oracle-red); color: #fff; }
+button.tb.primary:hover { background: #a83a2a; }
+button.tb svg { width: 14px; height: 14px; fill: currentColor; }
+
+/* ── Canvas ── */
+#stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+}
+#stage.grabbing { cursor: grabbing; }
+#stage.dragging-box { cursor: move; }
+
+#iso-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+}
+
+/* ── Drop zone ── */
+#dropzone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+}
+#dropzone.active { pointer-events: all; }
+#dropzone .dz-ring {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+#dropzone .dz-ring svg { width: 40px; height: 40px; fill: currentColor; opacity: 0.4; }
+#dropzone p { font-size: 14px; color: var(--text-dim); }
+#dropzone p strong { color: var(--text); }
+#dropzone p.sub { font-size: 11px; }
+
+/* ── Tooltip ── */
+#tooltip {
+  position: fixed;
+  background: #2A2D33;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text);
+  pointer-events: none;
+  display: none;
+  z-index: 100;
+  max-width: 220px;
+}
+
+/* ── Status bar ── */
+#statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  height: 28px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: var(--text-dim);
+}
+#statusbar span { display: flex; align-items: center; gap: 4px; }
+
+/* ── Drag highlight (SVG rect) is handled inline ── */
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div id="topbar">
+  <h1>Isometric Viewer</h1>
+  <span class="badge">BETA</span>
+  <span class="sep"></span>
+  <span class="chip-label" id="file-label">No diagram loaded</span>
+  <button class="tb" id="btn-open">
+    <svg viewBox="0 0 20 20"><path d="M3 4a1 1 0 011-1h4l2 2h6a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/></svg>
+    Open Diagram
+  </button>
+  <button class="tb" id="btn-fit">
+    <svg viewBox="0 0 20 20"><path d="M3 3h4v2H5v2H3V3zm10 0h4v4h-2V5h-2V3zM3 13h2v2h2v2H3v-4zm12 2h2v-2h2v4h-4v-2z"/></svg>
+    Fit
+  </button>
+  <button class="tb" id="btn-reset">
+    <svg viewBox="0 0 20 20"><path d="M10 3a7 7 0 100 14A7 7 0 0010 3zm1 3.5v4.25l3 1.75-.75 1.3-3.5-2.05V6.5H11z"/></svg>
+    Reset
+  </button>
+  <button class="tb primary" id="btn-export">
+    <svg viewBox="0 0 20 20"><path d="M10 3a1 1 0 011 1v7.59l2.3-2.3a1 1 0 111.4 1.42l-4 4a1 1 0 01-1.4 0l-4-4a1 1 0 011.4-1.42L9 11.6V4a1 1 0 011-1zm-6 13a1 1 0 100 2h12a1 1 0 100-2H4z"/></svg>
+    Export SVG
+  </button>
+</div>
+
+<!-- Stage -->
+<div id="stage">
+  <svg id="iso-svg" xmlns="http://www.w3.org/2000/svg"><g id="world"></g></svg>
+
+  <!-- Drop zone overlay -->
+  <div id="dropzone" class="active">
+    <div class="dz-ring">
+      <svg viewBox="0 0 24 24"><path d="M20 6H4V4h16v2zm0 2H4v2h16V8zm-9 4H4v2h7v-2zm0 4H4v2h7v-2zm9-4h-2v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </div>
+    <p><strong>Open a diagram</strong> to generate isometric view</p>
+    <p class="sub">Click "Open Diagram" or drop an HTML file here</p>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div id="tooltip"></div>
+
+<!-- Status bar -->
+<div id="statusbar">
+  <span id="st-groups">Groups: 0</span>
+  <span id="st-boxes">Boxes: 0</span>
+  <span id="st-zoom">Zoom: 100%</span>
+  <span style="flex:1"></span>
+  <span>Scroll to zoom &nbsp;·&nbsp; Drag background to pan &nbsp;·&nbsp; Drag box to reposition</span>
+</div>
+
+<input type="file" id="file-input" accept=".html" style="display:none">
+
+<script>
+(function(){
+"use strict";
+
+// ── Projection constants ──────────────────────────────────────────
+var S  = 54;   // X scale (half-width of tile)
+var SY = 27;   // Y scale (= S*0.5, isometric Y compression)
+var SZ = 47.5; // Z height scale
+
+// Layout constants (grid units)
+var CW = 2.0;  // card width in grid
+var CD = 1.4;  // card depth
+var CH = 1.7;  // card height (Z)
+var CX = 0.35; // horizontal gap between cards
+var CY = 0.3;  // depth gap between cards (unused, cards share slab)
+var SM = 0.5;  // slab side margin
+var SH = 0.28; // slab floor height (Z)
+var GS = 2.5;  // gap between group slabs (Y)
+var MAX_COLS = 6;
+
+// Colors resolved from CSS var names
+var ACCENT_MAP = {
+  'var(--ocean)':      '#2C5967',
+  'var(--sienna)':     '#AE562C',
+  'var(--bark)':       '#312D2A',
+  'var(--oracle-red)': '#C74634',
+  'var(--ivy)':        '#759C6C',
+  'var(--vivid-teal)': '#1A7A8A',
+  'var(--vivid-orange)':'#D4622B',
+  'var(--vivid-cobalt)':'#2E6EBF',
+  'var(--vivid-forest)':'#3A7A4A',
+  'var(--vivid-grape)': '#6B3FA0',
+};
+var DEFAULT_CARD_COLOR = '#2C5967';
+var SLAB_COLOR = '#2E3238';
+var SLAB_OUTLINE = '#4A5060';
+var TEXT_COLOR = '#F0EEEB';
+var TEXT_DIM   = '#A0A8B0';
+
+// ── SVG namespace helper ──────────────────────────────────────────
+var NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, text) {
+  var e = document.createElementNS(NS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+// ── Projection ───────────────────────────────────────────────────
+function iso(gx, gy, gz) {
+  return {
+    x: (gx - gy) * S,
+    y: (gx + gy) * SY - gz * SZ
+  };
+}
+
+// ── Color utilities ───────────────────────────────────────────────
+function hexToRgb(h) {
+  h = h.replace('#','');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  var n = parseInt(h, 16);
+  return [n>>16, (n>>8)&255, n&255];
+}
+function rgbToHex(r,g,b) {
+  return '#'+[r,g,b].map(function(v){
+    return Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0');
+  }).join('');
+}
+function tintHex(hex, factor) {
+  var rgb = hexToRgb(hex);
+  if (factor > 1) {
+    // lighten: blend toward white
+    return rgbToHex(
+      rgb[0] + (255-rgb[0])*(factor-1),
+      rgb[1] + (255-rgb[1])*(factor-1),
+      rgb[2] + (255-rgb[2])*(factor-1)
+    );
+  } else {
+    // darken
+    return rgbToHex(rgb[0]*factor, rgb[1]*factor, rgb[2]*factor);
+  }
+}
+function resolveColor(cssVar) {
+  if (!cssVar) return DEFAULT_CARD_COLOR;
+  var v = cssVar.trim();
+  if (ACCENT_MAP[v]) return ACCENT_MAP[v];
+  if (v.startsWith('#')) return v;
+  return DEFAULT_CARD_COLOR;
+}
+
+// ── HTML Parser ───────────────────────────────────────────────────
+function parseHTMLDoc(doc) {
+  // Find canvas root — the diagram body wrapper
+  var canvas = doc.querySelector('.diagram-canvas, .canvas, main, body');
+  if (!canvas) canvas = doc.body;
+
+  // Collect all [data-reorder] elements, grouped by labeled ancestor
+  var allItems = Array.from(canvas.querySelectorAll('[data-reorder]'));
+
+  // Strategy: group by nearest label ancestor
+  // Label ancestors: .layer-label, .split-sublayer-label, .swimlane-label,
+  //                  [class*="group-label"], [class*="layer"], h2, h3
+  var LABEL_SEL = '.layer-label, .split-sublayer-label, .swimlane-label, .genai-group-label';
+
+  // Build groups
+  var groups = []; // [{label, color, items:[{label,color,el}]}]
+  var ungrouped = [];
+
+  // For each item, find nearest label ancestor or section header before it
+  function nearestLabel(item) {
+    // Walk up and check siblings before this node
+    var p = item;
+    while (p && p !== canvas) {
+      // Check for a label sibling before this node within parent
+      var parent = p.parentElement;
+      if (!parent) break;
+      var children = Array.from(parent.children);
+      var idx = children.indexOf(p);
+      for (var i = idx-1; i >= 0; i--) {
+        var sib = children[i];
+        if (sib.matches && sib.matches(LABEL_SEL)) return sib;
+        // also check inside the sibling
+        var inner = sib.querySelector && sib.querySelector(LABEL_SEL);
+        if (inner) return inner;
+      }
+      // Check if parent itself is a labeled section
+      if (parent.matches && parent.matches('[class*="layer"],[class*="section"],[class*="panel"],[class*="swimlane"]')) {
+        var lbl = parent.querySelector(LABEL_SEL);
+        if (lbl) return lbl;
+        // use heading text
+        var h = parent.querySelector('h1,h2,h3,h4');
+        if (h) return h;
+      }
+      p = parent;
+    }
+    return null;
+  }
+
+  // Build a map: labelEl → group
+  var labelMap = new Map();
+
+  allItems.forEach(function(item) {
+    var lbl = nearestLabel(item);
+    var key = lbl || '__ungrouped__';
+    if (!labelMap.has(key)) {
+      labelMap.set(key, {
+        label: lbl ? (lbl.textContent || '').trim().replace(/\s+/g,' ') : 'Ungrouped',
+        color: SLAB_COLOR,
+        items: []
+      });
+    }
+    // Extract item info
+    var title = '';
+    var titleEl = item.querySelector('.card-title, .service-title, .ai-service-title, .db-node-name, .vam-card-title, h3, h4, strong');
+    if (titleEl) title = titleEl.textContent.trim();
+    else title = (item.getAttribute('data-title') || item.textContent || '').trim().replace(/\s+/g,' ').slice(0,40);
+
+    // Extract color from --card-accent style or background
+    var color = DEFAULT_CARD_COLOR;
+    var style = item.getAttribute('style') || '';
+    var accentMatch = style.match(/--card-accent\s*:\s*([^;)]+)/);
+    if (accentMatch) {
+      color = resolveColor(accentMatch[1].trim());
+    } else {
+      // try background color class
+      var cls = item.className || '';
+      if (cls.match(/chip-ocean|ocean/)) color = ACCENT_MAP['var(--ocean)'];
+      else if (cls.match(/chip-sienna|sienna/)) color = ACCENT_MAP['var(--sienna)'];
+      else if (cls.match(/chip-red|oracle-red/)) color = ACCENT_MAP['var(--oracle-red)'];
+      else if (cls.match(/chip-ivy|ivy/)) color = ACCENT_MAP['var(--ivy)'];
+      else if (cls.match(/chip-bark|bark/)) color = ACCENT_MAP['var(--bark)'];
+    }
+
+    labelMap.get(key).items.push({ label: title, color: color, el: item });
+  });
+
+  // If no data-reorder found, fall back to card classes
+  if (allItems.length === 0) {
+    var fallback = canvas.querySelectorAll('.service-card,.app-card,.doc-card,.ai-service-card,.db-node,.model-chip,.ingest-pill');
+    fallback.forEach(function(item) {
+      if (!labelMap.has('__ungrouped__')) {
+        labelMap.set('__ungrouped__', { label: 'Architecture', color: SLAB_COLOR, items: [] });
+      }
+      var title = (item.querySelector('h3,h4,.card-title,strong') || item).textContent.trim().slice(0,40);
+      labelMap.get('__ungrouped__').items.push({ label: title, color: DEFAULT_CARD_COLOR, el: item });
+    });
+  }
+
+  // Convert map to array, preserving DOM order
+  labelMap.forEach(function(g) { groups.push(g); });
+
+  // Assign slab colors per group from a palette
+  var SLAB_PALETTE = ['#232830','#252A31','#222730','#242931','#26292F'];
+  groups.forEach(function(g, i) { g.slabColor = SLAB_PALETTE[i % SLAB_PALETTE.length]; });
+
+  return { groups: groups, title: doc.title || 'Architecture' };
+}
+
+// ── Layout builder ────────────────────────────────────────────────
+// Returns scene: [{type:'slab'|'box', ...geometry, color, label, depth}]
+function buildScene(parsed) {
+  var objects = []; // will be depth-sorted
+  var curY = 0;
+
+  parsed.groups.forEach(function(g, gi) {
+    var items = g.items;
+    var cols = Math.min(items.length, MAX_COLS);
+    if (cols === 0) return;
+    var rows = Math.ceil(items.length / cols);
+
+    // Slab dimensions
+    var slabW = cols * (CW + CX) - CX + SM*2;
+    var slabD = rows * (CD + CY) - CY + SM*2;
+
+    // Slab object (floor platform)
+    var sx = -slabW/2;
+    var sy = curY;
+    var slabDepth = sx + slabW + sy + slabD;
+    objects.push({
+      type: 'slab',
+      gx: sx, gy: sy,
+      w: slabW, d: slabD, h: SH,
+      color: g.slabColor || SLAB_COLOR,
+      label: g.label,
+      labelColor: TEXT_DIM,
+      depth: slabDepth - 0.1, // slightly behind boxes
+      gi: gi
+    });
+
+    // Card boxes
+    items.forEach(function(item, i) {
+      var row = Math.floor(i / cols);
+      var col = i % cols;
+      var bx = sx + SM + col*(CW+CX);
+      var by = curY + SM + row*(CD+CY);
+      var bz = SH; // sit on top of slab
+      var boxDepth = bx + CW + by + CD;
+      objects.push({
+        type: 'box',
+        gx: bx, gy: by, gz: bz,
+        w: CW, d: CD, h: CH,
+        color: item.color,
+        label: item.label,
+        depth: boxDepth,
+        gi: gi, idx: i,
+        // mutable screen offset for drag
+        dx: 0, dy: 0
+      });
+    });
+
+    curY += slabD + GS;
+  });
+
+  // Sort by depth (painter's algorithm: low depth = back, render first)
+  objects.sort(function(a, b) { return a.depth - b.depth; });
+
+  return objects;
+}
+
+// ── SVG renderer ─────────────────────────────────────────────────
+var world, viewTx = 0, viewTy = 0, viewZoom = 1;
+var sceneObjects = [];
+var boxGroups = []; // SVG group elements for boxes (for drag)
+
+function svgPoly(pts, fill, stroke, sw, opacity) {
+  var d = pts.map(function(p,i){ return (i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1); }).join(' ')+'Z';
+  var attrs = { d: d, fill: fill };
+  if (stroke) { attrs.stroke = stroke; attrs['stroke-width'] = sw || 1; }
+  if (opacity != null) attrs['fill-opacity'] = opacity;
+  return el('path', attrs);
+}
+
+function wrapText(text, maxChars) {
+  if (!text) return [''];
+  var words = text.split(' ');
+  var lines = [];
+  var cur = '';
+  words.forEach(function(w) {
+    if ((cur+' '+w).trim().length > maxChars && cur) {
+      lines.push(cur.trim());
+      cur = w;
+    } else cur = (cur+' '+w).trim();
+  });
+  if (cur) lines.push(cur.trim());
+  return lines.slice(0,3);
+}
+
+function renderScene(objects) {
+  world.innerHTML = '';
+  boxGroups = [];
+
+  objects.forEach(function(obj) {
+    if (obj.type === 'slab') renderSlab(obj);
+    else if (obj.type === 'box') renderBox(obj);
+  });
+}
+
+function renderSlab(s) {
+  var p0 = iso(s.gx,       s.gy,       s.h);
+  var p1 = iso(s.gx+s.w,   s.gy,       s.h);
+  var p2 = iso(s.gx+s.w,   s.gy+s.d,   s.h);
+  var p3 = iso(s.gx,       s.gy+s.d,   s.h);
+  // Front-left face
+  var fl0 = iso(s.gx,       s.gy+s.d, 0);
+  var fl1 = iso(s.gx,       s.gy+s.d, s.h);
+  var fl2 = iso(s.gx+s.w,   s.gy+s.d, s.h);
+  var fl3 = iso(s.gx+s.w,   s.gy+s.d, 0);
+  // Front-right face
+  var fr0 = iso(s.gx+s.w,   s.gy,     0);
+  var fr1 = iso(s.gx+s.w,   s.gy,     s.h);
+  var fr2 = iso(s.gx+s.w,   s.gy+s.d, s.h);
+  var fr3 = iso(s.gx+s.w,   s.gy+s.d, 0);
+
+  var g = el('g');
+  // Right face (darker)
+  g.appendChild(svgPoly([fr0,fr1,fr2,fr3], tintHex(s.color, 0.55), SLAB_OUTLINE, 0.5));
+  // Left face (medium)
+  g.appendChild(svgPoly([fl0,fl1,fl2,fl3], tintHex(s.color, 0.7), SLAB_OUTLINE, 0.5));
+  // Top face
+  g.appendChild(svgPoly([p0,p1,p2,p3], tintHex(s.color, 1.15), SLAB_OUTLINE, 0.8));
+
+  // Label on top face
+  var center = iso(s.gx + s.w/2, s.gy + s.d*0.15, s.h + 0.05);
+  var lt = el('text', {
+    x: center.x, y: center.y,
+    'text-anchor': 'middle',
+    'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    'font-size': '9',
+    'font-weight': '700',
+    'letter-spacing': '0.08em',
+    fill: s.labelColor || TEXT_DIM,
+    'pointer-events': 'none'
+  }, s.label.toUpperCase().slice(0,28));
+  g.appendChild(lt);
+  world.appendChild(g);
+}
+
+function renderBox(b) {
+  var ox = b.dx || 0, oy = b.dy || 0;
+
+  var p = function(gx,gy,gz) {
+    var r = iso(gx,gy,gz);
+    return {x: r.x+ox, y: r.y+oy};
+  };
+
+  // 8 corners
+  var x0=b.gx, y0=b.gy, z0=b.gz;
+  var x1=x0+b.w, y1=y0+b.d, z1=z0+b.h;
+
+  var c = b.color;
+  var topFill  = tintHex(c, 1.3);
+  var leftFill = tintHex(c, 0.88);
+  var rightFill= tintHex(c, 0.62);
+  var outline  = tintHex(c, 0.45);
+
+  var g = el('g', {'data-box': '1', 'data-label': b.label, cursor: 'move'});
+
+  // Right face (front-right)
+  g.appendChild(svgPoly([
+    p(x1,y0,z0), p(x1,y0,z1), p(x1,y1,z1), p(x1,y1,z0)
+  ], rightFill, outline, 0.7));
+
+  // Left face (front-left)
+  g.appendChild(svgPoly([
+    p(x0,y1,z0), p(x0,y1,z1), p(x1,y1,z1), p(x1,y1,z0)
+  ], leftFill, outline, 0.7));
+
+  // Top face
+  g.appendChild(svgPoly([
+    p(x0,y0,z1), p(x1,y0,z1), p(x1,y1,z1), p(x0,y1,z1)
+  ], topFill, outline, 0.9));
+
+  // Label on top
+  var cx = iso(x0+b.w/2, y0+b.d/2, z1+0.08);
+  cx.x += ox; cx.y += oy;
+
+  var lines = wrapText(b.label, 14);
+  var lineH = 9.5;
+  var totalH = lines.length * lineH;
+  lines.forEach(function(line, li) {
+    var ty = cx.y - totalH/2 + li*lineH + lineH*0.4;
+    g.appendChild(el('text', {
+      x: cx.x, y: ty,
+      'text-anchor': 'middle',
+      'font-family': '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      'font-size': '8.5',
+      'font-weight': li===0 ? '600' : '400',
+      fill: TEXT_COLOR,
+      'pointer-events': 'none'
+    }, line));
+  });
+
+  // Hit area (transparent but clickable)
+  var hitTop = [p(x0,y0,z1),p(x1,y0,z1),p(x1,y1,z1),p(x0,y1,z1)];
+  var hitPath = svgPoly(hitTop, 'transparent', null, 0);
+  hitPath.setAttribute('pointer-events','fill');
+  hitPath.addEventListener('mouseenter', function(e){ showTooltip(e, b.label); });
+  hitPath.addEventListener('mouseleave', hideTooltip);
+  g.appendChild(hitPath);
+
+  // Drag on the box group
+  makeDraggable(g, b);
+
+  world.appendChild(g);
+  boxGroups.push({ g: g, obj: b });
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────
+var tip = document.getElementById('tooltip');
+function showTooltip(e, text) {
+  tip.textContent = text;
+  tip.style.display = 'block';
+  posTooltip(e);
+}
+function hideTooltip() { tip.style.display = 'none'; }
+function posTooltip(e) {
+  tip.style.left = (e.clientX + 14)+'px';
+  tip.style.top  = (e.clientY - 8)+'px';
+}
+document.addEventListener('mousemove', function(e) {
+  if (tip.style.display === 'block') posTooltip(e);
+});
+
+// ── View transform ────────────────────────────────────────────────
+var svgEl = document.getElementById('iso-svg');
+var worldEl;
+
+function applyTransform() {
+  world.setAttribute('transform',
+    'translate('+viewTx.toFixed(1)+','+viewTy.toFixed(1)+') scale('+viewZoom.toFixed(4)+')');
+  document.getElementById('st-zoom').textContent = 'Zoom: '+(viewZoom*100).toFixed(0)+'%';
+}
+
+function fitScene() {
+  if (sceneObjects.length === 0) return;
+  var stage = document.getElementById('stage');
+  var W = stage.clientWidth, H = stage.clientHeight;
+
+  // Collect all projected points
+  var pts = [];
+  sceneObjects.forEach(function(o) {
+    if (o.type==='slab') {
+      [[o.gx,o.gy,0],[o.gx+o.w,o.gy,0],[o.gx+o.w,o.gy+o.d,0],[o.gx,o.gy+o.d,0],
+       [o.gx,o.gy,o.h],[o.gx+o.w,o.gy,o.h],[o.gx+o.w,o.gy+o.d,o.h],[o.gx,o.gy+o.d,o.h]
+      ].forEach(function(c){ pts.push(iso(c[0],c[1],c[2])); });
+    } else if (o.type==='box') {
+      [[o.gx,o.gy,o.gz],[o.gx+o.w,o.gy,o.gz],[o.gx+o.w,o.gy+o.d,o.gz],[o.gx,o.gy+o.d,o.gz],
+       [o.gx,o.gy,o.gz+o.h],[o.gx+o.w,o.gy,o.gz+o.h],[o.gx+o.w,o.gy+o.d,o.gz+o.h],[o.gx,o.gy+o.d,o.gz+o.h]
+      ].forEach(function(c){ pts.push(iso(c[0],c[1],c[2])); });
+    }
+  });
+  if (!pts.length) return;
+
+  var minX = Math.min.apply(null,pts.map(function(p){return p.x;}));
+  var maxX = Math.max.apply(null,pts.map(function(p){return p.x;}));
+  var minY = Math.min.apply(null,pts.map(function(p){return p.y;}));
+  var maxY = Math.max.apply(null,pts.map(function(p){return p.y;}));
+
+  var pw = maxX-minX, ph = maxY-minY;
+  var pad = 40;
+  var z = Math.min((W-pad*2)/pw, (H-pad*2)/ph, 1.4);
+  viewZoom = z;
+  viewTx = W/2 - (minX+pw/2)*z;
+  viewTy = H/2 - (minY+ph/2)*z;
+  applyTransform();
+}
+
+// ── Pan ───────────────────────────────────────────────────────────
+var panStart = null;
+var stage = document.getElementById('stage');
+
+stage.addEventListener('mousedown', function(e) {
+  if (e.target.closest('[data-box]')) return;
+  panStart = {x: e.clientX - viewTx, y: e.clientY - viewTy};
+  stage.classList.add('grabbing');
+});
+window.addEventListener('mousemove', function(e) {
+  if (!panStart) return;
+  viewTx = e.clientX - panStart.x;
+  viewTy = e.clientY - panStart.y;
+  applyTransform();
+});
+window.addEventListener('mouseup', function() {
+  panStart = null;
+  stage.classList.remove('grabbing');
+});
+
+// ── Zoom ─────────────────────────────────────────────────────────
+stage.addEventListener('wheel', function(e) {
+  e.preventDefault();
+  var rect = stage.getBoundingClientRect();
+  var mx = e.clientX - rect.left;
+  var my = e.clientY - rect.top;
+  var delta = e.deltaY < 0 ? 1.1 : 0.91;
+  var nz = Math.max(0.2, Math.min(3, viewZoom * delta));
+  viewTx = mx - (mx-viewTx)*nz/viewZoom;
+  viewTy = my - (my-viewTy)*nz/viewZoom;
+  viewZoom = nz;
+  applyTransform();
+}, {passive: false});
+
+// ── Box drag ─────────────────────────────────────────────────────
+function makeDraggable(gEl, obj) {
+  var drag = null;
+  gEl.addEventListener('mousedown', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    drag = {
+      sx: e.clientX, sy: e.clientY,
+      odx: obj.dx||0, ody: obj.dy||0
+    };
+    stage.classList.add('dragging-box');
+    hideTooltip();
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (!drag) return;
+    var ddx = (e.clientX - drag.sx) / viewZoom;
+    var ddy = (e.clientY - drag.sy) / viewZoom;
+    obj.dx = drag.odx + ddx;
+    obj.dy = drag.ody + ddy;
+    // Rerender just this box group
+    rerenderBox(gEl, obj);
+  });
+  window.addEventListener('mouseup', function() {
+    if (!drag) return;
+    drag = null;
+    stage.classList.remove('dragging-box');
+  });
+}
+
+function rerenderBox(gEl, b) {
+  // Remove and re-add (simpler than patching path data)
+  var parent = gEl.parentElement;
+  parent.removeChild(gEl);
+  // Clear children
+  while (gEl.firstChild) gEl.removeChild(gEl.firstChild);
+
+  var ox = b.dx||0, oy = b.dy||0;
+  var p = function(gx,gy,gz) {
+    var r = iso(gx,gy,gz);
+    return {x:r.x+ox, y:r.y+oy};
+  };
+  var x0=b.gx,y0=b.gy,z0=b.gz,x1=x0+b.w,y1=y0+b.d,z1=z0+b.h;
+  var c = b.color;
+  var topFill  = tintHex(c, 1.3);
+  var leftFill = tintHex(c, 0.88);
+  var rightFill= tintHex(c, 0.62);
+  var outline  = tintHex(c, 0.45);
+
+  gEl.appendChild(svgPoly([p(x1,y0,z0),p(x1,y0,z1),p(x1,y1,z1),p(x1,y1,z0)], rightFill, outline, 0.7));
+  gEl.appendChild(svgPoly([p(x0,y1,z0),p(x0,y1,z1),p(x1,y1,z1),p(x1,y1,z0)], leftFill, outline, 0.7));
+  gEl.appendChild(svgPoly([p(x0,y0,z1),p(x1,y0,z1),p(x1,y1,z1),p(x0,y1,z1)], topFill, outline, 0.9));
+
+  var cx = iso(x0+b.w/2, y0+b.d/2, z1+0.08);
+  cx.x+=ox; cx.y+=oy;
+  var lines = wrapText(b.label, 14);
+  var lineH = 9.5, totalH = lines.length*lineH;
+  lines.forEach(function(line, li) {
+    var ty = cx.y - totalH/2 + li*lineH + lineH*0.4;
+    gEl.appendChild(el('text',{
+      x:cx.x,y:ty,'text-anchor':'middle',
+      'font-family':'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+      'font-size':'8.5','font-weight': li===0?'600':'400',
+      fill:TEXT_COLOR,'pointer-events':'none'
+    },line));
+  });
+  var hitTop=[p(x0,y0,z1),p(x1,y0,z1),p(x1,y1,z1),p(x0,y1,z1)];
+  var hitPath=svgPoly(hitTop,'transparent',null,0);
+  hitPath.setAttribute('pointer-events','fill');
+  hitPath.addEventListener('mouseenter',function(e){showTooltip(e,b.label);});
+  hitPath.addEventListener('mouseleave',hideTooltip);
+  gEl.appendChild(hitPath);
+
+  parent.appendChild(gEl);
+}
+
+// ── File loading ──────────────────────────────────────────────────
+var dropzone = document.getElementById('dropzone');
+var fileInput = document.getElementById('file-input');
+var fileLabel = document.getElementById('file-label');
+
+function loadHTML(html, filename) {
+  var parser = new DOMParser();
+  var doc = parser.parseFromString(html, 'text/html');
+  var parsed = parseHTMLDoc(doc);
+
+  sceneObjects = buildScene(parsed);
+
+  document.getElementById('st-groups').textContent = 'Groups: '+parsed.groups.length;
+  var boxes = sceneObjects.filter(function(o){return o.type==='box';});
+  document.getElementById('st-boxes').textContent = 'Boxes: '+boxes.length;
+  fileLabel.textContent = filename || doc.title || 'diagram';
+
+  dropzone.classList.remove('active');
+  renderScene(sceneObjects);
+  fitScene();
+}
+
+function readFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) { loadHTML(e.target.result, file.name); };
+  reader.readAsText(file);
+}
+
+// Drag-and-drop on stage
+stage.addEventListener('dragover', function(e){ e.preventDefault(); });
+stage.addEventListener('drop', function(e) {
+  e.preventDefault();
+  var file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.html')) readFile(file);
+});
+
+// File picker
+document.getElementById('btn-open').addEventListener('click', function() {
+  fileInput.click();
+});
+fileInput.addEventListener('change', function() {
+  if (fileInput.files[0]) readFile(fileInput.files[0]);
+  fileInput.value = '';
+});
+
+// ── Toolbar buttons ───────────────────────────────────────────────
+document.getElementById('btn-fit').addEventListener('click', fitScene);
+
+document.getElementById('btn-reset').addEventListener('click', function() {
+  // Reset all drag offsets
+  sceneObjects.forEach(function(o){ if(o.type==='box'){o.dx=0;o.dy=0;} });
+  renderScene(sceneObjects);
+  fitScene();
+});
+
+document.getElementById('btn-export').addEventListener('click', function() {
+  // Clone SVG with current world transform baked in
+  var svgClone = svgEl.cloneNode(true);
+  // Compute bounding box of rendered content
+  var bbox;
+  try { bbox = world.getBBox(); } catch(e) { bbox = {x:0,y:0,width:800,height:600}; }
+  var pad = 40;
+  var vx = (bbox.x - pad)*viewZoom + viewTx;
+  var vy = (bbox.y - pad)*viewZoom + viewTy;
+  var vw = (bbox.width + pad*2)*viewZoom;
+  var vh = (bbox.height + pad*2)*viewZoom;
+  svgClone.setAttribute('viewBox', [vx,vy,vw,vh].join(' '));
+  svgClone.setAttribute('width', vw);
+  svgClone.setAttribute('height', vh);
+
+  var blob = new Blob([svgClone.outerHTML], {type:'image/svg+xml'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (fileLabel.textContent.replace('.html','') || 'iso-diagram')+'.svg';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+// ── Init ──────────────────────────────────────────────────────────
+world = document.getElementById('world');
+applyTransform();
+
+// Allow drop from drag-and-drop anywhere
+document.body.addEventListener('dragover', function(e){e.preventDefault();});
+document.body.addEventListener('drop', function(e){
+  e.preventDefault();
+  var file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.html')) readFile(file);
+});
+
+})();
+</script>
+</body>
+</html>

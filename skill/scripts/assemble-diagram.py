@@ -73,7 +73,22 @@ def inject_canvas(template: str, canvas_html: str) -> str:
     marker_idx = template.find(CANVAS_START)
     if marker_idx == -1:
         sys.exit("ERROR: CANVAS-REPLACE-START marker not found in base template.")
-    line_start = template.rfind("\n", 0, marker_idx)
+    # The CANVAS-REPLACE-START marker is intentionally placed inside an HTML
+    # comment block in the templates. If we replace from the marker line only,
+    # we can accidentally leave behind the opening "<!-- …" line without its
+    # matching "-->" line, which comments out the injected canvas and makes
+    # arch-viewer.html show a blank diagram.
+    #
+    # Fix: if the marker is inside an unclosed HTML comment, start replacement
+    # from the beginning of that comment instead of the marker line.
+    replace_from_idx = marker_idx
+    comment_start = template.rfind("<!--", 0, marker_idx)
+    if comment_start != -1:
+        comment_end_before_marker = template.find("-->", comment_start, marker_idx)
+        if comment_end_before_marker == -1:
+            replace_from_idx = comment_start
+
+    line_start = template.rfind("\n", 0, replace_from_idx)
     line_start = 0 if line_start == -1 else line_start + 1
     end_idx = template.find(CANVAS_END, marker_idx)
     if end_idx == -1:
@@ -134,7 +149,11 @@ def set_footer(template: str, footer: str) -> str:
 def extract_canvas(html: str) -> str:
     """Extract canvas content from an assembled HTML.
     Strips reviewLayer div, edit-mode attributes, and restores ../../ icon paths."""
-    match = re.search(r'<main[^>]*id="diagramCanvas"[^>]*>([\s\S]*?)</main>', html)
+    # The viewer/runbook historically included instructional comments that could
+    # contain literal strings like "</main>", which breaks non-greedy regex
+    # extraction. Strip HTML comments before extracting.
+    html_wo_comments = re.sub(r"<!--[\s\S]*?-->", "", html)
+    match = re.search(r'<main[^>]*id="diagramCanvas"[^>]*>([\s\S]*?)</main>', html_wo_comments)
     if not match:
         sys.exit('ERROR: <main id="diagramCanvas"> not found in HTML')
     content = match.group(1)

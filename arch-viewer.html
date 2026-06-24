@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OCI Architecture Viewer</title>
+<title>Architecture Diagram Viewer</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -86,39 +86,63 @@
     align-items: center;
   }
 
-  /* Version nav in top bar */
+  /* File nav in top bar */
   #verNavInline {
     display: none;
     align-items: center;
-    gap: 1px;
+    gap: 2px;
     background: rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.14);
     border-radius: 16px;
-    padding: 3px 6px;
+    padding: 3px 4px;
     flex-shrink: 0;
   }
-  #verNavInline button {
+  #verNavInline button.nav-arrow {
     background: none;
     border: none;
     color: rgba(255,255,255,0.75);
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 12px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 13px;
     font-family: inherit;
     line-height: 1;
   }
-  #verNavInline button:hover:not(:disabled) { background: rgba(255,255,255,0.14); color: #fff; }
-  #verNavInline button:disabled { opacity: 0.3; cursor: default; }
-  #verNavInline .ver-cur {
-    font-weight: 700;
-    color: #fff;
-    background: rgba(255,255,255,0.13);
-    padding: 2px 9px;
-    border-radius: 12px;
-    font-size: 11px;
+  #verNavInline button.nav-arrow:hover:not(:disabled) { background: rgba(255,255,255,0.14); color: #fff; }
+  #verNavInline button.nav-arrow:disabled { opacity: 0.3; cursor: default; }
+
+  .ver-file-wrap {
+    position: relative;
+    border-left: 1px solid rgba(255,255,255,0.20);
+    border-right: 1px solid rgba(255,255,255,0.20);
+    padding: 0 3px;
   }
-  #verNavInline .ver-sep { color: rgba(255,255,255,0.28); font-size: 9px; padding: 0 1px; }
+  .ver-file-btn {
+    background: none; border: none; cursor: pointer;
+    color: rgba(255,255,255,0.85); font-size: 10.5px;
+    font-family: ui-monospace, "SF Mono", monospace;
+    padding: 2px 8px; border-radius: 10px;
+    display: flex; align-items: center; gap: 4px;
+    max-width: 280px; line-height: 1.4;
+  }
+  .ver-file-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  #verFileName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 230px; }
+  .ver-caret { flex-shrink: 0; font-size: 8px; opacity: 0.6; }
+  .ver-file-dropdown {
+    position: fixed; /* bypasses nav overflow:hidden */
+    background: #1C3540; border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 7px; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    min-width: 200px; max-width: 380px; max-height: 320px; overflow-y: auto;
+    z-index: 9999; display: none;
+  }
+  .ver-dropdown-item {
+    display: block; width: 100%; text-align: left; background: none; border: none;
+    color: rgba(255,255,255,0.75); font-size: 11px; padding: 7px 13px; cursor: pointer;
+    font-family: ui-monospace, "SF Mono", monospace;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .ver-dropdown-item:hover { background: rgba(255,255,255,0.10); color: #fff; }
+  .ver-dropdown-item.active { color: #fff; font-weight: 700; background: rgba(44,89,103,0.45); }
 
   .viewer-nav-right { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
   .nav-btn {
@@ -430,30 +454,33 @@
     <span id="diagTitle"></span>
   </div>
 
-  <!-- Version navigation (shown after load, if version pattern matches) -->
+  <!-- File navigation (shown after load) -->
   <div id="verNavInline">
-    <button id="verPrev" type="button" disabled title="Previous version">&#8592;</button>
-    <span class="ver-sep">|</span>
-    <span class="ver-cur" id="verLabel">v?</span>
-    <span class="ver-sep">|</span>
-    <button id="verNext" type="button" title="Next version">&#8594;</button>
+    <button id="verPrev" type="button" class="nav-arrow" disabled title="Previous">&#8592;</button>
+    <div class="ver-file-wrap">
+      <button id="verFileBtn" type="button" class="ver-file-btn">
+        <span id="verFileName">—</span>
+        <span class="ver-caret">&#9662;</span>
+      </button>
+      <div id="verFileDropdown" class="ver-file-dropdown"></div>
+    </div>
+    <button id="verNext" type="button" class="nav-arrow" title="Next">&#8594;</button>
   </div>
 
   <div class="viewer-nav-right">
-    <span id="fileChip"></span>
     <button class="nav-btn" id="toggleSlideLayout" type="button" style="display:none" title="Toggle slide fit / full view">Slide Layout</button>
     <button class="nav-btn" id="toggleToolbarNav" type="button" style="display:none">Tools</button>
-    <button class="nav-btn" id="openFileBtn" type="button">Open Diagram</button>
+    <button class="nav-btn" id="openFileBtn" type="button">Open Folder</button>
   </div>
 </nav>
 
 <!-- Drop zone -->
 <div id="dropZone">
   <div class="drop-icon"><i class="fa-solid fa-diagram-project"></i></div>
-  <h2 class="drop-title">OCI Architecture Viewer</h2>
-  <p class="drop-sub">Drop a lean diagram HTML file here, or click Open to browse</p>
+  <h2 class="drop-title">Architecture Diagram Viewer</h2>
+  <p class="drop-sub">Drop a diagram HTML file here, or open a folder to browse all diagrams</p>
   <button class="drop-btn" id="dropOpenBtn" type="button">
-    <i class="fa-solid fa-folder-open"></i>&ensp;Open Diagram&hellip;
+    <i class="fa-solid fa-folder-open"></i>&ensp;Open Folder&hellip;
   </button>
   <input type="file" id="fileInput" accept=".html,.htm">
 </div>
@@ -516,6 +543,8 @@
   var SVG_NS = "http://www.w3.org/2000/svg";
   var SLIDE_W = 1366, SLIDE_H = 768;
   var verBase = "", verN = 0, verExt = "";
+  var dirFiles = [];       /* sorted HTML filenames in dirHandle */
+  var currentFileIdx = -1; /* index of current file in dirFiles */
 
   /* ── DOM refs (static) ── */
   var dropZone        = document.getElementById("dropZone");
@@ -526,11 +555,12 @@
   var fileInput       = document.getElementById("fileInput");
   var diagInfo        = document.getElementById("diagInfo");
   var diagTitleEl     = document.getElementById("diagTitle");
-  var fileChipEl      = document.getElementById("fileChip");
   var verNavInline    = document.getElementById("verNavInline");
   var verPrevBtn      = document.getElementById("verPrev");
   var verNextBtn      = document.getElementById("verNext");
-  var verLabelEl      = document.getElementById("verLabel");
+  var verFileBtn      = document.getElementById("verFileBtn");
+  var verFileNameEl   = document.getElementById("verFileName");
+  var verFileDropdown = document.getElementById("verFileDropdown");
   var toggleEditBtn   = document.getElementById("toggleEdit");
   var annotateBtn     = document.getElementById("toggleAnnotate");
   var toggleReorderBtn = document.getElementById("toggleReorder");
@@ -550,21 +580,42 @@
   /* ── Dynamic DOM refs (set after inject) ── */
   var reviewLayerEl, reviewConnectorsEl, reviewMarkupEl, diagramCanvasEl;
 
-  /* ── File open ── */
+  /* ── File open — directory-first ── */
   function triggerFileOpen() {
-    if (window.showOpenFilePicker) {
-      window.showOpenFilePicker({
-        types: [{ description: "HTML Diagrams", accept: { "text/html": [".html", ".htm"] } }]
-      }).then(function (handles) {
-        storedFileHandle = handles[0];
-        loadedFileName = storedFileHandle.name;
-        return storedFileHandle.getFile().then(function (f) { return f.text(); });
-      }).then(function (text) {
-        loadFileText(text);
-      }).catch(function () {});
+    if (window.showDirectoryPicker) {
+      window.showDirectoryPicker({ startIn: storedFileHandle || "documents" })
+        .then(function (dh) {
+          dirHandle = dh;
+          storedFileHandle = null;
+          return scanDir(dh);
+        })
+        .then(function (files) {
+          dirFiles = files;
+          if (!files.length) { showToast("No HTML files found in selected folder."); return; }
+          currentFileIdx = files.length - 1;
+          loadedFileName = files[currentFileIdx];
+          return loadFromDir(dirHandle, loadedFileName);
+        })
+        .catch(function () {});
     } else {
       fileInput.click();
     }
+  }
+
+  /* Scan a directory handle for HTML files; returns sorted array of filenames */
+  function scanDir(dh) {
+    var files = [];
+    var iter = dh.values();
+    return new Promise(function (resolve) {
+      function step(result) {
+        if (result.done) { files.sort(); resolve(files); return; }
+        if (result.value.kind === "file" && /\.html?$/i.test(result.value.name)) {
+          files.push(result.value.name);
+        }
+        iter.next().then(step).catch(function () { files.sort(); resolve(files); });
+      }
+      iter.next().then(step).catch(function () { resolve([]); });
+    });
   }
 
   fileInput.addEventListener("change", function () {
@@ -573,6 +624,8 @@
     loadedFileName = file.name;
     storedFileHandle = null;
     dirHandle = null;
+    dirFiles = [];
+    currentFileIdx = -1;
     file.text().then(loadFileText);
   });
 
@@ -590,7 +643,26 @@
     loadedFileName = file.name;
     storedFileHandle = null;
     dirHandle = null;
-    file.text().then(loadFileText);
+    dirFiles = [];
+    currentFileIdx = -1;
+    file.text().then(function (text) {
+      loadFileText(text);
+      /* Immediately request directory access so navigation works without a second prompt */
+      if (window.showDirectoryPicker) {
+        showToast("Grant folder access to enable prev \u2215 next navigation\u2026", 4500);
+        window.showDirectoryPicker({ startIn: "documents" })
+          .then(function (dh) {
+            dirHandle = dh;
+            return scanDir(dh);
+          })
+          .then(function (files) {
+            dirFiles = files;
+            currentFileIdx = files.indexOf(loadedFileName);
+            buildFileDropdown();
+          })
+          .catch(function () {});
+      }
+    });
   });
 
   /* ── URL ?file= param ── */
@@ -614,9 +686,14 @@
     var cssMatch = text.match(/\/\*\s*DIAGRAM-CSS-START\s*\*\/([\s\S]*?)\/\*\s*DIAGRAM-CSS-END\s*\*\//);
     diagramCss = cssMatch ? cssMatch[1].trim() : "";
 
-    /* Extract canvas content */
-    var canvasMatch = text.match(/<main[^>]*id="diagramCanvas"[^>]*>([\s\S]*?)<\/main>/i);
-    var canvasHtml = canvasMatch ? canvasMatch[1] : "<p style='padding:20px'>No canvas content found.</p>";
+    /* Extract canvas content (DOMParser is safer than regex; avoids false early </main> matches inside comments) */
+    var parsedDoc = null;
+    try {
+      parsedDoc = new DOMParser().parseFromString(text, "text/html");
+    } catch (e) {}
+
+    var mainEl = parsedDoc && parsedDoc.querySelector ? parsedDoc.querySelector("main#diagramCanvas") : null;
+    var canvasHtml = mainEl ? mainEl.innerHTML : "<p style='padding:20px'>No canvas content found.</p>";
     /* Strip reviewLayer from canvas if present (we inject our own) */
     canvasHtml = canvasHtml.replace(/<div[^>]*id="reviewLayer"[\s\S]*?<\/div>\s*/i, "");
 
@@ -626,13 +703,22 @@
     canvasHtml = canvasHtml.replace(/\bsrc="\.\.\/\.\.\//g, 'src="');
     canvasHtml = canvasHtml.replace(/\bhref="\.\.\/\.\.\//g, 'href="');
 
-    /* Extract metadata */
-    var titleMatch = text.match(/<h1[^>]*class="diagram-title"[^>]*>([\s\S]*?)<\/h1>/i);
-    var subMatch   = text.match(/<p[^>]*class="diagram-sub"[^>]*>([\s\S]*?)<\/p>/i);
-    var footerMatch= text.match(/<footer[^>]*class="diagram-footer"[^>]*>([\s\S]*?)<\/footer>/i);
-    loadedTitle    = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : loadedFileName;
-    loadedSub      = subMatch   ? subMatch[1].replace(/<[^>]+>/g, "").trim() : "";
-    loadedFooterHtml = footerMatch ? footerMatch[1] : "";
+    /* Extract metadata (prefer parsed DOM, fallback to regex) */
+    if (parsedDoc && parsedDoc.querySelector) {
+      var titleEl = parsedDoc.querySelector(".diagram-title");
+      var subEl = parsedDoc.querySelector(".diagram-sub");
+      var footerEl = parsedDoc.querySelector(".diagram-footer");
+      loadedTitle = titleEl ? (titleEl.textContent || "").trim() : loadedFileName;
+      loadedSub = subEl ? (subEl.textContent || "").trim() : "";
+      loadedFooterHtml = footerEl ? footerEl.innerHTML : "";
+    } else {
+      var titleMatch = text.match(/<h1[^>]*class="diagram-title"[^>]*>([\s\S]*?)<\/h1>/i);
+      var subMatch   = text.match(/<p[^>]*class="diagram-sub"[^>]*>([\s\S]*?)<\/p>/i);
+      var footerMatch= text.match(/<footer[^>]*class="diagram-footer"[^>]*>([\s\S]*?)<\/footer>/i);
+      loadedTitle    = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : loadedFileName;
+      loadedSub      = subMatch   ? subMatch[1].replace(/<[^>]+>/g, "").trim() : "";
+      loadedFooterHtml = footerMatch ? footerMatch[1] : "";
+    }
 
     /* Build injected HTML — canvas only, no inner nav/header */
     var styleTag = diagramCss ? '<style id="diagramInjectedCss">' + diagramCss + "</style>" : "";
@@ -652,6 +738,14 @@
         '</div>' +
       '</div>';
 
+    /* Execute <script> elements in injected content — innerHTML silently skips them */
+    diagramMount.querySelectorAll('script').forEach(function(old) {
+      var ns = document.createElement('script');
+      for (var i = 0; i < old.attributes.length; i++) ns.setAttribute(old.attributes[i].name, old.attributes[i].value);
+      ns.textContent = old.textContent;
+      old.parentNode.replaceChild(ns, old);
+    });
+
     /* Wire dynamic refs */
     reviewLayerEl      = document.getElementById("reviewLayer");
     reviewConnectorsEl = document.getElementById("reviewConnectors");
@@ -670,10 +764,8 @@
 
     /* Update viewer nav */
     diagTitleEl.textContent = loadedTitle;
-    fileChipEl.textContent  = loadedFileName;
     diagInfo.style.display  = "flex";
-    fileChipEl.style.display = "inline-flex";
-    document.title = loadedTitle + " — OCI Viewer";
+    document.title = loadedTitle + " \u2014 Arch Viewer";
 
     /* Reset toolbar state */
     editMode = false;
@@ -738,46 +830,100 @@
 
   window.addEventListener("resize", function () { if (slideLayout) applySlideScale(); });
 
-  /* ── Version navigation ── */
+  /* ── File navigation ── */
   function setupVersionNav() {
-    var m = loadedFileName.match(/^(.+?)-v(\d+)(\.html?)$/i);
-    if (!m) { verNavInline.style.display = "none"; return; }
-    verBase = m[1]; verN = parseInt(m[2], 10); verExt = m[3];
-    verLabelEl.textContent = "v" + verN;
-    verPrevBtn.disabled = (verN <= 1);
+    /* Update filename chip */
+    if (verFileNameEl) verFileNameEl.textContent = loadedFileName;
+
+    /* Buttons are always enabled — clicking shows a toast if nothing is there yet */
+    verPrevBtn.disabled = false;
     verNextBtn.disabled = false;
+
+    if (dirFiles.length > 0) {
+      currentFileIdx = dirFiles.indexOf(loadedFileName);
+      buildFileDropdown();
+    } else {
+      /* Fallback: extract version base/n/ext for legacy regex nav */
+      var m = loadedFileName.match(/^(.+?)-v(\d+)(\.html?)$/i);
+      if (m) { verBase = m[1]; verN = parseInt(m[2], 10); verExt = m[3]; }
+    }
     verNavInline.style.display = "flex";
   }
 
-  verPrevBtn.addEventListener("click", function () { loadVersion(verN - 1); });
-  verNextBtn.addEventListener("click", function () { loadVersion(verN + 1); });
-
-  function loadVersion(n) {
-    if (n < 1) return;
-    var name = verBase + "-v" + n + verExt;
-
-    /* Already have folder permission — try directly */
-    if (dirHandle) {
-      loadFromDir(dirHandle, name);
-      return;
-    }
-
-    /* No folder permission yet — request it once via directory picker.
-       Once granted, subsequent prev/next clicks go straight to loadFromDir. */
-    if (!window.showDirectoryPicker) {
-      showToast("Folder access not supported in this browser. Use Open Diagram to load " + name + ".");
-      return;
-    }
-    var startIn = storedFileHandle || "documents";
-    showToast("Select the folder containing your diagrams to enable navigation…", 5000);
-    window.showDirectoryPicker({ startIn: startIn })
-      .then(function (dh) {
-        dirHandle = dh;
-        loadFromDir(dh, name);
-      })
-      .catch(function () {
-        /* User cancelled picker — do nothing */
+  function buildFileDropdown() {
+    if (!verFileDropdown) return;
+    verFileDropdown.innerHTML = "";
+    dirFiles.forEach(function (name, idx) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "ver-dropdown-item" + (idx === currentFileIdx ? " active" : "");
+      item.textContent = name;
+      item.addEventListener("click", function () {
+        verFileDropdown.style.display = "none";
+        if (idx === currentFileIdx) return;
+        currentFileIdx = idx;
+        loadedFileName = name;
+        loadFromDir(dirHandle, name);
       });
+      verFileDropdown.appendChild(item);
+    });
+  }
+
+  verFileBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var hidden = verFileDropdown.style.display === "none" || verFileDropdown.style.display === "";
+    if (hidden) {
+      /* Position below the button using fixed coords */
+      var rect = verFileBtn.getBoundingClientRect();
+      var dropW = Math.max(240, Math.min(380, rect.width + 40));
+      var left  = rect.left + rect.width / 2 - dropW / 2;
+      /* Clamp so it doesn't go off-screen */
+      left = Math.max(8, Math.min(left, window.innerWidth - dropW - 8));
+      verFileDropdown.style.top    = (rect.bottom + 6) + "px";
+      verFileDropdown.style.left   = left + "px";
+      verFileDropdown.style.width  = dropW + "px";
+      verFileDropdown.style.transform = "none";
+    }
+    verFileDropdown.style.display = hidden ? "block" : "none";
+    if (hidden) {
+      var active = verFileDropdown.querySelector(".ver-dropdown-item.active");
+      if (active) active.scrollIntoView({ block: "nearest" });
+    }
+  });
+
+  document.addEventListener("click", function () {
+    if (verFileDropdown) verFileDropdown.style.display = "none";
+  });
+
+  verPrevBtn.addEventListener("click", function () { loadRelative(-1); });
+  verNextBtn.addEventListener("click", function () { loadRelative(+1); });
+
+  function loadRelative(delta) {
+    /* No directory open — ask user to open one first */
+    if (!dirHandle) {
+      showToast("Click \u201cOpen Folder\u201d to load a directory first.");
+      return;
+    }
+
+    /* Re-scan directory so newly dropped files are always picked up */
+    scanDir(dirHandle).then(function (files) {
+      dirFiles = files;
+      currentFileIdx = files.indexOf(loadedFileName);
+      buildFileDropdown();
+
+      var newIdx = currentFileIdx + delta;
+      if (newIdx < 0) {
+        showToast("Already at the first diagram in this folder.");
+        return;
+      }
+      if (newIdx >= files.length) {
+        showToast("No newer diagram found yet \u2014 drop the next version into the folder and try again.");
+        return;
+      }
+      currentFileIdx = newIdx;
+      loadedFileName = files[newIdx];
+      loadFromDir(dirHandle, loadedFileName);
+    });
   }
 
   function loadFromDir(dh, name) {
@@ -791,8 +937,7 @@
         injectDiagram(text);
       })
       .catch(function () {
-        /* File doesn't exist yet — friendly toast, no extra dialogs */
-        showToast(name + " not found in folder (may not exist yet).");
+        showToast(name + " not found in folder.");
       });
   }
 
